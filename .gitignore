@@ -1,0 +1,14 @@
+.DS_Store
+*.icloud
+
+xcuserdata/
+DerivedData/
+build/
+.build/
+
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+.swiftpm/
