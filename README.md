@@ -1,6 +1,24 @@
 # 지미집
 
-## 팀원
+## [Project/App Name]
+[Logo/Cover Image]
+
+[App statement]
+
+
+## Screenshots
+[Attach photos if you are available]
+
+
+## Features
+[Feature 1]
+[Feature 2]
+[Feature 3]
+
+## Skills & Tech Stack
+Swift, SwiftUI, Figma
+
+## Authors
 
 |<img src="https://avatars.githubusercontent.com/u/275703915?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/275710831?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/277697799?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/275496583?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/163941394?v=4" width="125" />|<img src="https://avatars.githubusercontent.com/u/176254419?v=4" width="125" />|
 |:---------:|:---------:|:---------:|:----------:|:---------:|:---------:|
