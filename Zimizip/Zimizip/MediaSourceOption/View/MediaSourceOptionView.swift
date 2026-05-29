@@ -28,15 +28,15 @@ struct MediaSourceOptionView: View {
             .navigationDestination(
                 item: $media
             ) { media in
-                MediaEditView(imageData: media.imageData)
+                MediaEditView(mediaSource: media.source)
             }
         }
         .task(id: selectedMedia) {
-            guard let imageData = try? await selectedMedia?.loadTransferable(type: Data.self) else {
+            guard let selectedMediaSource = try? await selectedMedia?.loadTransferable(type: Data.self) else {
                 return
             }
 
-            media = Media(imageData: imageData)
+            media = Media(source: selectedMediaSource)
             selectedMedia = nil
         }
     }
