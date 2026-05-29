@@ -8,14 +8,12 @@ struct MediaSourceOptionView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
-                PhotosPicker(
-                    selection: $selectedMedia,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
-                    Text("갤러리에서 불러오기")
-                }
+            PhotosPicker(
+                selection: $selectedMedia,
+                matching: .images,
+                photoLibrary: .shared()
+            ) {
+                Text("갤러리에서 불러오기")
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationDestination(
