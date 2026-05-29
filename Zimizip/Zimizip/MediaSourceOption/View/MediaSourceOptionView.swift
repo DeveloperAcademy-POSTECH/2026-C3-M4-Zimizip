@@ -23,11 +23,11 @@ struct MediaSourceOptionView: View {
             }
         }
         .task(id: selectedMedia) {
-            guard let media = await viewModel.importMedia(from: selectedMedia) else {
+            guard let selectedMediaSource = try? await selectedMedia?.loadTransferable(type: Data.self) else {
                 return
             }
 
-            self.media = media
+            media = viewModel.importMedia(from: selectedMediaSource)
             selectedMedia = nil
         }
     }
