@@ -2,6 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct MediaSourceOptionView: View {
+    private let viewModel = MediaSourceOptionViewModel()
     @State private var selectedMedia: PhotosPickerItem?
     @State private var media: Media?
 
@@ -24,11 +25,11 @@ struct MediaSourceOptionView: View {
             }
         }
         .task(id: selectedMedia) {
-            guard let selectedMediaSource = try? await selectedMedia?.loadTransferable(type: Data.self) else {
+            guard let media = await viewModel.importMedia(from: selectedMedia) else {
                 return
             }
 
-            media = Media(source: selectedMediaSource)
+            self.media = media
             selectedMedia = nil
         }
     }
