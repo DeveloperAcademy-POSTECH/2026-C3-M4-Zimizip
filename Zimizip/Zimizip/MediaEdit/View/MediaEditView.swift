@@ -2,11 +2,11 @@ import SwiftUI
 import UIKit
 
 struct MediaEditView: View {
-    let imageData: Data
+    let media: Data
 
     var body: some View {
         VStack {
-            if let image = UIImage(data: imageData) {
+            if let image = UIImage(data: media) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
@@ -21,5 +21,5 @@ struct MediaEditView: View {
 }
 
 #Preview {
-    MediaEditView(imageData: Data())
+    MediaEditView(media: Data())
 }
