@@ -28,7 +28,7 @@ struct MediaSourceOptionView: View {
             .navigationDestination(
                 item: $media
             ) { media in
-                MediaEditView(mediaSource: media.source)
+                MediaEditView(media: media.source)
             }
         }
         .task(id: selectedMedia) {
