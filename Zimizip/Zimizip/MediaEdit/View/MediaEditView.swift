@@ -12,7 +12,6 @@ struct MediaEditView: View {
                     .scaledToFit()
             } else {
                 Text("사진을 불러올 수 없어요")
-                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

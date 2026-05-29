@@ -14,15 +14,7 @@ struct MediaSourceOptionView: View {
                     photoLibrary: .shared()
                 ) {
                     Text("갤러리에서 불러오기")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color.accentColor)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 24)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationDestination(
