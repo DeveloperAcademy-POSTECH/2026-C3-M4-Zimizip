@@ -1,28 +1,44 @@
 import SwiftUI
 
 struct EditToolBar: View {
+
     var body: some View {
         HStack(spacing: 22) {
             ForEach(EditTool.allCases) { tool in
-                Button {
-                } label: {
-                    VStack {
-                        Image(systemName: tool.systemImageName)
-                            .font(.system(size: 30, weight: .regular))
-                            .frame(width: 36, height: 36)
-                        
-                        Spacer()
-                            .frame(height: 26)
-
-                        Text(tool.title)
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(.black)
-                    }
-                }
-                .buttonStyle(.plain)
+                EditToolButton(
+                    title: tool.title,
+                    systemImageName: tool.systemImageName,
+                    action: {}
+                )
             }
         }
         .padding(.horizontal, 22)
+    }
+}
+
+private struct EditToolButton: View {
+    let title: String
+    let systemImageName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            VStack {
+                Image(systemName: systemImageName)
+                    .font(.system(size: 30, weight: .regular))
+                    .frame(width: 36, height: 36)
+
+                Spacer()
+                    .frame(height: 26)
+
+                Text(title)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.black)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
