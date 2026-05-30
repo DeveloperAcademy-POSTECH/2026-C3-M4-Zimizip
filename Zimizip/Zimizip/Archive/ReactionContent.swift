@@ -1,5 +1,11 @@
 import Foundation
+import SwiftData
 
-struct ReactionContent {
-    let videoURL: URL
+@Model
+final class ReactionContent {
+    var videoURL: URL
+
+    init(videoURL: URL) {
+        self.videoURL = videoURL
+    }
 }
