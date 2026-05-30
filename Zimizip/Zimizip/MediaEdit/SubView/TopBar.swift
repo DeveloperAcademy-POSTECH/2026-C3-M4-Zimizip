@@ -17,6 +17,7 @@ struct TopBar: View {
             .padding(.vertical, 18)
             .padding(.horizontal, 10)
             .padding(.trailing, 18)
+            .buttonStyle(.plain)
             
             Spacer()
             
