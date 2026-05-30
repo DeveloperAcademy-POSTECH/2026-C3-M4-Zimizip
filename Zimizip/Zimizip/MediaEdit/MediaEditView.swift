@@ -27,8 +27,6 @@ struct MediaEditView: View {
                 .padding(.horizontal, 14)
         }
         .background(Color.white)
-        .navigationBarBackButtonHidden(true)
-        .toolbar(.hidden, for: .navigationBar)
     }
 }
 

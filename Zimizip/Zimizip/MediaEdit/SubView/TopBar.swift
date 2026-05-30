@@ -12,7 +12,6 @@ struct TopBar: View {
                 backButtonAction()
             } label: {
                 Image(systemName: "chevron.left")
-                    .foregroundStyle(.black)
             }
             .frame(width: 28, height: 28)
             .padding(.vertical, 18)

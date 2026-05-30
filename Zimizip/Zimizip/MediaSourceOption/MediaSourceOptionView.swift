@@ -19,6 +19,8 @@ struct MediaSourceOptionView: View {
                 item: $media
             ) { media in
                 MediaEditView(media: media.source)
+                    .navigationBarBackButtonHidden(true)
+                    .toolbar(.hidden, for: .navigationBar)
             }
         }
         .task(id: selectedMedia) {
