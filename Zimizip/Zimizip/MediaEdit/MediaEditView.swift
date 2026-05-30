@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct MediaEditView: View {
     @Environment(\.dismiss) private var dismiss
@@ -17,11 +16,11 @@ struct MediaEditView: View {
                 nextButtonAction: {}
             )
 
-            Spacer(minLength: 0)
+            Spacer()
 
-            mediaPreview
+            MediaPreview(media: media)
 
-            Spacer(minLength: 0)
+            Spacer()
 
             EditToolBar()
                 .padding(.bottom, 75)
@@ -30,23 +29,6 @@ struct MediaEditView: View {
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-    }
-
-    private var mediaPreview: some View {
-        Group {
-            if let image = UIImage(data: media) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 374, maxHeight: 504)
-            } else {
-                Text("사진을 불러올 수 없어요")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: 374, minHeight: 374)
-            }
-        }
-        .frame(maxWidth: .infinity)
     }
 }
 
