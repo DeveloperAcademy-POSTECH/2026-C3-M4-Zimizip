@@ -8,7 +8,14 @@ struct MediaEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            TopBar(
+                title: "사진 편집",
+                nextButtonTitle: "다음",
+                backButtonAction: {
+                    dismiss()
+                },
+                nextButtonAction: {}
+            )
 
             Spacer(minLength: 0)
 
@@ -18,44 +25,11 @@ struct MediaEditView: View {
 
             editToolBar
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 34)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 24)
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-    }
-
-    private var header: some View {
-        ZStack {
-            Text("사진 편집")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.black)
-
-            HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 24, weight: .regular))
-                        .foregroundStyle(.black)
-                        .frame(width: 44, height: 44)
-                }
-
-                Spacer()
-
-                Button {
-                } label: {
-                    Text("다음")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .frame(height: 46)
-                        .background(Color.blue)
-                        .clipShape(Capsule())
-                }
-            }
-        }
-        .frame(height: 72)
     }
 
     private var mediaPreview: some View {
@@ -76,14 +50,13 @@ struct MediaEditView: View {
     }
 
     private var editToolBar: some View {
-        HStack(spacing: 0) {
+        HStack {
             ForEach(EditTool.allCases) { tool in
                 Button {
                 } label: {
-                    VStack(spacing: 14) {
+                    VStack {
                         Image(systemName: tool.systemImageName)
                             .font(.system(size: 34, weight: .regular))
-                            .foregroundStyle(.black.opacity(0.78))
                             .frame(width: 44, height: 44)
 
                         Text(tool.title)
