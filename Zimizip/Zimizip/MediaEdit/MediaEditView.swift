@@ -23,7 +23,9 @@ struct MediaEditView: View {
 
             Spacer(minLength: 0)
 
-            editToolBar
+            EditToolBar()
+                .padding(.bottom, 75)
+                .padding(.horizontal, 14)
         }
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
@@ -45,73 +47,6 @@ struct MediaEditView: View {
             }
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var editToolBar: some View {
-        HStack {
-            ForEach(EditTool.allCases) { tool in
-                Button {
-                } label: {
-                    VStack {
-                        Image(systemName: tool.systemImageName)
-                            .font(.system(size: 34, weight: .regular))
-                            .frame(width: 44, height: 44)
-
-                        Text(tool.title)
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(.black)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .frame(height: 104)
-    }
-}
-
-private enum EditTool: CaseIterable, Identifiable {
-    case filter
-    case crop
-    case detail
-    case text
-    case sticker
-    case ratio
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .filter:
-            return "필터"
-        case .crop:
-            return "자르기"
-        case .detail:
-            return "세밀 보정"
-        case .text:
-            return "텍스트"
-        case .sticker:
-            return "스티커"
-        case .ratio:
-            return "비율"
-        }
-    }
-
-    var systemImageName: String {
-        switch self {
-        case .filter:
-            return "circle.lefthalf.filled"
-        case .crop:
-            return "crop"
-        case .detail:
-            return "sparkles"
-        case .text:
-            return "textformat"
-        case .sticker:
-            return "face.smiling"
-        case .ratio:
-            return "aspectratio"
-        }
     }
 }
 
