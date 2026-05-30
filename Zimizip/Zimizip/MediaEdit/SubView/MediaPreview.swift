@@ -10,7 +10,6 @@ struct MediaPreview: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: 374, maxHeight: 504)
             } else {
                 Text("사진을 불러올 수 없어요")
             }
