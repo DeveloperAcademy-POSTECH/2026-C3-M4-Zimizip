@@ -5,39 +5,41 @@ struct TopBar: View {
     let nextButtonTitle: String
     let backButtonAction: () -> Void
     let nextButtonAction: () -> Void
-
+    
     var body: some View {
-        ZStack {
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.black)
-
-            HStack {
-                Button {
-                    backButtonAction()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 24, weight: .regular))
-                        .foregroundStyle(.black)
-                        .frame(width: 44, height: 44)
-                }
-
-                Spacer()
-
-                Button {
-                    nextButtonAction()
-                } label: {
-                    Text(nextButtonTitle)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .frame(height: 46)
-                        .background(Color.blue)
-                        .clipShape(Capsule())
-                }
+        HStack {
+            Button {
+                backButtonAction()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .foregroundStyle(.black)
             }
+            .frame(width: 28, height: 28)
+            .padding(.vertical, 18)
+            .padding(.horizontal, 10)
+            .padding(.trailing, 18)
+            
+            Spacer()
+            
+            Text(title)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(.black)
+            
+            Spacer()
+            
+            Button {
+                nextButtonAction()
+            } label: {
+                Text(nextButtonTitle)
+                    .frame(width: 56, height: 34)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundStyle(.white)
+                    .background(.blue)
+                    .clipShape(Capsule())
+            }
+            .padding(.vertical, 15)
+            .padding(.horizontal, 10)
         }
-        .frame(height: 72)
     }
 }
 

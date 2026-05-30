@@ -7,7 +7,7 @@ struct MediaEditView: View {
     let media: Data
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack {
             TopBar(
                 title: "사진 편집",
                 nextButtonTitle: "다음",
@@ -25,8 +25,6 @@ struct MediaEditView: View {
 
             editToolBar
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 24)
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
