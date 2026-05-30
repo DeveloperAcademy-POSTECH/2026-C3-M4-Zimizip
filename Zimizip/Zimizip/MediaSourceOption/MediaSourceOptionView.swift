@@ -2,7 +2,6 @@ import PhotosUI
 import SwiftUI
 
 struct MediaSourceOptionView: View {
-    private let viewModel = MediaSourceOptionViewModel()
     @State private var selectedMedia: PhotosPickerItem?
     @State private var media: Media?
 
@@ -27,7 +26,7 @@ struct MediaSourceOptionView: View {
                 return
             }
 
-            media = viewModel.importMedia(from: selectedMediaSource)
+            media = Media(source: selectedMediaSource)
             selectedMedia = nil
         }
     }
