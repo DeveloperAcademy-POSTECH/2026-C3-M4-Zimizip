@@ -9,34 +9,46 @@ import SwiftUI
 
 struct IntroductionView: View {
     var body: some View {
-       
-        VStack{
-            
-            Spacer()
-                .frame(height: 20)
-            
-            Rectangle()
-                .frame(width: 290, height: 372)
-            
-            Spacer()
-                .frame(height: 70)
-            
-            Text("특별한 순간을\n더 특별하게")
-            
-            Spacer()
-                .frame(height: 16)
-            
-            Text("서프라이즈를 준비하고\n그날의 모든 순간을 기록하세요")
-            
-            Spacer()
-                .frame(height: 70)
-            
-            Button("시작하기") {
-            
+        ZStack {
+            Color(red: 248 / 255, green: 243 / 255, blue: 239 / 255)
+                .ignoresSafeArea()
+
+            VStack {
+                Spacer()
+                    .frame(height: 430)
+
+                Text("상대를 깜짝 놀라게 할 사진을\n예쁘게 포장하고 슬쩍 건네보세요")
+                    .font(.system(size: 20, weight: .semibold))
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(Color(red: 1, green: 0.42, blue: 0.13))
+                        .frame(width: 8, height: 8)
+
+                    Circle()
+                        .fill(.gray.opacity(0.3))
+                        .frame(width: 8, height: 8)
+                }
+                .padding(.top, 53)
+
+                Spacer()
             }
-            Spacer()
-                .frame(height: 74)
-            
+
+            VStack {
+                Spacer()
+
+                Button("다음") {
+                }
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(Color(red: 1, green: 0.42, blue: 0.13))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .padding(.horizontal, 20)
+                .padding(.bottom, 59)
+            }
         }
     }
 }
