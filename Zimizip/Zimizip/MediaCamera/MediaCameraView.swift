@@ -10,12 +10,34 @@ import Combine
 import SwiftUI
 
 struct MediaCameraView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
 
     var body: some View {
         ZStack {
             CameraPreviewView(session: camera.session)
                 .ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .padding(12)
+                            .background(Color.black.opacity(0.5))
+                            .clipShape(Circle())
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+
+                Spacer()
+            }
 
             if camera.cameraAccessDenied || camera.cameraErrorMessage != nil {
                 Color.black.opacity(0.7)
