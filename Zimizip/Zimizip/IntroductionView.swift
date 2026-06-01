@@ -1,9 +1,3 @@
-//
-//  IntroductionView.swift
-//  Zimizip
-//
-//  Created by Sunny Side-Up on 5/29/26.
-//
 
 import SwiftUI
 
@@ -37,7 +31,7 @@ struct IntroductionView: View {
                 Button("다음") {
                     
                 }
-                .font(.system(size: 16, weight: .bold))
+                .font(Font.custom("Pretendard-Bold", size: 16))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
