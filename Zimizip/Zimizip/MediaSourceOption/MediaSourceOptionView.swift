@@ -37,12 +37,17 @@ struct MediaSourceOptionView: View {
                     }
                     .padding(.bottom, 60)
 
-                    MediaSourceOptionItemView(
-                        icon: "camera",
-                        title: "직접 촬영하기",
-                        subtitle: "서프라이즈를 할 순간을\n바로 담아보세요",
-                        isSelected: false
-                    )
+                    Button {
+                        isShowingCamera = true
+                    } label: {
+                        MediaSourceOptionItemView(
+                            icon: "camera",
+                            title: "직접 촬영하기",
+                            subtitle: "서프라이즈를 할 순간을\n바로 담아보세요",
+                            isSelected: false
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     Spacer()
                         .frame(height: 20)
@@ -71,7 +76,9 @@ struct MediaSourceOptionView: View {
                     .toolbar(.hidden, for: .navigationBar)
             }
             .fullScreenCover(isPresented: $isShowingCamera) {
-                MediaCameraView()
+                MediaCameraView { photoData in
+                    media = Media(source: photoData)
+                }
             }
         }
         .task(id: selectedMedia) {
