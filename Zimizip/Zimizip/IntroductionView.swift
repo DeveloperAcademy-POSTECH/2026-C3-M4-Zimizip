@@ -33,12 +33,9 @@ struct IntroductionView: View {
                 .padding(.top, 53)
 
                 Spacer()
-            }
-
-            VStack {
-                Spacer()
-
+                
                 Button("다음") {
+                    
                 }
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
