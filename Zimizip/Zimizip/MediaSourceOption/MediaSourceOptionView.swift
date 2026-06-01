@@ -8,27 +8,64 @@ struct MediaSourceOptionView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                PhotosPicker(
-                    selection: $selectedMedia,
-                    matching: .images,
-                    photoLibrary: .shared()
-                ) {
-                    Text("갤러리에서 불러오기")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
+            ZStack {
+                Color(red: 248 / 255, green: 243 / 255, blue: 239 / 255)
+                    .ignoresSafeArea()
 
-                Button("카메라로 촬영하기") {
-                    isShowingCamera = true
+                VStack(alignment: .leading) {
+                    Button {
+
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
+                            .frame(width: 38, height: 38)
+                            .background(.white.opacity(0.75))
+                            .clipShape(Circle())
+                    }
+                    .padding(.vertical, 13)
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("어떤 방식으로\n시작해볼까요?")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
+
+                        Text("서프라이즈 사진을 준비하는\n방법을 선택해주세요")
+                            .font(.system(size: 18))
+                            .foregroundStyle(Color(red: 129 / 255, green: 121 / 255, blue: 115 / 255))
+                            .lineSpacing(4)
+                    }
+                    .padding(.bottom, 60)
+
+                    MediaSourceOptionItemView(
+                        icon: "camera",
+                        title: "직접 촬영하기",
+                        subtitle: "서프라이즈를 할 순간을\n바로 담아보세요",
+                        isSelected: false
+                    )
+
+                    Spacer()
+                        .frame(height: 20)
+
+                    PhotosPicker(
+                        selection: $selectedMedia,
+                        matching: .images,
+                        photoLibrary: .shared()
+                    ) {
+                        MediaSourceOptionItemView(
+                            icon: "photo",
+                            title: "갤러리에서 불러오기",
+                            subtitle: "이미 저장된 사진으로\n시작해보세요",
+                            isSelected: false
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
                 }
-                .buttonStyle(.bordered)
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .navigationDestination(
-                item: $media
-            ) { media in
+            .navigationDestination(item: $media) { media in
                 MediaEditView(media: media.source)
                     .navigationBarBackButtonHidden(true)
                     .toolbar(.hidden, for: .navigationBar)
