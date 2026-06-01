@@ -41,12 +41,6 @@ final class SwiftDataSurpriseProjectStore: SurpriseProjectStore {
     }
 
     func delete(_ surpriseProject: SurpriseProject) throws {
-        for reactionContent in surpriseProject.reactionContents {
-            modelContext.delete(reactionContent)
-        }
-
-        modelContext.delete(surpriseProject.content.media)
-        modelContext.delete(surpriseProject.content)
         modelContext.delete(surpriseProject)
         try modelContext.save()
     }
