@@ -18,7 +18,7 @@ struct IntroductionView: View {
                     .frame(height: 430)
 
                 Text("상대를 깜짝 놀라게 할 사진을\n예쁘게 포장하고 슬쩍 건네보세요")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(Font.custom("Pretendard-SemiBold", size: 20))
                     .multilineTextAlignment(.center)
 
                 HStack(spacing: 5) {
