@@ -10,7 +10,7 @@ import SwiftUI
 struct IntroductionView: View {
     var body: some View {
         ZStack {
-            Color(red: 248 / 255, green: 243 / 255, blue: 239 / 255)
+            Color.backgroundPrimary
                 .ignoresSafeArea()
 
             VStack {
