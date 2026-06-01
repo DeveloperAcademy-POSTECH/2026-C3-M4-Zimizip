@@ -18,7 +18,7 @@ struct MediaCameraView: View {
     @State private var gridMode: CameraGridMode = .off
     @State private var selectedManualControl: CameraManualControl?
 
-    let onPhotoCaptured: (Data) -> Void
+    let onPhotoCaptured: ((Data) -> Void)? = nil
 
     var body: some View {
         GeometryReader { proxy in
@@ -190,7 +190,7 @@ struct MediaCameraView: View {
                                         return
                                     }
 
-                                    onPhotoCaptured(photoData)
+                                    onPhotoCaptured?(photoData)
                                     dismiss()
                                 }
                             },
@@ -236,5 +236,5 @@ struct MediaCameraView: View {
 }
 
 #Preview {
-    MediaCameraView { _ in }
+    MediaCameraView()
 }
