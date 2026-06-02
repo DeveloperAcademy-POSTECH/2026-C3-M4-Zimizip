@@ -12,6 +12,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var isoRange: ClosedRange<Float> = 50...6400
     @Published private(set) var currentShutterDuration: Double?
     @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
+    @Published private(set) var whiteBalancePreset: CameraWhiteBalancePreset = .auto
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
@@ -158,7 +159,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         case .iso:
             currentISO.map(Self.isoDisplayString(for:)) ?? "AUTO"
         case .whiteBalance:
-            CameraManualControl.defaultDisplayValues[control] ?? "AWB"
+            whiteBalancePreset.shortLabel
         }
     }
 
