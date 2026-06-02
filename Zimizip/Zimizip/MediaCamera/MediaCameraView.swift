@@ -12,9 +12,9 @@ struct MediaCameraView: View {
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
-    @State private var temporaryISOValue: Double = 100
     @State private var temporaryWhiteBalancePreset: CameraTemporaryWhiteBalancePreset = .auto
     @State private var pendingShutterDuration: Double?
+    @State private var pendingISO: Float?
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -163,6 +163,18 @@ struct MediaCameraView: View {
                 )
             }
         }
+        .onChange(of: camera.currentISO) { _, newValue in
+            guard pendingISO != nil else {
+                return
+            }
+
+            pendingISO = newValue.map {
+                CameraPreviewModel.nearestStandardISO(
+                    to: $0,
+                    in: camera.isoRange
+                )
+            }
+        }
     }
 
     private func capturePhoto() {
@@ -239,13 +251,37 @@ struct MediaCameraView: View {
             )
             .transition(.opacity)
         case .iso:
-            CameraAdjustmentSlider(
-                value: $temporaryISOValue,
-                lowerLabel: "50",
+            let isoValues = CameraPreviewModel.standardISOs(in: camera.isoRange)
+            let isoSliderBounds = 0.0...max(Double(isoValues.count - 1), 0.0)
+
+            CameraAutoAdjustmentSlider(
+                isAuto: camera.currentISO == nil,
+                autoLabel: "Auto",
+                lowerLabel: isoValues.first.map(CameraPreviewModel.isoDisplayString(for:)) ?? "AUTO",
                 centerLabel: isoDisplayValue,
-                upperLabel: "6400",
-                bounds: 50...6400,
-                step: 10
+                upperLabel: isoValues.last.map(CameraPreviewModel.isoDisplayString(for:)) ?? "AUTO",
+                value: Binding(
+                    get: {
+                        isoSliderIndex(
+                            for: pendingISO ?? camera.currentISO,
+                            in: isoValues
+                        )
+                    },
+                    set: { newValue in
+                        let iso = isoValue(
+                            at: newValue,
+                            in: isoValues
+                        )
+
+                        pendingISO = iso
+                        camera.setISO(iso)
+                    }
+                ),
+                bounds: isoSliderBounds,
+                onAuto: {
+                    pendingISO = nil
+                    camera.setISOAuto()
+                }
             )
             .transition(.opacity)
         case .whiteBalance:
@@ -267,7 +303,7 @@ struct MediaCameraView: View {
         [
             .exposure: camera.displayValue(for: .exposure),
             .shutterSpeed: shutterDisplayValue,
-            .iso: camera.displayValue(for: .iso),
+            .iso: isoDisplayValue,
             .whiteBalance: whiteBalanceDisplayValue
         ]
     }
@@ -277,7 +313,7 @@ struct MediaCameraView: View {
     }
 
     private var isoDisplayValue: String {
-        "\(Int(temporaryISOValue.rounded()))"
+        pendingISO.map(CameraPreviewModel.isoDisplayString(for:)) ?? camera.displayValue(for: .iso)
     }
 
     private var whiteBalanceDisplayValue: String {
@@ -315,6 +351,39 @@ struct MediaCameraView: View {
         let roundedIndex = Int(index.rounded())
         let clampedIndex = min(max(roundedIndex, 0), shutterDurations.count - 1)
         return shutterDurations[clampedIndex]
+    }
+
+    private func isoSliderIndex(
+        for iso: Float?,
+        in isoValues: [Float]
+    ) -> Double {
+        guard let iso, !isoValues.isEmpty else {
+            return 0
+        }
+
+        let snappedISO = CameraPreviewModel.nearestStandardISO(
+            to: iso,
+            in: camera.isoRange
+        )
+
+        let index = isoValues.enumerated().min { lhs, rhs in
+            abs(log10(Double(lhs.element)) - log10(Double(snappedISO))) < abs(log10(Double(rhs.element)) - log10(Double(snappedISO)))
+        }?.offset ?? 0
+
+        return Double(index)
+    }
+
+    private func isoValue(
+        at index: Double,
+        in isoValues: [Float]
+    ) -> Float {
+        guard !isoValues.isEmpty else {
+            return camera.isoRange.lowerBound
+        }
+
+        let roundedIndex = Int(index.rounded())
+        let clampedIndex = min(max(roundedIndex, 0), isoValues.count - 1)
+        return isoValues[clampedIndex]
     }
 }
 

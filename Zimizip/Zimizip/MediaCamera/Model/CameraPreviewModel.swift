@@ -92,6 +92,37 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         enableAutoExposure()
     }
 
+    func setISOAuto() {
+        enableAutoExposure()
+    }
+
+    func setISO(_ value: Float) {
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            let clampedISO = Self.nearestStandardISO(
+                to: value,
+                in: self.isoRange
+            )
+            let durationSeconds = self.currentShutterDuration ?? Self.nearestStandardShutterDuration(
+                to: CMTimeGetSeconds(device.exposureDuration),
+                in: self.shutterRange
+            )
+            let duration = CMTimeMakeWithSeconds(durationSeconds, preferredTimescale: 1_000_000_000)
+
+            do {
+                try device.lockForConfiguration()
+                device.setExposureModeCustom(duration: duration, iso: clampedISO)
+                device.unlockForConfiguration()
+                self.refreshDeviceState()
+            } catch {
+                return
+            }
+        }
+    }
+
     func setShutterDuration(_ durationSeconds: Double) {
         sessionQueue.async { [weak self] in
             guard let self, let device = self.videoDeviceInput?.device else {
@@ -103,7 +134,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
                 in: self.shutterRange
             )
             let duration = CMTimeMakeWithSeconds(clampedDurationSeconds, preferredTimescale: 1_000_000_000)
-            let iso = device.iso
+            let iso = self.currentISO ?? device.iso
 
             do {
                 try device.lockForConfiguration()
