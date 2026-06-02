@@ -119,6 +119,7 @@ struct MediaCameraView: View {
                                 CameraManualControlsBar(
                                     values: temporaryManualDisplayValues,
                                     selectedControl: selectedManualControl,
+                                    disabledControls: disabledManualControls,
                                     onSelect: selectManualControl,
                                     onReset: resetManualControls
                                 )
@@ -153,6 +154,7 @@ struct MediaCameraView: View {
         }
         .onChange(of: camera.currentShutterDuration) { _, newValue in
             guard pendingShutterDuration != nil else {
+                closeUnavailableExposurePanel()
                 return
             }
 
@@ -162,9 +164,11 @@ struct MediaCameraView: View {
                     in: camera.shutterRange
                 )
             }
+            closeUnavailableExposurePanel()
         }
         .onChange(of: camera.currentISO) { _, newValue in
             guard pendingISO != nil else {
+                closeUnavailableExposurePanel()
                 return
             }
 
@@ -174,6 +178,7 @@ struct MediaCameraView: View {
                     in: camera.isoRange
                 )
             }
+            closeUnavailableExposurePanel()
         }
     }
 
@@ -195,6 +200,10 @@ struct MediaCameraView: View {
     }
 
     private func selectManualControl(_ control: CameraManualControl) {
+        guard !disabledManualControls.contains(control) else {
+            return
+        }
+
         withAnimation(.easeInOut(duration: 0.16)) {
             selectedManualControl = selectedManualControl == control ? nil : control
         }
@@ -210,6 +219,16 @@ struct MediaCameraView: View {
         pendingShutterDuration = nil
         pendingISO = nil
         camera.switchCamera()
+    }
+
+    private func closeUnavailableExposurePanel() {
+        guard selectedManualControl == .exposure, !isExposureBiasAvailable else {
+            return
+        }
+
+        withAnimation(.easeInOut(duration: 0.16)) {
+            selectedManualControl = nil
+        }
     }
 
     @ViewBuilder
@@ -328,6 +347,17 @@ struct MediaCameraView: View {
         pendingISO.map(CameraPreviewModel.isoDisplayString(for:)) ?? camera.displayValue(for: .iso)
     }
 
+    private var disabledManualControls: Set<CameraManualControl> {
+        isExposureBiasAvailable ? [] : [.exposure]
+    }
+
+    private var isExposureBiasAvailable: Bool {
+        pendingShutterDuration == nil &&
+            pendingISO == nil &&
+            camera.currentShutterDuration == nil &&
+            camera.currentISO == nil
+    }
+
     private func shutterSliderIndex(
         for duration: Double?,
         in shutterDurations: [Double]
@@ -406,6 +436,7 @@ private struct CameraAdjustmentSlider: View {
     let upperLabel: String
     let bounds: ClosedRange<Double>
     let step: Double?
+    let isEnabled: Bool
 
     init(
         value: Binding<Double>,
@@ -413,7 +444,8 @@ private struct CameraAdjustmentSlider: View {
         centerLabel: String,
         upperLabel: String,
         bounds: ClosedRange<Double>,
-        step: Double? = nil
+        step: Double? = nil,
+        isEnabled: Bool = true
     ) {
         self._value = value
         self.lowerLabel = lowerLabel
@@ -421,9 +453,12 @@ private struct CameraAdjustmentSlider: View {
         self.upperLabel = upperLabel
         self.bounds = bounds
         self.step = step
+        self.isEnabled = isEnabled
     }
 
     var body: some View {
+        let controlOpacity = isEnabled ? 1.0 : 0.42
+
         VStack(spacing: 3) {
             HStack {
                 Text(lowerLabel)
@@ -433,7 +468,7 @@ private struct CameraAdjustmentSlider: View {
 
                 Text(centerLabel)
                     .foregroundStyle(CameraUIConstants.accentColor)
-                    .frame(minWidth: 58)
+                    .frame(minWidth: 72)
 
                 Spacer()
 
@@ -446,11 +481,14 @@ private struct CameraAdjustmentSlider: View {
             if let step {
                 Slider(value: $value, in: bounds, step: step)
                     .tint(CameraUIConstants.accentColor)
+                    .disabled(!isEnabled)
             } else {
                 Slider(value: $value, in: bounds)
                     .tint(CameraUIConstants.accentColor)
+                    .disabled(!isEnabled)
             }
         }
+        .opacity(controlOpacity)
         .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
         .padding(.vertical, 5)
         .background(Color.black.opacity(0.24))

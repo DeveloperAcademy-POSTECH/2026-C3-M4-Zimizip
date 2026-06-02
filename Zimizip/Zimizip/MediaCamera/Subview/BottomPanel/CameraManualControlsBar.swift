@@ -3,12 +3,15 @@ import SwiftUI
 struct CameraManualControlsBar: View {
     let values: [CameraManualControl: String]
     let selectedControl: CameraManualControl?
+    let disabledControls: Set<CameraManualControl>
     let onSelect: (CameraManualControl) -> Void
     let onReset: () -> Void
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
             ForEach(CameraManualControl.allCases) { control in
+                let isDisabled = disabledControls.contains(control)
+
                 Button {
                     onSelect(control)
                 } label: {
@@ -23,8 +26,10 @@ struct CameraManualControlsBar: View {
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
                     .padding(.bottom, 6)
+                    .opacity(isDisabled ? 0.38 : 1.0)
                 }
                 .buttonStyle(.plain)
+                .disabled(isDisabled)
                 .frame(maxWidth: .infinity)
             }
 
