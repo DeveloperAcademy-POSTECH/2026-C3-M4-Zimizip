@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct MediaCameraView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
 
     var body: some View {
@@ -37,7 +38,18 @@ struct MediaCameraView: View {
 
                 VStack(spacing: 0) {
                     VStack(spacing: 0) {
-                        CameraTopBar()
+                        CameraTopBar(
+                            isFlashEnabled: camera.isFlashEnabled,
+                            onClose: {
+                                dismiss()
+                            },
+                            onToggleFlash: {
+                                camera.toggleFlash()
+                            },
+                            onSwitchCamera: {
+                                camera.switchCamera()
+                            }
+                        )
 
                     }
                     .padding(.top, topSafeInset)
@@ -58,7 +70,7 @@ struct MediaCameraView: View {
                             .frame(height: manualControlsHeight)
 
                         CameraShutterBar()
-                        .frame(height: shutterBarHeight)
+                            .frame(height: shutterBarHeight)
                     }
                     .frame(height: standardBottomInset, alignment: .bottom)
                     .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
