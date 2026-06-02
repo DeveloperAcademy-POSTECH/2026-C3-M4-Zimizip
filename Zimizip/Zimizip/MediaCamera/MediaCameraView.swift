@@ -11,6 +11,11 @@ struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
+    @State private var selectedManualControl: CameraManualControl?
+    @State private var temporaryExposureValue: Double = 0
+    @State private var temporaryShutterSpeedValue: Double = 0.55
+    @State private var temporaryISOValue: Double = 100
+    @State private var temporaryWhiteBalancePreset: CameraTemporaryWhiteBalancePreset = .auto
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -21,15 +26,21 @@ struct MediaCameraView: View {
     var body: some View {
         GeometryReader { proxy in
             let topBarHeight: CGFloat = 44
-            let manualAdjustmentHeight: CGFloat = 46
+            let manualAdjustmentHeight: CGFloat = 64
             let manualControlsHeight: CGFloat = 46
             let shutterBarHeight: CGFloat = 74
+            let colorPresetStripHeight: CGFloat = 132
+            let adjustmentToControlsSpacing: CGFloat = 2
+            let controlsToShutterSpacing: CGFloat = 10
+            let colorPresetToShutterSpacing: CGFloat = 2
             let topSafeInset = max(proxy.safeAreaInsets.top, 6)
             let bottomSafeInset = max(proxy.safeAreaInsets.bottom, 4)
-            let standardBottomInset = 2 + manualAdjustmentHeight + 2 + manualControlsHeight + 2 + shutterBarHeight + bottomSafeInset
-            let presetBottomInset = 2 + 128 + 2 + shutterBarHeight + bottomSafeInset
+            let bottomPanelBottomPadding = max(bottomSafeInset - adjustmentToControlsSpacing, 0)
+            let manualPreviewBottomInset = manualControlsHeight + controlsToShutterSpacing + shutterBarHeight + bottomPanelBottomPadding
+            let manualBottomPanelHeight = manualAdjustmentHeight + adjustmentToControlsSpacing + manualPreviewBottomInset
+            let presetBottomInset = colorPresetStripHeight + colorPresetToShutterSpacing + shutterBarHeight + bottomPanelBottomPadding
             let previewTopInset = topSafeInset + topBarHeight
-            let previewBottomInset = isShowingColorPresets ? presetBottomInset : standardBottomInset
+            let previewBottomInset = isShowingColorPresets ? presetBottomInset : manualPreviewBottomInset
             let previewFrame = CGRect(
                 x: 0,
                 y: previewTopInset,
@@ -75,54 +86,60 @@ struct MediaCameraView: View {
                 VStack(spacing: 0) {
                     Spacer()
 
-                    VStack(spacing: 10) {
+                    VStack(spacing: adjustmentToControlsSpacing) {
                         if isShowingColorPresets {
-                            CameraColorPresetStrip(
-                                selectedPreset: camera.selectedColorPreset,
-                                onSelect: { camera.setColorPreset($0) }
-                            )
+                            VStack(spacing: colorPresetToShutterSpacing) {
+                                CameraColorPresetStrip(
+                                    selectedPreset: camera.selectedColorPreset,
+                                    onSelect: { camera.setColorPreset($0) }
+                                )
+                                .frame(maxWidth: .infinity)
+                                .background(Color.black)
+                                .clipShape(RoundedRectangle(cornerRadius: 18))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                                )
+
+                                CameraShutterBar(
+                                    isShowingColorPresets: isShowingColorPresets,
+                                    onCapture: capturePhoto,
+                                    onToggleColorPresets: toggleColorPresets
+                                )
+                                .frame(height: shutterBarHeight)
+                            }
                             .frame(maxWidth: .infinity)
+                            .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+                            .padding(.bottom, bottomPanelBottomPadding)
                             .background(Color.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                            )
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                         } else {
-                            Color.clear
-                                .frame(height: manualAdjustmentHeight)
+                            manualAdjustmentPanel
+                                .frame(height: manualAdjustmentHeight, alignment: .center)
 
-                            CameraManualControlsBar(values: CameraManualControl.defaultDisplayValues)
-                                .frame(height: manualControlsHeight)
-                                .transition(.opacity)
-                        }
+                            VStack(spacing: controlsToShutterSpacing) {
+                                CameraManualControlsBar(
+                                    values: temporaryManualDisplayValues,
+                                    selectedControl: selectedManualControl,
+                                    onSelect: selectManualControl
+                                )
+                                    .frame(height: manualControlsHeight)
 
-                        CameraShutterBar(
-                            isShowingColorPresets: isShowingColorPresets,
-                            onCapture: {
-                                camera.capturePhoto { photoData in
-                                    guard let photoData else {
-                                        return
-                                    }
-
-                                    onPhotoCaptured(photoData)
-                                    dismiss()
-                                }
-                            },
-                            onToggleColorPresets: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isShowingColorPresets.toggle()
-                                }
+                                CameraShutterBar(
+                                    isShowingColorPresets: isShowingColorPresets,
+                                    onCapture: capturePhoto,
+                                    onToggleColorPresets: toggleColorPresets
+                                )
+                                .frame(height: shutterBarHeight)
                             }
-                        )
-                        .frame(height: shutterBarHeight)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+                            .padding(.bottom, bottomPanelBottomPadding)
+                            .background(Color.black)
+                            .transition(.opacity)
+                        }
                     }
-                    .frame(height: isShowingColorPresets ? presetBottomInset : standardBottomInset, alignment: .bottom)
-                    .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
-                    .padding(.top, 0)
-                    .padding(.bottom, max(bottomSafeInset - 2, 0))
-                    .background(Color.black)
+                    .frame(height: isShowingColorPresets ? presetBottomInset : manualBottomPanelHeight, alignment: .bottom)
                 }
             }
             .background(Color.black)
@@ -136,8 +153,250 @@ struct MediaCameraView: View {
             camera.stopSession()
         }
     }
+
+    private func capturePhoto() {
+        camera.capturePhoto { photoData in
+            guard let photoData else {
+                return
+            }
+
+            onPhotoCaptured(photoData)
+            dismiss()
+        }
+    }
+
+    private func toggleColorPresets() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isShowingColorPresets.toggle()
+        }
+    }
+
+    private func selectManualControl(_ control: CameraManualControl) {
+        withAnimation(.easeInOut(duration: 0.16)) {
+            selectedManualControl = selectedManualControl == control ? nil : control
+        }
+    }
+
+    @ViewBuilder
+    private var manualAdjustmentPanel: some View {
+        switch selectedManualControl {
+        case .exposure:
+            CameraTemporaryAdjustmentSlider(
+                value: $temporaryExposureValue,
+                lowerLabel: "-2",
+                centerLabel: exposureDisplayValue,
+                upperLabel: "+2",
+                bounds: -2...2,
+                step: 0.1
+            )
+            .transition(.opacity)
+        case .shutterSpeed:
+            CameraTemporaryAdjustmentSlider(
+                value: $temporaryShutterSpeedValue,
+                lowerLabel: "1/1000",
+                centerLabel: shutterSpeedDisplayValue,
+                upperLabel: "1/30",
+                bounds: 0...1,
+                step: 0.05
+            )
+            .transition(.opacity)
+        case .iso:
+            CameraTemporaryAdjustmentSlider(
+                value: $temporaryISOValue,
+                lowerLabel: "50",
+                centerLabel: isoDisplayValue,
+                upperLabel: "1600",
+                bounds: 50...1600,
+                step: 10
+            )
+            .transition(.opacity)
+        case .whiteBalance:
+            CameraTemporaryWhiteBalancePresetPanel(
+                selectedPreset: temporaryWhiteBalancePreset,
+                onSelect: { preset in
+                    withAnimation(.easeInOut(duration: 0.16)) {
+                        temporaryWhiteBalancePreset = preset
+                    }
+                }
+            )
+            .transition(.opacity)
+        case nil:
+            Color.clear
+        }
+    }
+
+    private var temporaryManualDisplayValues: [CameraManualControl: String] {
+        [
+            .exposure: exposureDisplayValue,
+            .shutterSpeed: shutterSpeedDisplayValue,
+            .iso: isoDisplayValue,
+            .whiteBalance: whiteBalanceDisplayValue
+        ]
+    }
+
+    private var exposureDisplayValue: String {
+        temporaryExposureValue == 0
+            ? "0.0"
+            : String(format: "%+.1f", temporaryExposureValue)
+    }
+
+    private var shutterSpeedDisplayValue: String {
+        let shutterSpeedLabels = ["1/1000", "1/500", "1/250", "1/125", "1/60", "1/30"]
+        let index = min(
+            max(Int((temporaryShutterSpeedValue * Double(shutterSpeedLabels.count - 1)).rounded()), 0),
+            shutterSpeedLabels.count - 1
+        )
+
+        return shutterSpeedLabels[index]
+    }
+
+    private var isoDisplayValue: String {
+        "\(Int(temporaryISOValue.rounded()))"
+    }
+
+    private var whiteBalanceDisplayValue: String {
+        temporaryWhiteBalancePreset.shortLabel
+    }
 }
 
 #Preview {
     MediaCameraView()
+}
+
+private struct CameraTemporaryAdjustmentSlider: View {
+    @Binding var value: Double
+    let lowerLabel: String
+    let centerLabel: String
+    let upperLabel: String
+    let bounds: ClosedRange<Double>
+    let step: Double
+
+    var body: some View {
+        VStack(spacing: 3) {
+            HStack {
+                Text(lowerLabel)
+                    .frame(width: 52, alignment: .leading)
+
+                Spacer()
+
+                Text(centerLabel)
+                    .foregroundStyle(CameraUIConstants.accentColor)
+                    .frame(minWidth: 58)
+
+                Spacer()
+
+                Text(upperLabel)
+                    .frame(width: 52, alignment: .trailing)
+            }
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.white.opacity(0.72))
+
+            Slider(value: $value, in: bounds, step: step)
+                .tint(CameraUIConstants.accentColor)
+        }
+        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+        .padding(.vertical, 5)
+        .background(Color.black.opacity(0.24))
+    }
+}
+
+private enum CameraTemporaryWhiteBalancePreset: String, CaseIterable, Identifiable {
+    case auto
+    case incandescent
+    case fluorescent
+    case daylight
+    case cloudy
+
+    var id: String { rawValue }
+
+    var shortLabel: String {
+        switch self {
+        case .auto:
+            "AWB"
+        case .incandescent:
+            "텅스텐"
+        case .fluorescent:
+            "형광등"
+        case .daylight:
+            "태양광"
+        case .cloudy:
+            "흐림"
+        }
+    }
+
+    var iconSystemName: String {
+        switch self {
+        case .auto:
+            "camera.aperture"
+        case .incandescent:
+            "lightbulb.fill"
+        case .fluorescent:
+            "lamp.desk.fill"
+        case .daylight:
+            "sun.max.fill"
+        case .cloudy:
+            "cloud.fill"
+        }
+    }
+
+    var iconColor: Color {
+        switch self {
+        case .auto:
+            CameraUIConstants.accentColor
+        case .incandescent:
+            Color.orange
+        case .fluorescent:
+            Color.cyan
+        case .daylight:
+            Color.yellow
+        case .cloudy:
+            Color.blue.opacity(0.85)
+        }
+    }
+}
+
+private struct CameraTemporaryWhiteBalancePresetPanel: View {
+    let selectedPreset: CameraTemporaryWhiteBalancePreset
+    let onSelect: (CameraTemporaryWhiteBalancePreset) -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(CameraTemporaryWhiteBalancePreset.allCases) { preset in
+                Button {
+                    onSelect(preset)
+                } label: {
+                    VStack(spacing: 6) {
+                        if preset == .auto {
+                            Text("AWB")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(isSelected(preset) ? CameraUIConstants.accentColor : .white)
+                        } else {
+                            Image(systemName: preset.iconSystemName)
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundStyle(isSelected(preset) ? preset.iconColor : .white)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 34)
+                    .padding(.bottom, 4)
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(isSelected(preset) ? CameraUIConstants.accentColor : .clear)
+                            .frame(height: 2)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+        .padding(.vertical, 5)
+        .background(Color.black.opacity(0.24))
+    }
+
+    private func isSelected(_ preset: CameraTemporaryWhiteBalancePreset) -> Bool {
+        selectedPreset == preset
+    }
 }

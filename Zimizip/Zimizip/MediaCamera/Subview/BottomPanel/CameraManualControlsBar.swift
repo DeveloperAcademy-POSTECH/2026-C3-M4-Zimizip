@@ -2,20 +2,29 @@ import SwiftUI
 
 struct CameraManualControlsBar: View {
     let values: [CameraManualControl: String]
+    let selectedControl: CameraManualControl?
+    let onSelect: (CameraManualControl) -> Void
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 6) {
+        HStack(alignment: .bottom, spacing: 0) {
             ForEach(CameraManualControl.allCases) { control in
-                VStack(spacing: 4) {
-                    Text(control.title)
-                        .font(.system(size: 13, weight: .semibold))
+                Button {
+                    onSelect(control)
+                } label: {
+                    VStack(spacing: 4) {
+                        Text(control.title)
+                            .font(.system(size: 13, weight: .semibold))
 
-                    Text(values[control] ?? "AUTO")
-                        .font(.system(size: 10.5, weight: .medium))
+                        Text(values[control] ?? "AUTO")
+                            .font(.system(size: 10.5, weight: .medium))
+                    }
+                    .foregroundStyle(selectedControl == control ? CameraUIConstants.accentColor : .white)
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .padding(.bottom, 6)
                 }
-                .foregroundStyle(.white)
+                .buttonStyle(.plain)
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 6)
             }
 
             VStack(spacing: 4) {
@@ -26,7 +35,7 @@ struct CameraManualControlsBar: View {
                     .font(.system(size: 10.5, weight: .semibold))
             }
             .foregroundStyle(.white)
-            .frame(width: 58)
+            .frame(maxWidth: .infinity)
             .padding(.bottom, 2)
         }
     }
