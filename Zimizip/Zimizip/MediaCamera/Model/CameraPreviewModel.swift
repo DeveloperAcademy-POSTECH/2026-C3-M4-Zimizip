@@ -8,6 +8,8 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
     @Published private(set) var currentExposureBias: Float = 0.0
     @Published private(set) var exposureBiasRange: ClosedRange<Float> = -3.0...3.0
+    @Published private(set) var currentISO: Float?
+    @Published private(set) var isoRange: ClosedRange<Float> = 50...6400
     @Published private(set) var currentShutterDuration: Double?
     @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
@@ -123,7 +125,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         case .shutterSpeed:
             currentShutterDuration.map(Self.shutterDisplayString(for:)) ?? "AUTO"
         case .iso:
-            CameraManualControl.defaultDisplayValues[control] ?? "AUTO"
+            currentISO.map(Self.isoDisplayString(for:)) ?? "AUTO"
         case .whiteBalance:
             CameraManualControl.defaultDisplayValues[control] ?? "AWB"
         }
@@ -211,11 +213,16 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         let exposureDuration = CMTimeGetSeconds(device.exposureDuration)
         let minimumShutterDuration = max(CMTimeGetSeconds(device.activeFormat.minExposureDuration), 1.0 / 10_000.0)
         let maximumShutterDuration = min(CMTimeGetSeconds(device.activeFormat.maxExposureDuration), 1.0)
+        let minimumISO = max(device.activeFormat.minISO, 50)
+        let maximumISO = min(device.activeFormat.maxISO, 6400)
+        let currentISO = device.exposureMode == .custom ? device.iso : nil
         let currentShutterDuration = device.exposureMode == .custom ? exposureDuration : nil
 
         Task { @MainActor in
             self.exposureBiasRange = exposureBiasRange
             self.currentExposureBias = currentExposureBias
+            self.isoRange = minimumISO...maximumISO
+            self.currentISO = currentISO
             self.shutterRange = minimumShutterDuration...maximumShutterDuration
             self.currentShutterDuration = currentShutterDuration
         }
@@ -254,6 +261,64 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
 
         return "1/\(Int((1 / displaySeconds).rounded()))"
+    }
+
+    nonisolated static func isoDisplayString(for iso: Float) -> String {
+        "\(Int(nearestStandardISO(to: iso).rounded()))"
+    }
+
+    nonisolated static func nearestStandardISO(
+        to iso: Float,
+        in range: ClosedRange<Float>? = nil
+    ) -> Float {
+        let candidates = standardISOs(in: range)
+        guard let firstCandidate = candidates.first else {
+            return iso
+        }
+
+        return candidates.min { lhs, rhs in
+            abs(log10(Double(lhs)) - log10(Double(iso))) < abs(log10(Double(rhs)) - log10(Double(iso)))
+        } ?? firstCandidate
+    }
+
+    nonisolated static func standardISOs(in range: ClosedRange<Float>? = nil) -> [Float] {
+        let standardISOs: [Float] = [
+            50,
+            64,
+            80,
+            100,
+            125,
+            160,
+            200,
+            250,
+            320,
+            400,
+            500,
+            640,
+            800,
+            1000,
+            1250,
+            1600,
+            2000,
+            2500,
+            3200,
+            4000,
+            5000,
+            6400
+        ]
+
+        guard let range else {
+            return standardISOs
+        }
+
+        let filteredISOs = standardISOs.filter { range.contains($0) }
+        guard filteredISOs.isEmpty else {
+            return filteredISOs
+        }
+
+        return [
+            min(max(100, range.lowerBound), range.upperBound)
+        ]
     }
 
     nonisolated static func nearestStandardShutterDuration(

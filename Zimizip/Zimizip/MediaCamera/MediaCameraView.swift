@@ -267,7 +267,7 @@ struct MediaCameraView: View {
         [
             .exposure: camera.displayValue(for: .exposure),
             .shutterSpeed: shutterDisplayValue,
-            .iso: isoDisplayValue,
+            .iso: camera.displayValue(for: .iso),
             .whiteBalance: whiteBalanceDisplayValue
         ]
     }
