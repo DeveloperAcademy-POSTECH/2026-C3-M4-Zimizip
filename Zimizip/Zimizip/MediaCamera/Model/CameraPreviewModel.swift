@@ -68,6 +68,12 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         selectedColorPreset = preset
     }
 
+    func resetManualControls() {
+        setExposureBias(0.0)
+        enableAutoExposure()
+        setWhiteBalancePreset(.auto)
+    }
+
     func setWhiteBalancePreset(_ preset: CameraWhiteBalancePreset) {
         sessionQueue.async { [weak self] in
             guard let self, let device = self.videoDeviceInput?.device else {

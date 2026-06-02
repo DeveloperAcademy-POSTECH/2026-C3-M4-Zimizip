@@ -119,7 +119,8 @@ struct MediaCameraView: View {
                                 CameraManualControlsBar(
                                     values: temporaryManualDisplayValues,
                                     selectedControl: selectedManualControl,
-                                    onSelect: selectManualControl
+                                    onSelect: selectManualControl,
+                                    onReset: resetManualControls
                                 )
                                     .frame(height: manualControlsHeight)
 
@@ -197,6 +198,12 @@ struct MediaCameraView: View {
         withAnimation(.easeInOut(duration: 0.16)) {
             selectedManualControl = selectedManualControl == control ? nil : control
         }
+    }
+
+    private func resetManualControls() {
+        pendingShutterDuration = nil
+        pendingISO = nil
+        camera.resetManualControls()
     }
 
     @ViewBuilder

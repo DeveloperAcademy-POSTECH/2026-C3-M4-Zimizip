@@ -4,6 +4,7 @@ struct CameraManualControlsBar: View {
     let values: [CameraManualControl: String]
     let selectedControl: CameraManualControl?
     let onSelect: (CameraManualControl) -> Void
+    let onReset: () -> Void
 
     var body: some View {
         HStack(alignment: .bottom, spacing: 0) {
@@ -27,13 +28,20 @@ struct CameraManualControlsBar: View {
                 .frame(maxWidth: .infinity)
             }
 
-            VStack(spacing: 4) {
-                Image(systemName: "arrow.uturn.backward")
-                    .font(.system(size: 19, weight: .regular))
+            Button {
+                onReset()
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 19, weight: .regular))
 
-                Text("RESET")
-                    .font(.system(size: 10.5, weight: .semibold))
+                    Text("RESET")
+                        .font(.system(size: 10.5, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.bottom, 2)
