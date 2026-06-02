@@ -69,9 +69,39 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     }
 
     func resetManualControls() {
-        setExposureBias(0.0)
-        enableAutoExposure()
-        setWhiteBalancePreset(.auto)
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            do {
+                try device.lockForConfiguration()
+
+                let resetExposureBias = min(max(0.0, device.minExposureTargetBias), device.maxExposureTargetBias)
+                device.setExposureTargetBias(resetExposureBias)
+
+                if device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposureMode = .continuousAutoExposure
+                }
+
+                if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                    device.whiteBalanceMode = .continuousAutoWhiteBalance
+                }
+
+                device.unlockForConfiguration()
+
+                Task { @MainActor in
+                    self.currentExposureBias = resetExposureBias
+                    self.currentISO = nil
+                    self.currentShutterDuration = nil
+                    self.whiteBalancePreset = .auto
+                }
+
+                self.refreshDeviceState()
+            } catch {
+                return
+            }
+        }
     }
 
     func setWhiteBalancePreset(_ preset: CameraWhiteBalancePreset) {

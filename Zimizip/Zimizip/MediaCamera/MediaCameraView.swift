@@ -69,7 +69,7 @@ struct MediaCameraView: View {
                                 camera.toggleFlash()
                             },
                             onSwitchCamera: {
-                                camera.switchCamera()
+                                switchCamera()
                             }
                         )
 
@@ -204,6 +204,12 @@ struct MediaCameraView: View {
         pendingShutterDuration = nil
         pendingISO = nil
         camera.resetManualControls()
+    }
+
+    private func switchCamera() {
+        pendingShutterDuration = nil
+        pendingISO = nil
+        camera.switchCamera()
     }
 
     @ViewBuilder
