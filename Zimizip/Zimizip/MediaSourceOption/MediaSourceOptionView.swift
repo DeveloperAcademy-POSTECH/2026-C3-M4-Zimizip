@@ -76,9 +76,7 @@ struct MediaSourceOptionView: View {
                     .toolbar(.hidden, for: .navigationBar)
             }
             .fullScreenCover(isPresented: $isShowingCamera) {
-                MediaCameraView { photoData in
-                    media = Media(source: photoData)
-                }
+                MediaCameraView()
             }
         }
         .task(id: selectedMedia) {
