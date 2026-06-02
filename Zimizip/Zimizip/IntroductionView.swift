@@ -28,16 +28,7 @@ struct IntroductionView: View {
 
                 Spacer()
                 
-                Button("다음") {
-                    
-                }
-                .font(Font.custom("Pretendard-Bold", size: 16))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(Color(red: 1, green: 0.42, blue: 0.13))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .padding(.horizontal, 20)
+                ZimizipPrimaryButton(title: "다음") {}
                 .padding(.bottom, 60)
             }
         }
