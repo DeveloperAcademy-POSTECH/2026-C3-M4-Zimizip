@@ -11,6 +11,12 @@ struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
 
+    let onPhotoCaptured: (Data) -> Void
+
+    init(onPhotoCaptured: @escaping (Data) -> Void = { _ in }) {
+        self.onPhotoCaptured = onPhotoCaptured
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let topBarHeight: CGFloat = 44
@@ -69,7 +75,18 @@ struct MediaCameraView: View {
                         CameraManualControlsBar(values: CameraManualControl.defaultDisplayValues)
                             .frame(height: manualControlsHeight)
 
-                        CameraShutterBar()
+                        CameraShutterBar(
+                            onCapture: {
+                                camera.capturePhoto { photoData in
+                                    guard let photoData else {
+                                        return
+                                    }
+
+                                    onPhotoCaptured(photoData)
+                                    dismiss()
+                                }
+                            }
+                        )
                             .frame(height: shutterBarHeight)
                     }
                     .frame(height: standardBottomInset, alignment: .bottom)
