@@ -68,6 +68,45 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         selectedColorPreset = preset
     }
 
+    func setWhiteBalancePreset(_ preset: CameraWhiteBalancePreset) {
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            do {
+                try device.lockForConfiguration()
+
+                if preset == .auto {
+                    if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) {
+                        device.whiteBalanceMode = .continuousAutoWhiteBalance
+                    }
+                } else if
+                    let temperature = preset.temperature,
+                    device.isWhiteBalanceModeSupported(.locked)
+                {
+                    let values = AVCaptureDevice.WhiteBalanceTemperatureAndTintValues(
+                        temperature: temperature,
+                        tint: 0
+                    )
+                    let gains = self.normalizedWhiteBalanceGains(
+                        for: device.deviceWhiteBalanceGains(for: values),
+                        device: device
+                    )
+                    device.setWhiteBalanceModeLocked(with: gains)
+                }
+
+                device.unlockForConfiguration()
+
+                Task { @MainActor in
+                    self.whiteBalancePreset = preset
+                }
+            } catch {
+                return
+            }
+        }
+    }
+
     func setExposureBias(_ value: Float) {
         sessionQueue.async { [weak self] in
             guard let self, let device = self.videoDeviceInput?.device else {
@@ -279,6 +318,17 @@ final class CameraPreviewModel: NSObject, ObservableObject {
                 return
             }
         }
+    }
+
+    private func normalizedWhiteBalanceGains(
+        for gains: AVCaptureDevice.WhiteBalanceGains,
+        device: AVCaptureDevice
+    ) -> AVCaptureDevice.WhiteBalanceGains {
+        AVCaptureDevice.WhiteBalanceGains(
+            redGain: min(max(1.0, gains.redGain), device.maxWhiteBalanceGain),
+            greenGain: min(max(1.0, gains.greenGain), device.maxWhiteBalanceGain),
+            blueGain: min(max(1.0, gains.blueGain), device.maxWhiteBalanceGain)
+        )
     }
 
     nonisolated static func shutterDisplayString(for seconds: Double) -> String {

@@ -12,7 +12,6 @@ struct MediaCameraView: View {
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
-    @State private var temporaryWhiteBalancePreset: CameraTemporaryWhiteBalancePreset = .auto
     @State private var pendingShutterDuration: Double?
     @State private var pendingISO: Float?
 
@@ -285,11 +284,11 @@ struct MediaCameraView: View {
             )
             .transition(.opacity)
         case .whiteBalance:
-            CameraTemporaryWhiteBalancePresetPanel(
-                selectedPreset: temporaryWhiteBalancePreset,
+            CameraWhiteBalancePresetPanel(
+                selectedPreset: camera.whiteBalancePreset,
                 onSelect: { preset in
                     withAnimation(.easeInOut(duration: 0.16)) {
-                        temporaryWhiteBalancePreset = preset
+                        camera.setWhiteBalancePreset(preset)
                     }
                 }
             )
@@ -304,7 +303,7 @@ struct MediaCameraView: View {
             .exposure: camera.displayValue(for: .exposure),
             .shutterSpeed: shutterDisplayValue,
             .iso: isoDisplayValue,
-            .whiteBalance: whiteBalanceDisplayValue
+            .whiteBalance: camera.displayValue(for: .whiteBalance)
         ]
     }
 
@@ -314,10 +313,6 @@ struct MediaCameraView: View {
 
     private var isoDisplayValue: String {
         pendingISO.map(CameraPreviewModel.isoDisplayString(for:)) ?? camera.displayValue(for: .iso)
-    }
-
-    private var whiteBalanceDisplayValue: String {
-        temporaryWhiteBalancePreset.shortLabel
     }
 
     private func shutterSliderIndex(
@@ -562,68 +557,13 @@ private struct SliderLeadMarker: View {
     }
 }
 
-private enum CameraTemporaryWhiteBalancePreset: String, CaseIterable, Identifiable {
-    case auto
-    case incandescent
-    case fluorescent
-    case daylight
-    case cloudy
-
-    var id: String { rawValue }
-
-    var shortLabel: String {
-        switch self {
-        case .auto:
-            "AWB"
-        case .incandescent:
-            "텅스텐"
-        case .fluorescent:
-            "형광등"
-        case .daylight:
-            "태양광"
-        case .cloudy:
-            "흐림"
-        }
-    }
-
-    var iconSystemName: String {
-        switch self {
-        case .auto:
-            "camera.aperture"
-        case .incandescent:
-            "lightbulb.fill"
-        case .fluorescent:
-            "lamp.desk.fill"
-        case .daylight:
-            "sun.max.fill"
-        case .cloudy:
-            "cloud.fill"
-        }
-    }
-
-    var iconColor: Color {
-        switch self {
-        case .auto:
-            CameraUIConstants.accentColor
-        case .incandescent:
-            Color.orange
-        case .fluorescent:
-            Color.cyan
-        case .daylight:
-            Color.yellow
-        case .cloudy:
-            Color.blue.opacity(0.85)
-        }
-    }
-}
-
-private struct CameraTemporaryWhiteBalancePresetPanel: View {
-    let selectedPreset: CameraTemporaryWhiteBalancePreset
-    let onSelect: (CameraTemporaryWhiteBalancePreset) -> Void
+private struct CameraWhiteBalancePresetPanel: View {
+    let selectedPreset: CameraWhiteBalancePreset
+    let onSelect: (CameraWhiteBalancePreset) -> Void
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(CameraTemporaryWhiteBalancePreset.allCases) { preset in
+            ForEach(CameraWhiteBalancePreset.allCases) { preset in
                 Button {
                     onSelect(preset)
                 } label: {
@@ -658,7 +598,7 @@ private struct CameraTemporaryWhiteBalancePresetPanel: View {
         .background(Color.black.opacity(0.24))
     }
 
-    private func isSelected(_ preset: CameraTemporaryWhiteBalancePreset) -> Bool {
+    private func isSelected(_ preset: CameraWhiteBalancePreset) -> Bool {
         selectedPreset == preset
     }
 }
