@@ -36,12 +36,15 @@ struct MediaSourceOptionView: View {
                     }
                     .padding(.bottom, 60)
 
-                    OptionItemView(
-                        icon: "Camera",
-                        title: "직접 촬영하기",
-                        subtitle: "서프라이즈를 할 순간을\n바로 담아보세요",
-                        isSelected: false
-                    )
+                    Button {
+                    } label: {
+                        OptionItemView(
+                            icon: "Camera",
+                            title: "직접 촬영하기",
+                            subtitle: "서프라이즈를 할 순간을\n바로 담아보세요"
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     Spacer()
                         .frame(height: 20)
@@ -54,8 +57,7 @@ struct MediaSourceOptionView: View {
                         OptionItemView(
                             icon: "Image",
                             title: "갤러리에서 불러오기",
-                            subtitle: "이미 저장된 사진으로\n시작해보세요",
-                            isSelected: false
+                            subtitle: "이미 저장된 사진으로\n시작해보세요"
                         )
                     }
                     .buttonStyle(.plain)

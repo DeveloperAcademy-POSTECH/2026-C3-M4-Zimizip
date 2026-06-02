@@ -55,14 +55,9 @@ struct OptionItemView: View {
     }
 
     private var circleColor: Color {
-        switch style {
-        case .mediaSource:
-            isSelected
-                ? Color(red: 218 / 255, green: 207 / 255, blue: 200 / 255)
-                : Color(red: 239 / 255, green: 231 / 255, blue: 225 / 255)
-        case .revealTiming:
-            Color(red: 1, green: 239 / 255, blue: 229 / 255)
-        }
+        isSelected
+            ? Color(red: 1, green: 224 / 255, blue: 204 / 255)
+            : Color(red: 1, green: 239 / 255, blue: 229 / 255)
     }
 
     private var subtitleColor: Color {
@@ -75,29 +70,23 @@ struct OptionItemView: View {
     }
 
     private var chevronColor: Color {
-        switch style {
-        case .mediaSource:
-            Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255)
-        case .revealTiming:
-            Color(red: 215 / 255, green: 206 / 255, blue: 200 / 255)
-        }
+        isSelected
+            ? Color(red: 159 / 255, green: 145 / 255, blue: 137 / 255)
+            : Color(red: 215 / 255, green: 206 / 255, blue: 200 / 255)
     }
 
     private var borderColor: Color {
-        switch style {
-        case .mediaSource:
-            Color(red: 215 / 255, green: 206 / 255, blue: 200 / 255)
-        case .revealTiming:
-            Color(red: 227 / 255, green: 218 / 255, blue: 212 / 255)
-        }
+        isSelected
+            ? Color(red: 1, green: 170 / 255, blue: 122 / 255)
+            : Color(red: 227 / 255, green: 218 / 255, blue: 212 / 255)
     }
 
     private var backgroundColor: Color {
-        guard style == .mediaSource, isSelected else {
+        guard isSelected else {
             return .clear
         }
 
-        return Color(red: 239 / 255, green: 228 / 255, blue: 220 / 255)
+        return Color(red: 1, green: 247 / 255, blue: 241 / 255)
     }
 }
 
