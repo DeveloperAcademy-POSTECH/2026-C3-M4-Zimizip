@@ -11,7 +11,6 @@ struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
-    @State private var selectedColorPreset: CameraColorPreset = .original
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -42,6 +41,10 @@ struct MediaCameraView: View {
                 Color.black
 
                 CameraPreviewSurface(session: camera.session)
+                    .saturation(camera.selectedColorPreset.saturation)
+                    .contrast(camera.selectedColorPreset.contrast)
+                    .brightness(camera.selectedColorPreset.brightness)
+                    .colorMultiply(camera.selectedColorPreset.colorMultiply)
                     .frame(width: previewFrame.width, height: previewFrame.height)
                     .clipShape(Rectangle())
                     .position(x: previewFrame.midX, y: previewFrame.midY)
@@ -75,8 +78,8 @@ struct MediaCameraView: View {
                     VStack(spacing: 10) {
                         if isShowingColorPresets {
                             CameraColorPresetStrip(
-                                selectedPreset: selectedColorPreset,
-                                onSelect: { selectedColorPreset = $0 }
+                                selectedPreset: camera.selectedColorPreset,
+                                onSelect: { camera.setColorPreset($0) }
                             )
                             .frame(maxWidth: .infinity)
                             .background(Color.black)
