@@ -8,6 +8,8 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
     @Published private(set) var currentExposureBias: Float = 0.0
     @Published private(set) var exposureBiasRange: ClosedRange<Float> = -3.0...3.0
+    @Published private(set) var currentShutterDuration: Double?
+    @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
@@ -84,6 +86,34 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
     }
 
+    func setShutterAuto() {
+        enableAutoExposure()
+    }
+
+    func setShutterDuration(_ durationSeconds: Double) {
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            let clampedDurationSeconds = Self.nearestStandardShutterDuration(
+                to: durationSeconds,
+                in: self.shutterRange
+            )
+            let duration = CMTimeMakeWithSeconds(clampedDurationSeconds, preferredTimescale: 1_000_000_000)
+            let iso = device.iso
+
+            do {
+                try device.lockForConfiguration()
+                device.setExposureModeCustom(duration: duration, iso: iso)
+                device.unlockForConfiguration()
+                self.refreshDeviceState()
+            } catch {
+                return
+            }
+        }
+    }
+
     func displayValue(for control: CameraManualControl) -> String {
         switch control {
         case .exposure:
@@ -91,7 +121,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
                 ? "0.0"
                 : String(format: "%+.1f", currentExposureBias)
         case .shutterSpeed:
-            CameraManualControl.defaultDisplayValues[control] ?? "AUTO"
+            currentShutterDuration.map(Self.shutterDisplayString(for:)) ?? "AUTO"
         case .iso:
             CameraManualControl.defaultDisplayValues[control] ?? "AUTO"
         case .whiteBalance:
@@ -178,11 +208,124 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
         let exposureBiasRange = device.minExposureTargetBias...device.maxExposureTargetBias
         let currentExposureBias = device.exposureTargetBias
+        let exposureDuration = CMTimeGetSeconds(device.exposureDuration)
+        let minimumShutterDuration = max(CMTimeGetSeconds(device.activeFormat.minExposureDuration), 1.0 / 10_000.0)
+        let maximumShutterDuration = min(CMTimeGetSeconds(device.activeFormat.maxExposureDuration), 1.0)
+        let currentShutterDuration = device.exposureMode == .custom ? exposureDuration : nil
 
         Task { @MainActor in
             self.exposureBiasRange = exposureBiasRange
             self.currentExposureBias = currentExposureBias
+            self.shutterRange = minimumShutterDuration...maximumShutterDuration
+            self.currentShutterDuration = currentShutterDuration
         }
+    }
+
+    private func enableAutoExposure() {
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            do {
+                try device.lockForConfiguration()
+
+                if device.isExposureModeSupported(.continuousAutoExposure) {
+                    device.exposureMode = .continuousAutoExposure
+                }
+
+                device.unlockForConfiguration()
+                self.refreshDeviceState()
+            } catch {
+                return
+            }
+        }
+    }
+
+    nonisolated static func shutterDisplayString(for seconds: Double) -> String {
+        guard seconds > 0 else {
+            return "AUTO"
+        }
+
+        let displaySeconds = nearestStandardShutterDuration(to: seconds)
+
+        if displaySeconds >= 1 {
+            return String(format: "%.1fs", displaySeconds)
+        }
+
+        return "1/\(Int((1 / displaySeconds).rounded()))"
+    }
+
+    nonisolated static func nearestStandardShutterDuration(
+        to seconds: Double,
+        in range: ClosedRange<Double>? = nil
+    ) -> Double {
+        let candidates = standardShutterDurations(in: range)
+        guard let firstCandidate = candidates.first else {
+            return seconds
+        }
+
+        return candidates.min { lhs, rhs in
+            abs(log10(lhs) - log10(seconds)) < abs(log10(rhs) - log10(seconds))
+        } ?? firstCandidate
+    }
+
+    nonisolated static func standardShutterDurations(in range: ClosedRange<Double>? = nil) -> [Double] {
+        let standardDurations = [
+            1.0 / 16_000.0,
+            1.0 / 12_500.0,
+            1.0 / 10_000.0,
+            1.0 / 8_000.0,
+            1.0 / 6_400.0,
+            1.0 / 5_000.0,
+            1.0 / 4_000.0,
+            1.0 / 3_200.0,
+            1.0 / 2_500.0,
+            1.0 / 2_000.0,
+            1.0 / 1_600.0,
+            1.0 / 1_250.0,
+            1.0 / 1_000.0,
+            1.0 / 800.0,
+            1.0 / 640.0,
+            1.0 / 500.0,
+            1.0 / 400.0,
+            1.0 / 320.0,
+            1.0 / 250.0,
+            1.0 / 200.0,
+            1.0 / 160.0,
+            1.0 / 125.0,
+            1.0 / 100.0,
+            1.0 / 80.0,
+            1.0 / 60.0,
+            1.0 / 50.0,
+            1.0 / 40.0,
+            1.0 / 30.0,
+            1.0 / 25.0,
+            1.0 / 20.0,
+            1.0 / 15.0,
+            1.0 / 13.0,
+            1.0 / 10.0,
+            1.0 / 8.0,
+            1.0 / 6.0,
+            1.0 / 5.0,
+            1.0 / 4.0,
+            1.0 / 3.0,
+            1.0 / 2.0,
+            1.0
+        ]
+
+        guard let range else {
+            return standardDurations
+        }
+
+        let filteredDurations = standardDurations.filter { range.contains($0) }
+        guard filteredDurations.isEmpty else {
+            return filteredDurations
+        }
+
+        return [
+            min(max(1.0 / 1_000.0, range.lowerBound), range.upperBound)
+        ]
     }
 
     private func configureSessionIfNeeded() {

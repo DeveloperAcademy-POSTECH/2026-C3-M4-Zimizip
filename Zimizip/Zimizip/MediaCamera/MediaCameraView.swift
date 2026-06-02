@@ -12,9 +12,9 @@ struct MediaCameraView: View {
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
-    @State private var temporaryShutterSpeedValue: Double = 0.55
     @State private var temporaryISOValue: Double = 100
     @State private var temporaryWhiteBalancePreset: CameraTemporaryWhiteBalancePreset = .auto
+    @State private var pendingShutterDuration: Double?
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -151,6 +151,18 @@ struct MediaCameraView: View {
         .onDisappear {
             camera.stopSession()
         }
+        .onChange(of: camera.currentShutterDuration) { _, newValue in
+            guard pendingShutterDuration != nil else {
+                return
+            }
+
+            pendingShutterDuration = newValue.map {
+                CameraPreviewModel.nearestStandardShutterDuration(
+                    to: $0,
+                    in: camera.shutterRange
+                )
+            }
+        }
     }
 
     private func capturePhoto() {
@@ -193,13 +205,37 @@ struct MediaCameraView: View {
             )
             .transition(.opacity)
         case .shutterSpeed:
-            CameraAdjustmentSlider(
-                value: $temporaryShutterSpeedValue,
-                lowerLabel: "1/1000",
-                centerLabel: shutterSpeedDisplayValue,
-                upperLabel: "1/4",
-                bounds: 0...1,
-                step: 0.05
+            let shutterDurations = CameraPreviewModel.standardShutterDurations(in: camera.shutterRange)
+            let shutterSliderBounds = 0.0...max(Double(shutterDurations.count - 1), 0.0)
+
+            CameraAutoAdjustmentSlider(
+                isAuto: camera.currentShutterDuration == nil,
+                autoLabel: "Auto",
+                lowerLabel: shutterDurations.first.map(CameraPreviewModel.shutterDisplayString(for:)) ?? "AUTO",
+                centerLabel: shutterDisplayValue,
+                upperLabel: shutterDurations.last.map(CameraPreviewModel.shutterDisplayString(for:)) ?? "AUTO",
+                value: Binding(
+                    get: {
+                        shutterSliderIndex(
+                            for: pendingShutterDuration ?? camera.currentShutterDuration,
+                            in: shutterDurations
+                        )
+                    },
+                    set: { newValue in
+                        let duration = shutterDuration(
+                            at: newValue,
+                            in: shutterDurations
+                        )
+
+                        pendingShutterDuration = duration
+                        camera.setShutterDuration(duration)
+                    }
+                ),
+                bounds: shutterSliderBounds,
+                onAuto: {
+                    pendingShutterDuration = nil
+                    camera.setShutterAuto()
+                }
             )
             .transition(.opacity)
         case .iso:
@@ -230,20 +266,14 @@ struct MediaCameraView: View {
     private var temporaryManualDisplayValues: [CameraManualControl: String] {
         [
             .exposure: camera.displayValue(for: .exposure),
-            .shutterSpeed: shutterSpeedDisplayValue,
+            .shutterSpeed: shutterDisplayValue,
             .iso: isoDisplayValue,
             .whiteBalance: whiteBalanceDisplayValue
         ]
     }
 
-    private var shutterSpeedDisplayValue: String {
-        let shutterSpeedLabels = ["1/1000", "1/500", "1/250", "1/125", "1/60", "1/30", "1/4"]
-        let index = min(
-            max(Int((temporaryShutterSpeedValue * Double(shutterSpeedLabels.count - 1)).rounded()), 0),
-            shutterSpeedLabels.count - 1
-        )
-
-        return shutterSpeedLabels[index]
+    private var shutterDisplayValue: String {
+        pendingShutterDuration.map(CameraPreviewModel.shutterDisplayString(for:)) ?? camera.displayValue(for: .shutterSpeed)
     }
 
     private var isoDisplayValue: String {
@@ -252,6 +282,39 @@ struct MediaCameraView: View {
 
     private var whiteBalanceDisplayValue: String {
         temporaryWhiteBalancePreset.shortLabel
+    }
+
+    private func shutterSliderIndex(
+        for duration: Double?,
+        in shutterDurations: [Double]
+    ) -> Double {
+        guard let duration, !shutterDurations.isEmpty else {
+            return 0
+        }
+
+        let snappedDuration = CameraPreviewModel.nearestStandardShutterDuration(
+            to: duration,
+            in: camera.shutterRange
+        )
+
+        let index = shutterDurations.enumerated().min { lhs, rhs in
+            abs(log10(lhs.element) - log10(snappedDuration)) < abs(log10(rhs.element) - log10(snappedDuration))
+        }?.offset ?? 0
+
+        return Double(index)
+    }
+
+    private func shutterDuration(
+        at index: Double,
+        in shutterDurations: [Double]
+    ) -> Double {
+        guard !shutterDurations.isEmpty else {
+            return camera.shutterRange.lowerBound
+        }
+
+        let roundedIndex = Int(index.rounded())
+        let clampedIndex = min(max(roundedIndex, 0), shutterDurations.count - 1)
+        return shutterDurations[clampedIndex]
     }
 }
 
@@ -314,6 +377,119 @@ private struct CameraAdjustmentSlider: View {
         .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
         .padding(.vertical, 5)
         .background(Color.black.opacity(0.24))
+    }
+}
+
+private struct CameraAutoAdjustmentSlider: View {
+    let isAuto: Bool
+    let autoLabel: String
+    let lowerLabel: String
+    let centerLabel: String
+    let upperLabel: String
+    @Binding var value: Double
+    let bounds: ClosedRange<Double>
+    let onAuto: () -> Void
+
+    init(
+        isAuto: Bool,
+        autoLabel: String,
+        lowerLabel: String,
+        centerLabel: String,
+        upperLabel: String,
+        value: Binding<Double>,
+        bounds: ClosedRange<Double>,
+        onAuto: @escaping () -> Void
+    ) {
+        self.isAuto = isAuto
+        self.autoLabel = autoLabel
+        self.lowerLabel = lowerLabel
+        self.centerLabel = centerLabel
+        self.upperLabel = upperLabel
+        self._value = value
+        self.bounds = bounds
+        self.onAuto = onAuto
+    }
+
+    var body: some View {
+        let controlOpacity = isAuto ? 0.42 : 1.0
+
+        VStack(spacing: 6) {
+            HStack {
+                Text(autoLabel)
+                    .foregroundStyle(isAuto ? CameraUIConstants.accentColor : .white.opacity(0.72))
+                    .fontWeight(isAuto ? .bold : .semibold)
+
+                Spacer()
+            }
+            .font(.system(size: 11, weight: .semibold))
+
+            HStack(spacing: 8) {
+                Button {
+                    onAuto()
+                } label: {
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.9), lineWidth: 2)
+                        .background(
+                            Circle()
+                                .fill(isAuto ? CameraUIConstants.accentColor : .clear)
+                                .padding(4)
+                        )
+                        .frame(width: 24, height: 24)
+                        .overlay {
+                            if isAuto {
+                                Circle()
+                                    .stroke(CameraUIConstants.accentColor.opacity(0.35), lineWidth: 6)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+
+                SliderLeadMarker()
+                    .opacity(controlOpacity)
+
+                VStack(spacing: 3) {
+                    HStack(spacing: 0) {
+                        Text(lowerLabel)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text(centerLabel)
+                            .foregroundStyle(CameraUIConstants.accentColor)
+                            .frame(maxWidth: .infinity, alignment: .center)
+
+                        Text(upperLabel)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.72))
+
+                    Slider(value: $value, in: bounds, step: 1)
+                        .tint(CameraUIConstants.accentColor)
+                }
+                .opacity(controlOpacity)
+            }
+        }
+        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+        .padding(.vertical, 3)
+        .background(Color.black.opacity(0.24))
+    }
+}
+
+private struct SliderLeadMarker: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            HStack(spacing: 2) {
+                ForEach(0..<3, id: \.self) { _ in
+                    Circle()
+                        .fill(Color.white.opacity(0.82))
+                        .frame(width: 2, height: 2)
+                }
+            }
+
+            Capsule()
+                .fill(Color.white.opacity(0.88))
+                .frame(width: 2.5, height: 12)
+        }
+        .frame(width: 18, alignment: .leading)
     }
 }
 
