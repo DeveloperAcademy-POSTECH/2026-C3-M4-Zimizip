@@ -36,7 +36,7 @@ struct IntroductionView: View {
                 HStack(spacing: 5) {
                     ForEach(pages.indices, id: \.self) { index in
                         Circle()
-                            .fill(index == currentPage ? Color(red: 1, green: 0.42, blue: 0.13) : .gray.opacity(0.3))
+                            .fill(index == currentPage ? Color("OrangePrimary") : .gray.opacity(0.3))
                             .frame(width: 8, height: 8)
                     }
                 }
@@ -58,7 +58,7 @@ struct IntroductionView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(Color(red: 1, green: 0.42, blue: 0.13))
+                .background(Color("OrangePrimary"))
                 .clipShape(RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 60)
