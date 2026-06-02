@@ -9,19 +9,11 @@ struct RevealTimingView: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(Color(red: 91 / 255, green: 83 / 255, blue: 78 / 255))
-                        .frame(width: 38, height: 38)
-                        .background(.white.opacity(0.75))
-                        .clipShape(Circle())
-                }
-                .padding(.vertical, 13)
-
                 VStack(alignment: .leading, spacing: 16) {
+                    
+                    Spacer()
+                        .frame(height: 50)
+                    
                     Text("서프라이즈 카드가\n완성 되었어요!")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
