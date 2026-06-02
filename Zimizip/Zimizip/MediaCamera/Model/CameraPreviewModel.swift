@@ -6,6 +6,8 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
     @Published private(set) var isFlashEnabled = false
     @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
+    @Published private(set) var currentExposureBias: Float = 0.0
+    @Published private(set) var exposureBiasRange: ClosedRange<Float> = -3.0...3.0
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
@@ -61,6 +63,42 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         selectedColorPreset = preset
     }
 
+    func setExposureBias(_ value: Float) {
+        sessionQueue.async { [weak self] in
+            guard let self, let device = self.videoDeviceInput?.device else {
+                return
+            }
+
+            do {
+                try device.lockForConfiguration()
+                let clampedValue = min(max(value, device.minExposureTargetBias), device.maxExposureTargetBias)
+                device.setExposureTargetBias(clampedValue)
+                device.unlockForConfiguration()
+
+                Task { @MainActor in
+                    self.currentExposureBias = clampedValue
+                }
+            } catch {
+                return
+            }
+        }
+    }
+
+    func displayValue(for control: CameraManualControl) -> String {
+        switch control {
+        case .exposure:
+            currentExposureBias == 0
+                ? "0.0"
+                : String(format: "%+.1f", currentExposureBias)
+        case .shutterSpeed:
+            CameraManualControl.defaultDisplayValues[control] ?? "AUTO"
+        case .iso:
+            CameraManualControl.defaultDisplayValues[control] ?? "AUTO"
+        case .whiteBalance:
+            CameraManualControl.defaultDisplayValues[control] ?? "AWB"
+        }
+    }
+
     func switchCamera() {
         sessionQueue.async { [weak self] in
             guard let self, self.isSessionConfigured else {
@@ -93,6 +131,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
             self.session.addInput(newInput)
             self.videoDeviceInput = newInput
             self.session.commitConfiguration()
+            self.refreshDeviceState()
 
             Task { @MainActor in
                 self.currentCameraPosition = nextPosition
@@ -132,6 +171,20 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
     }
 
+    private func refreshDeviceState() {
+        guard let device = videoDeviceInput?.device else {
+            return
+        }
+
+        let exposureBiasRange = device.minExposureTargetBias...device.maxExposureTargetBias
+        let currentExposureBias = device.exposureTargetBias
+
+        Task { @MainActor in
+            self.exposureBiasRange = exposureBiasRange
+            self.currentExposureBias = currentExposureBias
+        }
+    }
+
     private func configureSessionIfNeeded() {
         sessionQueue.async { [weak self] in
             guard let self else { return }
@@ -164,6 +217,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
             self.isSessionConfigured = true
             self.session.commitConfiguration()
+            self.refreshDeviceState()
 
             Task { @MainActor in
                 self.currentCameraPosition = .back

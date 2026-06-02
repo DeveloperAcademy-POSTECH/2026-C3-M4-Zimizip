@@ -12,7 +12,6 @@ struct MediaCameraView: View {
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
-    @State private var temporaryExposureValue: Double = 0
     @State private var temporaryShutterSpeedValue: Double = 0.55
     @State private var temporaryISOValue: Double = 100
     @State private var temporaryWhiteBalancePreset: CameraTemporaryWhiteBalancePreset = .auto
@@ -181,32 +180,35 @@ struct MediaCameraView: View {
     private var manualAdjustmentPanel: some View {
         switch selectedManualControl {
         case .exposure:
-            CameraTemporaryAdjustmentSlider(
-                value: $temporaryExposureValue,
-                lowerLabel: "-2",
-                centerLabel: exposureDisplayValue,
-                upperLabel: "+2",
-                bounds: -2...2,
+            CameraAdjustmentSlider(
+                value: Binding(
+                    get: { Double(camera.currentExposureBias) },
+                    set: { camera.setExposureBias(Float($0)) }
+                ),
+                lowerLabel: "-3.0",
+                centerLabel: camera.displayValue(for: .exposure),
+                upperLabel: "3.0",
+                bounds: -3...3,
                 step: 0.1
             )
             .transition(.opacity)
         case .shutterSpeed:
-            CameraTemporaryAdjustmentSlider(
+            CameraAdjustmentSlider(
                 value: $temporaryShutterSpeedValue,
                 lowerLabel: "1/1000",
                 centerLabel: shutterSpeedDisplayValue,
-                upperLabel: "1/30",
+                upperLabel: "1/4",
                 bounds: 0...1,
                 step: 0.05
             )
             .transition(.opacity)
         case .iso:
-            CameraTemporaryAdjustmentSlider(
+            CameraAdjustmentSlider(
                 value: $temporaryISOValue,
                 lowerLabel: "50",
                 centerLabel: isoDisplayValue,
-                upperLabel: "1600",
-                bounds: 50...1600,
+                upperLabel: "6400",
+                bounds: 50...6400,
                 step: 10
             )
             .transition(.opacity)
@@ -227,21 +229,15 @@ struct MediaCameraView: View {
 
     private var temporaryManualDisplayValues: [CameraManualControl: String] {
         [
-            .exposure: exposureDisplayValue,
+            .exposure: camera.displayValue(for: .exposure),
             .shutterSpeed: shutterSpeedDisplayValue,
             .iso: isoDisplayValue,
             .whiteBalance: whiteBalanceDisplayValue
         ]
     }
 
-    private var exposureDisplayValue: String {
-        temporaryExposureValue == 0
-            ? "0.0"
-            : String(format: "%+.1f", temporaryExposureValue)
-    }
-
     private var shutterSpeedDisplayValue: String {
-        let shutterSpeedLabels = ["1/1000", "1/500", "1/250", "1/125", "1/60", "1/30"]
+        let shutterSpeedLabels = ["1/1000", "1/500", "1/250", "1/125", "1/60", "1/30", "1/4"]
         let index = min(
             max(Int((temporaryShutterSpeedValue * Double(shutterSpeedLabels.count - 1)).rounded()), 0),
             shutterSpeedLabels.count - 1
@@ -263,13 +259,29 @@ struct MediaCameraView: View {
     MediaCameraView()
 }
 
-private struct CameraTemporaryAdjustmentSlider: View {
+private struct CameraAdjustmentSlider: View {
     @Binding var value: Double
     let lowerLabel: String
     let centerLabel: String
     let upperLabel: String
     let bounds: ClosedRange<Double>
-    let step: Double
+    let step: Double?
+
+    init(
+        value: Binding<Double>,
+        lowerLabel: String,
+        centerLabel: String,
+        upperLabel: String,
+        bounds: ClosedRange<Double>,
+        step: Double? = nil
+    ) {
+        self._value = value
+        self.lowerLabel = lowerLabel
+        self.centerLabel = centerLabel
+        self.upperLabel = upperLabel
+        self.bounds = bounds
+        self.step = step
+    }
 
     var body: some View {
         VStack(spacing: 3) {
@@ -291,8 +303,13 @@ private struct CameraTemporaryAdjustmentSlider: View {
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(.white.opacity(0.72))
 
-            Slider(value: $value, in: bounds, step: step)
-                .tint(CameraUIConstants.accentColor)
+            if let step {
+                Slider(value: $value, in: bounds, step: step)
+                    .tint(CameraUIConstants.accentColor)
+            } else {
+                Slider(value: $value, in: bounds)
+                    .tint(CameraUIConstants.accentColor)
+            }
         }
         .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
         .padding(.vertical, 5)
