@@ -12,7 +12,7 @@ struct RevealTimingView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     
                     Spacer()
-                        .frame(height: 50)
+                        .frame(height: 75)
                     
                     Text("서프라이즈 카드가\n완성 되었어요!")
                         .font(.system(size: 28, weight: .bold))
