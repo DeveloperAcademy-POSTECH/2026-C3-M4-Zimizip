@@ -8,7 +8,7 @@ struct MediaSourceOptionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 248 / 255, green: 243 / 255, blue: 239 / 255)
+                Color(red: 255 / 255, green: 252 / 255, blue: 250 / 255)
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading) {
@@ -36,8 +36,8 @@ struct MediaSourceOptionView: View {
                     }
                     .padding(.bottom, 60)
 
-                    MediaSourceOptionItemView(
-                        icon: "camera",
+                    OptionItemView(
+                        icon: "Camera",
                         title: "직접 촬영하기",
                         subtitle: "서프라이즈를 할 순간을\n바로 담아보세요",
                         isSelected: false
@@ -51,8 +51,8 @@ struct MediaSourceOptionView: View {
                         matching: .images,
                         photoLibrary: .shared()
                     ) {
-                        MediaSourceOptionItemView(
-                            icon: "photo",
+                        OptionItemView(
+                            icon: "Image",
                             title: "갤러리에서 불러오기",
                             subtitle: "이미 저장된 사진으로\n시작해보세요",
                             isSelected: false
