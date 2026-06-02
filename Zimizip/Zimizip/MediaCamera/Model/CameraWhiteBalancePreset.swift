@@ -59,13 +59,49 @@ enum CameraWhiteBalancePreset: String, CaseIterable, Identifiable {
         case .auto:
             nil
         case .incandescent:
-            3000
+            3200
         case .fluorescent:
-            4200
+            5600
         case .daylight:
-            5200
+            6400
         case .cloudy:
-            6500
+            4800
+        }
+    }
+
+    var previewSaturation: Double {
+        switch self {
+        case .cloudy:
+            0.82
+        default:
+            1.0
+        }
+    }
+
+    var previewContrast: Double {
+        switch self {
+        case .cloudy:
+            0.94
+        default:
+            1.0
+        }
+    }
+
+    var previewBrightness: Double {
+        switch self {
+        case .cloudy:
+            0.015
+        default:
+            0.0
+        }
+    }
+
+    var previewColorMultiply: Color {
+        switch self {
+        case .cloudy:
+            Color(red: 0.92, green: 0.96, blue: 1.0)
+        default:
+            .white
         }
     }
 }

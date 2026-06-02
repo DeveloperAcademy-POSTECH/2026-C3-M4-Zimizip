@@ -1,6 +1,5 @@
 import AVFoundation
 import Combine
-import UIKit
 
 final class CameraPreviewModel: NSObject, ObservableObject {
     let session = AVCaptureSession()
@@ -16,7 +15,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
     @Published private(set) var whiteBalancePreset: CameraWhiteBalancePreset = .auto
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
-    @Published private(set) var countdownValue: Int?
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.session")
 
@@ -24,7 +22,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
     private var isSessionConfigured = false
     private var videoDeviceInput: AVCaptureDeviceInput?
-    private var pendingCaptureAspectRatio: CameraAspectRatioOption = .threeByFour
     private var pendingCaptureCompletion: ((Data?) -> Void)?
 
     func prepareCameraPreview() async {
@@ -104,41 +101,8 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
     }
 
-    func capturePhoto(
-        using timer: CameraTimerOption,
-        aspectRatio: CameraAspectRatioOption,
-        onPhotoCaptured: @escaping (Data?) -> Void
-    ) {
-        guard countdownValue == nil else { return }
-
-        let seconds = timer.seconds
-
-        guard seconds > 0 else {
-            performPhotoCapture(
-                aspectRatio: aspectRatio,
-                onPhotoCaptured: onPhotoCaptured
-            )
-            return
-        }
-
-        Task {
-            for remaining in stride(from: seconds, through: 1, by: -1) {
-                await MainActor.run {
-                    countdownValue = remaining
-                }
-
-                try? await Task.sleep(for: .seconds(1))
-            }
-
-            await MainActor.run {
-                countdownValue = nil
-            }
-
-            performPhotoCapture(
-                aspectRatio: aspectRatio,
-                onPhotoCaptured: onPhotoCaptured
-            )
-        }
+    func capturePhoto(onPhotoCaptured: @escaping (Data?) -> Void) {
+        performPhotoCapture(onPhotoCaptured: onPhotoCaptured)
     }
 
     func setExposureBias(_ value: Float) {
@@ -278,10 +242,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
     }
 
-    private func performPhotoCapture(
-        aspectRatio: CameraAspectRatioOption,
-        onPhotoCaptured: @escaping (Data?) -> Void
-    ) {
+    private func performPhotoCapture(onPhotoCaptured: @escaping (Data?) -> Void) {
         sessionQueue.async { [weak self] in
             guard let self else { return }
 
@@ -295,7 +256,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
                 settings.flashMode = self.isFlashEnabled ? .on : .off
             }
 
-            self.pendingCaptureAspectRatio = aspectRatio
             self.pendingCaptureCompletion = onPhotoCaptured
             self.photoOutput.capturePhoto(with: settings, delegate: self)
         }
@@ -438,43 +398,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         }
     }
 
-    private func croppedImageData(from photoData: Data, aspectRatio: CameraAspectRatioOption) -> Data? {
-        guard
-            let sourceImage = UIImage(data: photoData),
-            let normalizedImage = normalizedImage(from: sourceImage),
-            let cgImage = normalizedImage.cgImage
-        else {
-            return nil
-        }
-
-        let cropRect = aspectRatio.cropRect(
-            in: CGSize(width: cgImage.width, height: cgImage.height)
-        )
-
-        guard let croppedCGImage = cgImage.cropping(to: cropRect) else {
-            return nil
-        }
-
-        let croppedImage = UIImage(cgImage: croppedCGImage)
-        return croppedImage.jpegData(compressionQuality: 0.98)
-    }
-
-    private func normalizedImage(from image: UIImage) -> UIImage? {
-        let pixelSize = image.size
-
-        guard pixelSize.width > 0, pixelSize.height > 0 else {
-            return nil
-        }
-
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        let renderer = UIGraphicsImageRenderer(size: pixelSize, format: format)
-
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: pixelSize))
-        }
-    }
-
     static func shutterDisplayString(for seconds: Double) -> String {
         guard seconds > 0 else {
             return "AUTO"
@@ -511,18 +434,7 @@ extension CameraPreviewModel: AVCapturePhotoCaptureDelegate {
         }
 
         sessionQueue.async { [weak self] in
-            guard let self else { return }
-
-            let croppedData = self.croppedImageData(
-                from: photoData,
-                aspectRatio: self.pendingCaptureAspectRatio
-            )
-
-            if croppedData == nil {
-                self.updateErrorMessage("선택한 화면 비율로 사진을 자르지 못했습니다.")
-            }
-
-            self.finishCapture(with: croppedData)
+            self?.finishCapture(with: photoData)
         }
     }
 }

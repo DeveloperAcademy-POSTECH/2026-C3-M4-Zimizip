@@ -2,19 +2,18 @@ import SwiftUI
 
 struct CameraTopBar: View {
     let isFlashEnabled: Bool
-    let isQuickSettingsExpanded: Bool
+    let onClose: () -> Void
     let onToggleFlash: () -> Void
     let onSwitchCamera: () -> Void
-    let onToggleQuickSettings: () -> Void
 
     var body: some View {
         ZStack {
             HStack {
-                topBarButton(systemName: isFlashEnabled ? "bolt.fill" : "bolt.slash", isActive: isFlashEnabled, action: onToggleFlash)
+                topBarButton(systemName: "xmark", isActive: false, action: onClose)
 
                 Spacer()
 
-                CameraMoreButton(isExpanded: isQuickSettingsExpanded, action: onToggleQuickSettings)
+                topBarButton(systemName: isFlashEnabled ? "bolt.fill" : "bolt.slash", isActive: isFlashEnabled, action: onToggleFlash)
             }
 
             topBarButton(systemName: "camera.rotate", isActive: false, action: onSwitchCamera)

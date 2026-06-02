@@ -2,21 +2,13 @@ import SwiftUI
 
 struct CameraShutterBar: View {
     let isShowingColorPresets: Bool
-    let onClose: () -> Void
     let onCapture: () -> Void
     let onToggleColorPresets: () -> Void
 
     var body: some View {
         HStack {
-            Button {
-                onClose()
-            } label: {
-                Text("닫기")
-                    .font(.system(size: 14.5, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 68, alignment: .leading)
-            }
-            .buttonStyle(.plain)
+            Color.clear
+                .frame(width: 68, height: 36)
 
             Spacer()
 

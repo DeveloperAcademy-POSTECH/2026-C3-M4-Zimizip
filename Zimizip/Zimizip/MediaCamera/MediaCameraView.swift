@@ -10,12 +10,7 @@ import SwiftUI
 struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraPreviewModel()
-    @State private var isShowingQuickSettings = false
     @State private var isShowingColorPresets = false
-    @State private var selectedQuickSetting: CameraQuickSetting = .aspectRatio
-    @State private var selectedAspectRatio: CameraAspectRatioOption = .threeByFour
-    @State private var selectedTimer: CameraTimerOption = .off
-    @State private var gridMode: CameraGridMode = .off
     @State private var selectedManualControl: CameraManualControl?
 
     let onPhotoCaptured: (Data) -> Void
@@ -27,7 +22,6 @@ struct MediaCameraView: View {
     var body: some View {
         GeometryReader { proxy in
             let topBarHeight: CGFloat = 44
-            let quickSettingsPanelHeight: CGFloat = 124
             let manualAdjustmentHeight: CGFloat = 46
             let manualControlsHeight: CGFloat = 46
             let shutterBarHeight: CGFloat = 74
@@ -37,49 +31,33 @@ struct MediaCameraView: View {
             let presetBottomInset = 2 + 128 + 2 + shutterBarHeight + bottomSafeInset
             let previewTopInset = topSafeInset + topBarHeight
             let previewBottomInset = isShowingColorPresets ? presetBottomInset : standardBottomInset
-            let previewContentRect = CGRect(
+            let previewFrame = CGRect(
                 x: 0,
                 y: previewTopInset,
                 width: proxy.size.width,
                 height: max(proxy.size.height - previewTopInset - previewBottomInset, 0)
             )
-            let isNativePreviewAspect = selectedAspectRatio == .threeByFour
-            let previewFrame = isNativePreviewAspect
-                ? previewContentRect
-                : selectedAspectRatio.frame(in: previewContentRect)
 
             ZStack {
                 Color.black
 
                 CameraPreviewSurface(session: camera.session)
-                    .saturation(camera.selectedColorPreset.saturation)
-                    .contrast(camera.selectedColorPreset.contrast)
-                    .brightness(camera.selectedColorPreset.brightness)
+                    .saturation(camera.selectedColorPreset.saturation * camera.whiteBalancePreset.previewSaturation)
+                    .contrast(camera.selectedColorPreset.contrast * camera.whiteBalancePreset.previewContrast)
+                    .brightness(camera.selectedColorPreset.brightness + camera.whiteBalancePreset.previewBrightness)
                     .colorMultiply(camera.selectedColorPreset.colorMultiply)
+                    .colorMultiply(camera.whiteBalancePreset.previewColorMultiply)
                     .frame(width: previewFrame.width, height: previewFrame.height)
                     .clipShape(Rectangle())
-                    .overlay {
-                        if !isNativePreviewAspect {
-                            CameraAspectRatioOverlay()
-                                .animation(.easeInOut(duration: 0.24), value: selectedAspectRatio)
-                        }
-                    }
-                    .overlay {
-                        if gridMode != .off {
-                            CameraGridOverlay(gridMode: gridMode)
-                                .animation(.easeInOut(duration: 0.24), value: selectedAspectRatio)
-                        }
-                    }
                     .position(x: previewFrame.midX, y: previewFrame.midY)
 
                 VStack(spacing: 0) {
                     VStack(spacing: 0) {
                         CameraTopBar(
                             isFlashEnabled: camera.isFlashEnabled,
-                            isQuickSettingsExpanded: isShowingQuickSettings,
+                            onClose: { dismiss() },
                             onToggleFlash: { camera.toggleFlash() },
-                            onSwitchCamera: { camera.switchCamera() },
-                            onToggleQuickSettings: toggleQuickSettings
+                            onSwitchCamera: { camera.switchCamera() }
                         )
 
                     }
@@ -88,44 +66,6 @@ struct MediaCameraView: View {
                     .background(Color.black)
 
                     Spacer()
-                }
-
-                if isShowingQuickSettings {
-                    VStack(spacing: 8) {
-                        CameraQuickSettingsBar(
-                            selectedQuickSetting: selectedQuickSetting,
-                            selectedAspectRatio: selectedAspectRatio,
-                            selectedTimer: selectedTimer
-                        ) { quickSetting in
-                            withAnimation(.easeInOut(duration: 0.18)) {
-                                selectedQuickSetting = quickSetting
-                            }
-                        }
-
-                        CameraSettingsPanel(
-                            selectedQuickSetting: selectedQuickSetting,
-                            selectedAspectRatio: $selectedAspectRatio,
-                            selectedTimer: $selectedTimer,
-                            gridMode: $gridMode
-                        )
-                    }
-                    .frame(maxWidth: 188)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 10)
-                    .background(Color.black.opacity(0.92))
-                    .clipShape(RoundedRectangle(cornerRadius: 18))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                    )
-                    .frame(height: quickSettingsPanelHeight)
-                    .position(x: previewFrame.midX, y: previewFrame.midY)
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                }
-
-                if let countdownValue = camera.countdownValue {
-                    CameraCountdownOverlay(value: countdownValue)
-                        .position(x: previewFrame.midX, y: previewFrame.midY)
                 }
 
                 VStack(spacing: 0) {
@@ -184,12 +124,8 @@ struct MediaCameraView: View {
 
                         CameraShutterBar(
                             isShowingColorPresets: isShowingColorPresets,
-                            onClose: { dismiss() },
                             onCapture: {
-                                camera.capturePhoto(
-                                    using: selectedTimer,
-                                    aspectRatio: selectedAspectRatio
-                                ) { photoData in
+                                camera.capturePhoto { photoData in
                                     guard let photoData else {
                                         return
                                     }
@@ -232,11 +168,6 @@ struct MediaCameraView: View {
         }
     }
 
-    private func toggleQuickSettings() {
-        withAnimation(.easeInOut(duration: 0.18)) {
-            isShowingQuickSettings.toggle()
-        }
-    }
 }
 
 #Preview {
