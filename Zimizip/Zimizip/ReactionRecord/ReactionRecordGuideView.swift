@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ReactionRecordGuideView: View {
+    @State private var isShowingReactionRecord = false
+
     var body: some View {
         ZStack {
             Color.backgroundPrimary
@@ -26,10 +28,15 @@ struct ReactionRecordGuideView: View {
 
                 Spacer()
 
-                ZimizipPrimaryButton(title: "시작하기") {}
+                ZimizipPrimaryButton(title: "시작하기") {
+                    isShowingReactionRecord = true
+                }
                     .padding(.bottom, 60)
                     .padding(.horizontal, 20)
             }
+        }
+        .navigationDestination(isPresented: $isShowingReactionRecord) {
+            ReactionRecordView()
         }
     }
 }
