@@ -1,11 +1,10 @@
 import Foundation
 import Combine
-import ReplayKit
 
 @MainActor
 final class ReactionRecordViewModel: ObservableObject {
     @Published var isBeforeReveal = true
-    @Published var recordingPreviewController: RPPreviewViewController?
+    @Published var isRecordingCompleted = false
     @Published var recordingErrorMessage: String?
     @Published var isStoppingRecording = false
 
@@ -33,7 +32,8 @@ final class ReactionRecordViewModel: ObservableObject {
         defer { isStoppingRecording = false }
 
         do {
-            recordingPreviewController = try await screenRecorder.stopRecording()
+            _ = try await screenRecorder.stopRecording()
+            isRecordingCompleted = true
         } catch {
             recordingErrorMessage = error.localizedDescription
         }
