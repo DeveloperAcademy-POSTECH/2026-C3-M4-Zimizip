@@ -48,6 +48,13 @@ struct MediaCameraView: View {
             )
 
             ZStack {
+                if let capturedPhotoData {
+                    CapturedPhotoConfirmationView(
+                        photoData: capturedPhotoData,
+                        onRetake: {},
+                        onUsePhoto: {}
+                    )
+                } else {
                 Color.black
 
                 CameraPreviewSurface(session: camera.session)
@@ -142,11 +149,12 @@ struct MediaCameraView: View {
                     }
                     .frame(height: isShowingColorPresets ? presetBottomInset : manualBottomPanelHeight, alignment: .bottom)
                 }
+                }
             }
             .background(Color.black)
             .ignoresSafeArea()
         }
-        .statusBarHidden()
+        .statusBarHidden(capturedPhotoData == nil)
         .task {
             await camera.prepareCameraPreview()
         }
