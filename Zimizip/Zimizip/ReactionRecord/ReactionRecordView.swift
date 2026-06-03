@@ -1,33 +1,33 @@
 import SwiftUI
 
 struct ReactionRecordView: View {
-    @State private var isGeneratingReactionVideo = false
-    @State private var isBeforeReveal = true
+    @StateObject private var viewModel = ReactionRecordViewModel()
 
     var body: some View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            if isGeneratingReactionVideo {
-                ReactionVideoGeneratingView()
-            } else {
-                ZStack {
-                    ReactionRecordingContentView {
-                        isGeneratingReactionVideo = true
-                    }
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 0).onChanged { _ in
-                            isBeforeReveal = false
-                        }
-                    )
-
-                    if isBeforeReveal {
-                        RevealGuideView()
-                            .allowsHitTesting(false)
+            ZStack {
+                ReactionRecordingContentView {
+                    Task {
+                        await viewModel.stopRecording()
                     }
                 }
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0).onChanged { _ in
+                        viewModel.hideRevealGuide()
+                    }
+                )
+
+                if viewModel.isBeforeReveal {
+                    RevealGuideView()
+                        .allowsHitTesting(false)
+                }
             }
+        }
+        .task {
+            await viewModel.startRecordingIfNeeded()
         }
         .navigationBarBackButtonHidden(true)
     }
