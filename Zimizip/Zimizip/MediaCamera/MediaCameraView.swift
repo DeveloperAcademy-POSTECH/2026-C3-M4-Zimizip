@@ -14,6 +14,7 @@ struct MediaCameraView: View {
     @State private var selectedManualControl: CameraManualControl?
     @State private var pendingShutterDuration: Double?
     @State private var pendingISO: Float?
+    @State private var capturedPhotoData: Data?
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -188,8 +189,7 @@ struct MediaCameraView: View {
                 return
             }
 
-            onPhotoCaptured(photoData)
-            dismiss()
+            capturedPhotoData = photoData
         }
     }
 
