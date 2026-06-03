@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
+	<string>리액션 영상을 녹화하기 위해 전면 카메라를 사용합니다.</string>
+	<key>NSCameraUsageDescription</key>
 	<string>사진을 직접 촬영해 서프라이즈 이미지를 만들기 위해 카메라 접근이 필요합니다.</string>
 	<key>UIAppFonts</key>
 	<array>
