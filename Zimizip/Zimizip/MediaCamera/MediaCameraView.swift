@@ -51,7 +51,7 @@ struct MediaCameraView: View {
                 if let capturedPhotoData {
                     CapturedPhotoConfirmationView(
                         photoData: capturedPhotoData,
-                        onRetake: {},
+                        onRetake: retakePhoto,
                         onUsePhoto: {}
                     )
                 } else {
@@ -199,6 +199,10 @@ struct MediaCameraView: View {
 
             capturedPhotoData = photoData
         }
+    }
+
+    private func retakePhoto() {
+        capturedPhotoData = nil
     }
 
     private func toggleColorPresets() {
