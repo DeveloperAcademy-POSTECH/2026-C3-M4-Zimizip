@@ -52,7 +52,7 @@ struct MediaCameraView: View {
                     CapturedPhotoConfirmationView(
                         photoData: capturedPhotoData,
                         onRetake: retakePhoto,
-                        onUsePhoto: {}
+                        onUsePhoto: useCapturedPhoto
                     )
                 } else {
                 Color.black
@@ -203,6 +203,15 @@ struct MediaCameraView: View {
 
     private func retakePhoto() {
         capturedPhotoData = nil
+    }
+
+    private func useCapturedPhoto() {
+        guard let capturedPhotoData else {
+            return
+        }
+
+        onPhotoCaptured(capturedPhotoData)
+        dismiss()
     }
 
     private func toggleColorPresets() {
