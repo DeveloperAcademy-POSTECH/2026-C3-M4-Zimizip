@@ -8,21 +8,29 @@ struct ReactionRecordView: View {
             Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            ZStack {
-                ReactionRecordingContentView {
-                    Task {
-                        await viewModel.stopRecording()
-                    }
-                }
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 0).onChanged { _ in
-                        viewModel.hideRevealGuide()
-                    }
+            if viewModel.isRecordingCompleted {
+                ReactionRecordCompleteView(
+                    surpriseProjectTitle: "서프라이즈 프로젝트",
+                    onPrimaryButtonTap: {},
+                    onHomeButtonTap: {}
                 )
+            } else {
+                ZStack {
+                    ReactionRecordingContentView {
+                        Task {
+                            await viewModel.stopRecording()
+                        }
+                    }
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0).onChanged { _ in
+                            viewModel.hideRevealGuide()
+                        }
+                    )
 
-                if viewModel.isBeforeReveal {
-                    RevealGuideView()
-                        .allowsHitTesting(false)
+                    if viewModel.isBeforeReveal {
+                        RevealGuideView()
+                            .allowsHitTesting(false)
+                    }
                 }
             }
         }
