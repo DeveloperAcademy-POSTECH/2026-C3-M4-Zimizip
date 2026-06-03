@@ -22,10 +22,16 @@ struct ReactionRecordView: View {
                 ReactionVideoGeneratingView()
             } else {
                 ZStack {
-                    ReactionRecordingContentView {
+                    ReactionRecordingContentView(recordingTimeText: viewModel.recordingTimeText) {
                         Task {
                             await viewModel.stopRecording()
                         }
+                    }
+                    .onAppear {
+                        viewModel.startRecordingTimerIfNeeded()
+                    }
+                    .onDisappear {
+                        viewModel.stopRecordingTimer()
                     }
 
                     if viewModel.isBeforeReveal {
