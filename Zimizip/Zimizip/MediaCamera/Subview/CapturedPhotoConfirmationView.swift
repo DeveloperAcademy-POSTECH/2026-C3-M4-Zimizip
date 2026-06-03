@@ -3,6 +3,8 @@ import UIKit
 
 struct CapturedPhotoConfirmationView: View {
     let photoData: Data
+    let onRetake: () -> Void
+    let onUsePhoto: () -> Void
 
     private let designWidth: CGFloat = 402
     private let designImageHeight: CGFloat = 226
@@ -25,11 +27,23 @@ struct CapturedPhotoConfirmationView: View {
                     Spacer()
 
                     HStack {
-                        Color.clear
-                            .frame(width: 72, height: 44)
+                        Button(action: onRetake) {
+                            Text("다시 찍기")
+                                .font(.custom("Pretendard", size: 16).weight(.bold))
+                                .foregroundStyle(.white)
+                                .frame(minWidth: 72, minHeight: 44, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+
                         Spacer()
-                        Color.clear
-                            .frame(width: 72, height: 44)
+
+                        Button(action: onUsePhoto) {
+                            Text("사진 사용")
+                                .font(.custom("Pretendard", size: 16).weight(.bold))
+                                .foregroundStyle(.white)
+                                .frame(minWidth: 72, minHeight: 44, alignment: .trailing)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 8)
@@ -59,5 +73,9 @@ struct CapturedPhotoConfirmationView: View {
 }
 
 #Preview {
-    CapturedPhotoConfirmationView(photoData: Data())
+    CapturedPhotoConfirmationView(
+        photoData: Data(),
+        onRetake: {},
+        onUsePhoto: {}
+    )
 }
