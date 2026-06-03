@@ -3,6 +3,8 @@ import UIKit
 
 struct CapturedPhotoConfirmationView: View {
     let photoData: Data
+    let previewFrame: CGRect
+    let isLandscapeCapture: Bool
     let onRetake: () -> Void
     let onUsePhoto: () -> Void
 
@@ -12,16 +14,19 @@ struct CapturedPhotoConfirmationView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let imageHeight = proxy.size.width * designImageHeight / designWidth
+            let photoFrame = photoFrame(in: proxy.size, previewFrame: previewFrame)
 
             ZStack {
                 Color.black
                     .ignoresSafeArea()
 
                 capturedPhoto
-                    .frame(width: proxy.size.width, height: imageHeight)
+                    .frame(
+                        width: photoFrame.width,
+                        height: photoFrame.height
+                    )
                     .clipped()
-                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                    .position(x: proxy.size.width / 2, y: photoFrame.midY)
 
                 VStack {
                     Spacer()
@@ -70,11 +75,40 @@ struct CapturedPhotoConfirmationView: View {
                 .background(Color.white.opacity(0.08))
         }
     }
+
+    private func photoFrame(in containerSize: CGSize, previewFrame: CGRect) -> CGRect {
+        let contentHeight = max(containerSize.height - bottomBarHeight, 0)
+
+        guard previewFrame.width > 0, previewFrame.height > 0 else {
+            return CGRect(x: 0, y: 0, width: containerSize.width, height: contentHeight)
+        }
+
+        if isLandscapeCapture {
+            let imageHeight = containerSize.width * designImageHeight / designWidth
+            return CGRect(
+                x: 0,
+                y: (contentHeight - imageHeight) / 2,
+                width: containerSize.width,
+                height: imageHeight
+            )
+        }
+
+        let imageHeight = min(previewFrame.height, contentHeight)
+        let imageTop = min(max(previewFrame.minY, 0), max(contentHeight - imageHeight, 0))
+        return CGRect(
+            x: 0,
+            y: imageTop,
+            width: previewFrame.width,
+            height: imageHeight
+        )
+    }
 }
 
 #Preview {
     CapturedPhotoConfirmationView(
         photoData: Data(),
+        previewFrame: CGRect(x: 0, y: 108, width: 402, height: 510),
+        isLandscapeCapture: false,
         onRetake: {},
         onUsePhoto: {}
     )

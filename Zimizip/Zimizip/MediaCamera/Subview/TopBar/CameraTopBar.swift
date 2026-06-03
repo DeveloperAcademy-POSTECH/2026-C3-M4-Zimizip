@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CameraTopBar: View {
     let isFlashEnabled: Bool
+    let contentRotation: Angle
     let onClose: () -> Void
     let onToggleFlash: () -> Void
     let onSwitchCamera: () -> Void
@@ -34,6 +35,7 @@ struct CameraTopBar: View {
                 .font(.system(size: 16, weight: .regular))
                 .foregroundStyle(isActive ? CameraUIConstants.accentColor : .white)
                 .frame(width: 32, height: 32)
+                .rotationEffect(contentRotation)
         }
         .buttonStyle(.plain)
     }
@@ -42,6 +44,7 @@ struct CameraTopBar: View {
 #Preview {
     CameraTopBar(
         isFlashEnabled: false,
+        contentRotation: .zero,
         onClose: {},
         onToggleFlash: {},
         onSwitchCamera: {}

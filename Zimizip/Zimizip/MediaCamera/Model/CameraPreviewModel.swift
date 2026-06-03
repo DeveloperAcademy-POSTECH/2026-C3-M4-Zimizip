@@ -57,8 +57,12 @@ final class CameraPreviewModel: NSObject, ObservableObject {
         isFlashEnabled.toggle()
     }
 
-    func capturePhoto(onPhotoCaptured: @escaping (Data?) -> Void) {
+    func capturePhoto(
+        videoOrientation: AVCaptureVideoOrientation,
+        onPhotoCaptured: @escaping (Data?) -> Void
+    ) {
         performPhotoCapture(
+            videoOrientation: videoOrientation,
             flashMode: isFlashEnabled ? .on : .off,
             onPhotoCaptured: onPhotoCaptured
         )
@@ -279,6 +283,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     }
 
     private func performPhotoCapture(
+        videoOrientation: AVCaptureVideoOrientation,
         flashMode: AVCaptureDevice.FlashMode,
         onPhotoCaptured: @escaping (Data?) -> Void
     ) {
@@ -295,6 +300,16 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
             if self.photoOutput.supportedFlashModes.contains(flashMode) {
                 settings.flashMode = flashMode
+            }
+
+            if let connection = self.photoOutput.connection(with: .video) {
+                if connection.isVideoOrientationSupported {
+                    connection.videoOrientation = videoOrientation
+                }
+
+                if connection.isVideoMirroringSupported {
+                    connection.isVideoMirrored = self.currentCameraPosition == .front
+                }
             }
 
             self.pendingCaptureCompletion = onPhotoCaptured

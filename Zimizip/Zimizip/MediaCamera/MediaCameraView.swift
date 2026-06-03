@@ -5,7 +5,9 @@
 //  Created by Mason's Mac on 5/31/26.
 //
 
+import AVFoundation
 import SwiftUI
+import UIKit
 
 struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,6 +17,10 @@ struct MediaCameraView: View {
     @State private var pendingShutterDuration: Double?
     @State private var pendingISO: Float?
     @State private var capturedPhotoData: Data?
+    @State private var capturedPreviewFrame: CGRect = .zero
+    @State private var isCapturedLandscape = false
+    @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
+    @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -51,6 +57,8 @@ struct MediaCameraView: View {
                 if let capturedPhotoData {
                     CapturedPhotoConfirmationView(
                         photoData: capturedPhotoData,
+                        previewFrame: capturedPreviewFrame,
+                        isLandscapeCapture: isCapturedLandscape,
                         onRetake: retakePhoto,
                         onUsePhoto: useCapturedPhoto
                     )
@@ -62,6 +70,7 @@ struct MediaCameraView: View {
                         manualAdjustmentHeight: manualAdjustmentHeight,
                         manualControlsHeight: manualControlsHeight,
                         shutterBarHeight: shutterBarHeight,
+                        controlRotation: controlRotation,
                         adjustmentToControlsSpacing: adjustmentToControlsSpacing,
                         controlsToShutterSpacing: controlsToShutterSpacing,
                         colorPresetToShutterSpacing: colorPresetToShutterSpacing,
@@ -76,7 +85,11 @@ struct MediaCameraView: View {
         }
         .statusBarHidden(capturedPhotoData == nil)
         .task {
+            startMonitoringDeviceOrientation()
             await camera.prepareCameraPreview()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            updateCaptureOrientation()
         }
         .onDisappear {
             camera.stopSession()
@@ -111,18 +124,22 @@ struct MediaCameraView: View {
         }
     }
 
-    private func capturePhoto() {
-        camera.capturePhoto { photoData in
+    private func capturePhoto(previewFrame: CGRect) {
+        camera.capturePhoto(videoOrientation: captureOrientation) { photoData in
             guard let photoData else {
                 return
             }
 
+            capturedPreviewFrame = previewFrame
+            isCapturedLandscape = physicalDeviceOrientation.isLandscape
             capturedPhotoData = photoData
         }
     }
 
     private func retakePhoto() {
         capturedPhotoData = nil
+        capturedPreviewFrame = .zero
+        isCapturedLandscape = false
     }
 
     private func useCapturedPhoto() {
@@ -179,6 +196,7 @@ struct MediaCameraView: View {
         manualAdjustmentHeight: CGFloat,
         manualControlsHeight: CGFloat,
         shutterBarHeight: CGFloat,
+        controlRotation: Angle,
         adjustmentToControlsSpacing: CGFloat,
         controlsToShutterSpacing: CGFloat,
         colorPresetToShutterSpacing: CGFloat,
@@ -202,6 +220,7 @@ struct MediaCameraView: View {
                 VStack(spacing: 0) {
                     CameraTopBar(
                         isFlashEnabled: camera.isFlashEnabled,
+                        contentRotation: controlRotation,
                         onClose: {
                             dismiss()
                         },
@@ -229,6 +248,7 @@ struct MediaCameraView: View {
                         VStack(spacing: colorPresetToShutterSpacing) {
                             CameraColorPresetStrip(
                                 selectedPreset: camera.selectedColorPreset,
+                                contentRotation: controlRotation,
                                 onSelect: { camera.setColorPreset($0) }
                             )
                             .frame(maxWidth: .infinity)
@@ -241,7 +261,8 @@ struct MediaCameraView: View {
 
                             CameraShutterBar(
                                 isShowingColorPresets: isShowingColorPresets,
-                                onCapture: capturePhoto,
+                                contentRotation: controlRotation,
+                                onCapture: { capturePhoto(previewFrame: previewFrame) },
                                 onToggleColorPresets: toggleColorPresets
                             )
                             .frame(height: shutterBarHeight)
@@ -260,6 +281,7 @@ struct MediaCameraView: View {
                                 values: temporaryManualDisplayValues,
                                 selectedControl: selectedManualControl,
                                 disabledControls: disabledManualControls,
+                                contentRotation: controlRotation,
                                 onSelect: selectManualControl,
                                 onReset: resetManualControls
                             )
@@ -267,7 +289,8 @@ struct MediaCameraView: View {
 
                             CameraShutterBar(
                                 isShowingColorPresets: isShowingColorPresets,
-                                onCapture: capturePhoto,
+                                contentRotation: controlRotation,
+                                onCapture: { capturePhoto(previewFrame: previewFrame) },
                                 onToggleColorPresets: toggleColorPresets
                             )
                             .frame(height: shutterBarHeight)
@@ -411,6 +434,33 @@ struct MediaCameraView: View {
             camera.currentISO == nil
     }
 
+    private var controlRotation: Angle {
+        switch physicalDeviceOrientation {
+        case .landscapeLeft:
+            return .degrees(90)
+        case .landscapeRight:
+            return .degrees(-90)
+        default:
+            return .zero
+        }
+    }
+
+    private func startMonitoringDeviceOrientation() {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        updateCaptureOrientation()
+    }
+
+    private func updateCaptureOrientation() {
+        let deviceOrientation = UIDevice.current.orientation
+
+        guard let orientation = AVCaptureVideoOrientation(deviceOrientation: deviceOrientation) else {
+            return
+        }
+
+        physicalDeviceOrientation = deviceOrientation
+        captureOrientation = orientation
+    }
+
     private func shutterSliderIndex(
         for duration: Double?,
         in shutterDurations: [Double]
@@ -480,6 +530,23 @@ struct MediaCameraView: View {
 
 #Preview {
     MediaCameraView()
+}
+
+private extension AVCaptureVideoOrientation {
+    init?(deviceOrientation: UIDeviceOrientation) {
+        switch deviceOrientation {
+        case .portrait:
+            self = .portrait
+        case .portraitUpsideDown:
+            self = .portraitUpsideDown
+        case .landscapeLeft:
+            self = .landscapeRight
+        case .landscapeRight:
+            self = .landscapeLeft
+        default:
+            return nil
+        }
+    }
 }
 
 private struct CameraAdjustmentSlider: View {

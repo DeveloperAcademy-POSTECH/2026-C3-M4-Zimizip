@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CameraColorPresetStrip: View {
     let selectedPreset: CameraColorPreset
+    let contentRotation: Angle
     let onSelect: (CameraColorPreset) -> Void
 
     var body: some View {
@@ -34,6 +35,7 @@ struct CameraColorPresetStrip: View {
                             Text(preset.title)
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundStyle(selectedPreset == preset ? CameraUIConstants.accentColor : .white)
+                                .rotationEffect(contentRotation)
                         }
                         .frame(width: 78, alignment: .leading)
                     }
