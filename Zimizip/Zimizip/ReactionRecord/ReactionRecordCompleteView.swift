@@ -23,7 +23,7 @@ struct ReactionRecordCompleteView: View {
                 .foregroundStyle(Color.gray250)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            SurpriseProjectImageCardView {
+            SurpriseContentFrameView {
                 Image("Image")
                     .resizable()
                     .scaledToFit()

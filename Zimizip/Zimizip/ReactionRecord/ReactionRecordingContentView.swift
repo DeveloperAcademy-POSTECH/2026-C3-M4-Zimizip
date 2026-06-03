@@ -14,7 +14,7 @@ struct ReactionRecordingContentView: View {
 
             Spacer()
 
-            SurpriseProjectImageCardView {
+            SurpriseContentFrameView {
                 Image("Image")
                     .resizable()
                     .scaledToFit()
