@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>리액션 영상을 녹화하기 위해 전면 카메라를 사용합니다.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>
