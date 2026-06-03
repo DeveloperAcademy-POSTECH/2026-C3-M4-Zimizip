@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReactionRecordView: View {
     @State private var isGeneratingReactionVideo = false
+    @State private var isBeforeReveal = true
 
     var body: some View {
         ZStack {
@@ -11,8 +12,20 @@ struct ReactionRecordView: View {
             if isGeneratingReactionVideo {
                 ReactionVideoGeneratingView()
             } else {
-                ReactionRecordingContentView {
-                    isGeneratingReactionVideo = true
+                ZStack {
+                    ReactionRecordingContentView {
+                        isGeneratingReactionVideo = true
+                    }
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0).onChanged { _ in
+                            isBeforeReveal = false
+                        }
+                    )
+
+                    if isBeforeReveal {
+                        RevealGuideView()
+                            .allowsHitTesting(false)
+                    }
                 }
             }
         }
