@@ -30,6 +30,7 @@ struct IntroductionView: View {
                 
                 ZimizipPrimaryButton(title: "다음") {}
                 .padding(.bottom, 60)
+                .padding(.horizontal, 20)
             }
         }
     }

@@ -15,7 +15,6 @@ struct ZimizipPrimaryButton: View {
             .frame(height: 56)
             .background(Color(red: 1, green: 0.42, blue: 0.13))
             .clipShape(RoundedRectangle(cornerRadius: 14))
-            .padding(.horizontal, 20)
     }
 }
 
