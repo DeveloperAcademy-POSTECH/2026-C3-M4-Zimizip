@@ -5,6 +5,7 @@ import Combine
 final class ReactionRecordViewModel: ObservableObject {
     @Published var isBeforeReveal = true
     @Published var isRecordingCompleted = false
+    @Published var isGeneratingReactionVideo = false
     @Published var recordingErrorMessage: String?
     @Published var isStoppingRecording = false
 
@@ -21,6 +22,7 @@ final class ReactionRecordViewModel: ObservableObject {
 
         do {
             try await screenRecorder.startRecording()
+            isBeforeReveal = true
         } catch {
             recordingErrorMessage = error.localizedDescription
         }
@@ -30,16 +32,23 @@ final class ReactionRecordViewModel: ObservableObject {
         guard !isStoppingRecording else { return }
         isStoppingRecording = true
         defer { isStoppingRecording = false }
+        isGeneratingReactionVideo = true
 
         do {
-            _ = try await screenRecorder.stopRecording()
+            let previewViewController = try await screenRecorder.stopRecording()
+            isGeneratingReactionVideo = false
             isRecordingCompleted = true
         } catch {
+            isGeneratingReactionVideo = false
             recordingErrorMessage = error.localizedDescription
         }
     }
 
     func hideRevealGuide() {
         isBeforeReveal = false
+    }
+
+    func clearRecordingError() {
+        recordingErrorMessage = nil
     }
 }

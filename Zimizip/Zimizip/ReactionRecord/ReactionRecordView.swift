@@ -1,7 +1,11 @@
 import SwiftUI
 
 struct ReactionRecordView: View {
-    @StateObject private var viewModel = ReactionRecordViewModel()
+    @StateObject private var viewModel: ReactionRecordViewModel
+
+    init(screenRecorder: ScreenRecording? = nil) {
+        _viewModel = StateObject(wrappedValue: ReactionRecordViewModel(screenRecorder: screenRecorder))
+    }
 
     var body: some View {
         ZStack {
@@ -14,6 +18,8 @@ struct ReactionRecordView: View {
                     onPrimaryButtonTap: {},
                     onHomeButtonTap: {}
                 )
+            } else if viewModel.isGeneratingReactionVideo {
+                ReactionVideoGeneratingView()
             } else {
                 ZStack {
                     ReactionRecordingContentView {
@@ -21,21 +27,19 @@ struct ReactionRecordView: View {
                             await viewModel.stopRecording()
                         }
                     }
-                    .simultaneousGesture(
-                        DragGesture(minimumDistance: 0).onChanged { _ in
-                            viewModel.hideRevealGuide()
-                        }
-                    )
 
                     if viewModel.isBeforeReveal {
-                        RevealGuideView()
-                            .allowsHitTesting(false)
+                        RevealGuideView().onTapGesture {
+                            viewModel.hideRevealGuide()
+                        }
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 0).onChanged { value in
+                                viewModel.hideRevealGuide()
+                            }
+                        )
                     }
                 }
             }
-        }
-        .task {
-            await viewModel.startRecordingIfNeeded()
         }
         .navigationBarBackButtonHidden(true)
     }
