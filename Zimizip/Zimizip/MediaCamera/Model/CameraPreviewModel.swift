@@ -4,8 +4,14 @@ import Combine
 final class CameraPreviewModel: ObservableObject {
     let session = AVCaptureSession()
 
+    @Published private(set) var isFlashEnabled = false
+    @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
+
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
+    private let photoOutput = AVCapturePhotoOutput()
+
     private var isSessionConfigured = false
+    private var videoDeviceInput: AVCaptureDeviceInput?
 
     func prepareCameraPreview() async {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -31,6 +37,53 @@ final class CameraPreviewModel: ObservableObject {
             }
 
             self.session.stopRunning()
+        }
+    }
+
+    func toggleFlash() {
+        guard photoOutput.supportedFlashModes.contains(.on) else {
+            return
+        }
+
+        isFlashEnabled.toggle()
+    }
+
+    func switchCamera() {
+        sessionQueue.async { [weak self] in
+            guard let self, self.isSessionConfigured else {
+                return
+            }
+
+            let nextPosition: AVCaptureDevice.Position = self.currentCameraPosition == .back ? .front : .back
+
+            guard
+                let newCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: nextPosition),
+                let newInput = try? AVCaptureDeviceInput(device: newCamera)
+            else {
+                return
+            }
+
+            self.session.beginConfiguration()
+
+            if let currentInput = self.videoDeviceInput {
+                self.session.removeInput(currentInput)
+            }
+
+            guard self.session.canAddInput(newInput) else {
+                if let currentInput = self.videoDeviceInput, self.session.canAddInput(currentInput) {
+                    self.session.addInput(currentInput)
+                }
+                self.session.commitConfiguration()
+                return
+            }
+
+            self.session.addInput(newInput)
+            self.videoDeviceInput = newInput
+            self.session.commitConfiguration()
+
+            Task { @MainActor in
+                self.currentCameraPosition = nextPosition
+            }
         }
     }
 
@@ -66,8 +119,18 @@ final class CameraPreviewModel: ObservableObject {
             }
 
             self.session.addInput(input)
+            self.videoDeviceInput = input
+
+            if self.session.canAddOutput(self.photoOutput) {
+                self.session.addOutput(self.photoOutput)
+            }
+
             self.isSessionConfigured = true
             self.session.commitConfiguration()
+
+            Task { @MainActor in
+                self.currentCameraPosition = .back
+            }
 
             if !self.session.isRunning {
                 self.session.startRunning()
