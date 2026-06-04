@@ -1,7 +1,7 @@
 import Foundation
 import ReplayKit
 
-final class ReplayKitScreenRecorder: ScreenRecording {
+final class ReplayKitScreenRecorder: VideoRecording {
     private let recorder = RPScreenRecorder.shared()
     private var isRecording = false
 
@@ -9,7 +9,7 @@ final class ReplayKitScreenRecorder: ScreenRecording {
         guard !isRecording else { return }
         guard recorder.isAvailable else { throw ReplayKitScreenRecorderError.recordingUnavailable }
 
-        recorder.isCameraEnabled = true
+        recorder.isCameraEnabled = false
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             recorder.startRecording { [weak self] error in

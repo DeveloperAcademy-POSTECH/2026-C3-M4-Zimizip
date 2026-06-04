@@ -5,6 +5,7 @@ struct ReactionRecordGuideView: View {
     @State private var recordingErrorMessage: String?
     @State private var isStartingRecording = false
     @State private var screenRecorder = ReplayKitScreenRecorder()
+    @State private var frontCameraRecorder = AVFoundationFrontCameraRecorder()
 
     var body: some View {
         ZStack {
@@ -41,7 +42,10 @@ struct ReactionRecordGuideView: View {
             }
         }
         .navigationDestination(isPresented: $isShowingReactionRecord) {
-            ReactionRecordView(screenRecorder: screenRecorder)
+            ReactionRecordView(
+                screenRecorder: screenRecorder,
+                frontCameraRecorder: frontCameraRecorder
+            )
         }
         .alert(
             "녹화에 실패했어요",
@@ -68,9 +72,12 @@ struct ReactionRecordGuideView: View {
         defer { isStartingRecording = false }
 
         do {
+            try await frontCameraRecorder.startRecording()
             try await screenRecorder.startRecording()
             isShowingReactionRecord = true
         } catch {
+            _ = try? await frontCameraRecorder.stopRecording()
+            _ = try? await screenRecorder.stopRecording()
             recordingErrorMessage = error.localizedDescription
         }
     }
