@@ -8,7 +8,18 @@
 
 /* Begin PBXFileReference section */
 		9691D9032FC7DD3C00B54CA0 /* Zimizip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zimizip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000012FCD000100000001 /* ZimizipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZimizipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXContainerItemProxy section */
+		A10000022FCD000100000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9691D8FB2FC7DD3C00B54CA0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9691D9022FC7DD3C00B54CA0;
+			remoteInfo = Zimizip;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		271E87D72FCD5CEF009E1DFC /* Exceptions for "Zimizip" folder in "Zimizip" target */ = {
@@ -29,10 +40,22 @@
 			path = Zimizip;
 			sourceTree = "<group>";
 		};
+		A10000032FCD000100000003 /* ZimizipTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ZimizipTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9691D9002FC7DD3C00B54CA0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000042FCD000100000004 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -44,16 +67,18 @@
 /* Begin PBXGroup section */
 		9691D8FA2FC7DD3C00B54CA0 = {
 			isa = PBXGroup;
-			children = (
-				9691D9052FC7DD3C00B54CA0 /* Zimizip */,
-				9691D9042FC7DD3C00B54CA0 /* Products */,
+				children = (
+					9691D9052FC7DD3C00B54CA0 /* Zimizip */,
+					A10000032FCD000100000003 /* ZimizipTests */,
+					9691D9042FC7DD3C00B54CA0 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
 		9691D9042FC7DD3C00B54CA0 /* Products */ = {
 			isa = PBXGroup;
-			children = (
-				9691D9032FC7DD3C00B54CA0 /* Zimizip.app */,
+				children = (
+					9691D9032FC7DD3C00B54CA0 /* Zimizip.app */,
+					A10000012FCD000100000001 /* ZimizipTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +108,29 @@
 			productReference = 9691D9032FC7DD3C00B54CA0 /* Zimizip.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A10000052FCD000100000005 /* ZimizipTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000062FCD000100000006 /* Build configuration list for PBXNativeTarget "ZimizipTests" */;
+			buildPhases = (
+				A10000072FCD000100000007 /* Sources */,
+				A10000042FCD000100000004 /* Frameworks */,
+				A10000082FCD000100000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000092FCD000100000009 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000032FCD000100000003 /* ZimizipTests */,
+			);
+			name = ZimizipTests;
+			packageProductDependencies = (
+			);
+			productName = ZimizipTests;
+			productReference = A10000012FCD000100000001 /* ZimizipTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -93,9 +141,13 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					9691D9022FC7DD3C00B54CA0 = {
-						CreatedOnToolsVersion = 26.4.1;
-					};
+						9691D9022FC7DD3C00B54CA0 = {
+							CreatedOnToolsVersion = 26.4.1;
+						};
+						A10000052FCD000100000005 = {
+							CreatedOnToolsVersion = 26.4.1;
+							TestTargetID = 9691D9022FC7DD3C00B54CA0;
+						};
 				};
 			};
 			buildConfigurationList = 9691D8FE2FC7DD3C00B54CA0 /* Build configuration list for PBXProject "Zimizip" */;
@@ -111,14 +163,22 @@
 			productRefGroup = 9691D9042FC7DD3C00B54CA0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-			targets = (
-				9691D9022FC7DD3C00B54CA0 /* Zimizip */,
+				targets = (
+					9691D9022FC7DD3C00B54CA0 /* Zimizip */,
+					A10000052FCD000100000005 /* ZimizipTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		9691D9012FC7DD3C00B54CA0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000082FCD000100000008 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -135,7 +195,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000072FCD000100000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A10000092FCD000100000009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9691D9022FC7DD3C00B54CA0 /* Zimizip */;
+			targetProxy = A10000022FCD000100000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		9691D90C2FC7DD3C00B54CA0 /* Debug */ = {
@@ -337,6 +412,46 @@
 			};
 			name = Release;
 		};
+		A100000A2FCD00010000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.Zimizip.ZimizipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zimizip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zimizip";
+			};
+			name = Debug;
+		};
+		A100000B2FCD00010000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.Zimizip.ZimizipTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zimizip.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zimizip";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -354,6 +469,15 @@
 			buildConfigurations = (
 				9691D90F2FC7DD3C00B54CA0 /* Debug */,
 				9691D9102FC7DD3C00B54CA0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000062FCD000100000006 /* Build configuration list for PBXNativeTarget "ZimizipTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A100000A2FCD00010000000A /* Debug */,
+				A100000B2FCD00010000000B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
