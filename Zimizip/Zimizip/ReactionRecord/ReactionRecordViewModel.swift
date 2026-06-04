@@ -56,14 +56,12 @@ final class ReactionRecordViewModel: ObservableObject {
         guard !isStoppingRecording else { return }
         isStoppingRecording = true
         defer { isStoppingRecording = false }
-        isGeneratingReactionVideo = true
         stopRecordingTimer()
 
         do {
             screenRecordingURL = try await screenRecorder.stopRecording()
             frontCameraRecordingURL = try await frontCameraRecorder.stopRecording()
-            isGeneratingReactionVideo = false
-            isRecordingCompleted = true
+            isGeneratingReactionVideo = true
         } catch {
             stopRemainingRecordersIfNeeded()
             isGeneratingReactionVideo = false
