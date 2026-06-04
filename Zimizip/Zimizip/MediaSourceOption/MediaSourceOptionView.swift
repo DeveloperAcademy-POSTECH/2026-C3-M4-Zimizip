@@ -40,8 +40,8 @@ struct MediaSourceOptionView: View {
                     Button {
                         isShowingCamera = true
                     } label: {
-                        MediaSourceOptionItemView(
-                            icon: "camera",
+                        OptionItemView(
+                            icon: "Camera",
                             title: "직접 촬영하기",
                             subtitle: "서프라이즈를 할 순간을\n바로 담아보세요"
                         )
