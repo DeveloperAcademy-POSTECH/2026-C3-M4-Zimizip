@@ -6,6 +6,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
     @Published private(set) var isFlashEnabled = false
     @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
+    @Published private(set) var selectedColorPreset: CameraColorPreset = .original
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
     private let photoOutput = AVCapturePhotoOutput()
@@ -54,6 +55,10 @@ final class CameraPreviewModel: NSObject, ObservableObject {
             flashMode: isFlashEnabled ? .on : .off,
             onPhotoCaptured: onPhotoCaptured
         )
+    }
+
+    func setColorPreset(_ preset: CameraColorPreset) {
+        selectedColorPreset = preset
     }
 
     func switchCamera() {
