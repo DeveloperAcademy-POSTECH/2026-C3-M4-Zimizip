@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 @main
@@ -6,5 +7,13 @@ struct ZimizipApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(
+            for: [
+                SurpriseProject.self,
+                Content.self,
+                Media.self,
+                ReactionContent.self
+            ]
+        )
     }
 }
