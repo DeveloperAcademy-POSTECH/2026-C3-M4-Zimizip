@@ -4,6 +4,7 @@ struct CameraManualControlsBar: View {
     let values: [CameraManualControl: String]
     let selectedControl: CameraManualControl?
     let disabledControls: Set<CameraManualControl>
+    let contentRotation: Angle
     let onSelect: (CameraManualControl) -> Void
     let onReset: () -> Void
 
@@ -24,6 +25,7 @@ struct CameraManualControlsBar: View {
                     }
                     .foregroundStyle(selectedControl == control ? CameraUIConstants.accentColor : .white)
                     .frame(maxWidth: .infinity)
+                    .rotationEffect(contentRotation)
                     .contentShape(Rectangle())
                     .padding(.bottom, 6)
                     .opacity(isDisabled ? 0.38 : 1.0)
@@ -44,6 +46,7 @@ struct CameraManualControlsBar: View {
                         .font(.system(size: 10.5, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
+                .rotationEffect(contentRotation)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

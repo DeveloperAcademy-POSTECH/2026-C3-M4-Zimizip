@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CameraShutterBar: View {
     let isShowingColorPresets: Bool
+    let contentRotation: Angle
     let onCapture: () -> Void
     let onToggleColorPresets: () -> Void
 
@@ -34,6 +35,7 @@ struct CameraShutterBar: View {
             } label: {
                 CameraColorPresetButtonIcon(isSelected: isShowingColorPresets)
                     .frame(width: 68, height: 36, alignment: .trailing)
+                    .rotationEffect(contentRotation)
             }
             .buttonStyle(.plain)
         }

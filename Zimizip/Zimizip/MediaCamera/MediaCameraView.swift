@@ -5,7 +5,9 @@
 //  Created by Mason's Mac on 5/31/26.
 //
 
+import AVFoundation
 import SwiftUI
+import UIKit
 
 struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
@@ -14,6 +16,11 @@ struct MediaCameraView: View {
     @State private var selectedManualControl: CameraManualControl?
     @State private var pendingShutterDuration: Double?
     @State private var pendingISO: Float?
+    @State private var capturedPhotoData: Data?
+    @State private var capturedPreviewFrame: CGRect = .zero
+    @State private var isCapturedLandscape = false
+    @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
+    @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
 
     let onPhotoCaptured: (Data) -> Void
 
@@ -47,107 +54,42 @@ struct MediaCameraView: View {
             )
 
             ZStack {
-                Color.black
-
-                CameraPreviewSurface(session: camera.session)
-                    .saturation(camera.selectedColorPreset.saturation)
-                    .contrast(camera.selectedColorPreset.contrast)
-                    .brightness(camera.selectedColorPreset.brightness)
-                    .colorMultiply(camera.selectedColorPreset.colorMultiply)
-                    .frame(width: previewFrame.width, height: previewFrame.height)
-                    .clipShape(Rectangle())
-                    .position(x: previewFrame.midX, y: previewFrame.midY)
-
-                VStack(spacing: 0) {
-                    VStack(spacing: 0) {
-                        CameraTopBar(
-                            isFlashEnabled: camera.isFlashEnabled,
-                            onClose: {
-                                dismiss()
-                            },
-                            onToggleFlash: {
-                                camera.toggleFlash()
-                            },
-                            onSwitchCamera: {
-                                switchCamera()
-                            }
-                        )
-
-                    }
-                    .padding(.top, topSafeInset)
-                    .frame(height: topBarHeight + topSafeInset, alignment: .top)
-                    .background(Color.black)
-
-                    Spacer()
-                }
-
-                VStack(spacing: 0) {
-                    Spacer()
-
-                    VStack(spacing: adjustmentToControlsSpacing) {
-                        if isShowingColorPresets {
-                            VStack(spacing: colorPresetToShutterSpacing) {
-                                CameraColorPresetStrip(
-                                    selectedPreset: camera.selectedColorPreset,
-                                    onSelect: { camera.setColorPreset($0) }
-                                )
-                                .frame(maxWidth: .infinity)
-                                .background(Color.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                                )
-
-                                CameraShutterBar(
-                                    isShowingColorPresets: isShowingColorPresets,
-                                    onCapture: capturePhoto,
-                                    onToggleColorPresets: toggleColorPresets
-                                )
-                                .frame(height: shutterBarHeight)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
-                            .padding(.bottom, bottomPanelBottomPadding)
-                            .background(Color.black)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                        } else {
-                            manualAdjustmentPanel
-                                .frame(height: manualAdjustmentHeight, alignment: .center)
-
-                            VStack(spacing: controlsToShutterSpacing) {
-                                CameraManualControlsBar(
-                                    values: temporaryManualDisplayValues,
-                                    selectedControl: selectedManualControl,
-                                    disabledControls: disabledManualControls,
-                                    onSelect: selectManualControl,
-                                    onReset: resetManualControls
-                                )
-                                    .frame(height: manualControlsHeight)
-
-                                CameraShutterBar(
-                                    isShowingColorPresets: isShowingColorPresets,
-                                    onCapture: capturePhoto,
-                                    onToggleColorPresets: toggleColorPresets
-                                )
-                                .frame(height: shutterBarHeight)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
-                            .padding(.bottom, bottomPanelBottomPadding)
-                            .background(Color.black)
-                            .transition(.opacity)
-                        }
-                    }
-                    .frame(height: isShowingColorPresets ? presetBottomInset : manualBottomPanelHeight, alignment: .bottom)
+                if let capturedPhotoData {
+                    CapturedPhotoConfirmationView(
+                        photoData: capturedPhotoData,
+                        previewFrame: capturedPreviewFrame,
+                        isLandscapeCapture: isCapturedLandscape,
+                        onRetake: retakePhoto,
+                        onUsePhoto: useCapturedPhoto
+                    )
+                } else {
+                    cameraCaptureView(
+                        previewFrame: previewFrame,
+                        topSafeInset: topSafeInset,
+                        topBarHeight: topBarHeight,
+                        manualAdjustmentHeight: manualAdjustmentHeight,
+                        manualControlsHeight: manualControlsHeight,
+                        shutterBarHeight: shutterBarHeight,
+                        controlRotation: controlRotation,
+                        adjustmentToControlsSpacing: adjustmentToControlsSpacing,
+                        controlsToShutterSpacing: controlsToShutterSpacing,
+                        colorPresetToShutterSpacing: colorPresetToShutterSpacing,
+                        bottomPanelBottomPadding: bottomPanelBottomPadding,
+                        manualBottomPanelHeight: manualBottomPanelHeight,
+                        presetBottomInset: presetBottomInset
+                    )
                 }
             }
             .background(Color.black)
             .ignoresSafeArea()
         }
-        .statusBarHidden()
+        .statusBarHidden(capturedPhotoData == nil)
         .task {
+            startMonitoringDeviceOrientation()
             await camera.prepareCameraPreview()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            updateCaptureOrientation()
         }
         .onDisappear {
             camera.stopSession()
@@ -182,15 +124,31 @@ struct MediaCameraView: View {
         }
     }
 
-    private func capturePhoto() {
-        camera.capturePhoto { photoData in
+    private func capturePhoto(previewFrame: CGRect) {
+        camera.capturePhoto(videoOrientation: captureOrientation) { photoData in
             guard let photoData else {
                 return
             }
 
-            onPhotoCaptured(photoData)
-            dismiss()
+            capturedPreviewFrame = previewFrame
+            isCapturedLandscape = physicalDeviceOrientation.isLandscape
+            capturedPhotoData = photoData
         }
+    }
+
+    private func retakePhoto() {
+        capturedPhotoData = nil
+        capturedPreviewFrame = .zero
+        isCapturedLandscape = false
+    }
+
+    private func useCapturedPhoto() {
+        guard let capturedPhotoData else {
+            return
+        }
+
+        onPhotoCaptured(capturedPhotoData)
+        dismiss()
     }
 
     private func toggleColorPresets() {
@@ -228,6 +186,124 @@ struct MediaCameraView: View {
 
         withAnimation(.easeInOut(duration: 0.16)) {
             selectedManualControl = nil
+        }
+    }
+
+    private func cameraCaptureView(
+        previewFrame: CGRect,
+        topSafeInset: CGFloat,
+        topBarHeight: CGFloat,
+        manualAdjustmentHeight: CGFloat,
+        manualControlsHeight: CGFloat,
+        shutterBarHeight: CGFloat,
+        controlRotation: Angle,
+        adjustmentToControlsSpacing: CGFloat,
+        controlsToShutterSpacing: CGFloat,
+        colorPresetToShutterSpacing: CGFloat,
+        bottomPanelBottomPadding: CGFloat,
+        manualBottomPanelHeight: CGFloat,
+        presetBottomInset: CGFloat
+    ) -> some View {
+        ZStack {
+            Color.black
+
+            CameraPreviewSurface(session: camera.session)
+                .saturation(camera.selectedColorPreset.saturation)
+                .contrast(camera.selectedColorPreset.contrast)
+                .brightness(camera.selectedColorPreset.brightness)
+                .colorMultiply(camera.selectedColorPreset.colorMultiply)
+                .frame(width: previewFrame.width, height: previewFrame.height)
+                .clipShape(Rectangle())
+                .position(x: previewFrame.midX, y: previewFrame.midY)
+
+            VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    CameraTopBar(
+                        isFlashEnabled: camera.isFlashEnabled,
+                        contentRotation: controlRotation,
+                        onClose: {
+                            dismiss()
+                        },
+                        onToggleFlash: {
+                            camera.toggleFlash()
+                        },
+                        onSwitchCamera: {
+                            switchCamera()
+                        }
+                    )
+
+                }
+                .padding(.top, topSafeInset)
+                .frame(height: topBarHeight + topSafeInset, alignment: .top)
+                .background(Color.black)
+
+                Spacer()
+            }
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: adjustmentToControlsSpacing) {
+                    if isShowingColorPresets {
+                        VStack(spacing: colorPresetToShutterSpacing) {
+                            CameraColorPresetStrip(
+                                selectedPreset: camera.selectedColorPreset,
+                                contentRotation: controlRotation,
+                                onSelect: { camera.setColorPreset($0) }
+                            )
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                            )
+
+                            CameraShutterBar(
+                                isShowingColorPresets: isShowingColorPresets,
+                                contentRotation: controlRotation,
+                                onCapture: { capturePhoto(previewFrame: previewFrame) },
+                                onToggleColorPresets: toggleColorPresets
+                            )
+                            .frame(height: shutterBarHeight)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+                        .padding(.bottom, bottomPanelBottomPadding)
+                        .background(Color.black)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    } else {
+                        manualAdjustmentPanel
+                            .frame(height: manualAdjustmentHeight, alignment: .center)
+
+                        VStack(spacing: controlsToShutterSpacing) {
+                            CameraManualControlsBar(
+                                values: temporaryManualDisplayValues,
+                                selectedControl: selectedManualControl,
+                                disabledControls: disabledManualControls,
+                                contentRotation: controlRotation,
+                                onSelect: selectManualControl,
+                                onReset: resetManualControls
+                            )
+                            .frame(height: manualControlsHeight)
+
+                            CameraShutterBar(
+                                isShowingColorPresets: isShowingColorPresets,
+                                contentRotation: controlRotation,
+                                onCapture: { capturePhoto(previewFrame: previewFrame) },
+                                onToggleColorPresets: toggleColorPresets
+                            )
+                            .frame(height: shutterBarHeight)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+                        .padding(.bottom, bottomPanelBottomPadding)
+                        .background(Color.black)
+                        .transition(.opacity)
+                    }
+                }
+                .frame(height: isShowingColorPresets ? presetBottomInset : manualBottomPanelHeight, alignment: .bottom)
+            }
         }
     }
 
@@ -358,6 +434,33 @@ struct MediaCameraView: View {
             camera.currentISO == nil
     }
 
+    private var controlRotation: Angle {
+        switch physicalDeviceOrientation {
+        case .landscapeLeft:
+            return .degrees(90)
+        case .landscapeRight:
+            return .degrees(-90)
+        default:
+            return .zero
+        }
+    }
+
+    private func startMonitoringDeviceOrientation() {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        updateCaptureOrientation()
+    }
+
+    private func updateCaptureOrientation() {
+        let deviceOrientation = UIDevice.current.orientation
+
+        guard let orientation = AVCaptureVideoOrientation(deviceOrientation: deviceOrientation) else {
+            return
+        }
+
+        physicalDeviceOrientation = deviceOrientation
+        captureOrientation = orientation
+    }
+
     private func shutterSliderIndex(
         for duration: Double?,
         in shutterDurations: [Double]
@@ -427,6 +530,23 @@ struct MediaCameraView: View {
 
 #Preview {
     MediaCameraView()
+}
+
+private extension AVCaptureVideoOrientation {
+    init?(deviceOrientation: UIDeviceOrientation) {
+        switch deviceOrientation {
+        case .portrait:
+            self = .portrait
+        case .portraitUpsideDown:
+            self = .portraitUpsideDown
+        case .landscapeLeft:
+            self = .landscapeRight
+        case .landscapeRight:
+            self = .landscapeLeft
+        default:
+            return nil
+        }
+    }
 }
 
 private struct CameraAdjustmentSlider: View {
