@@ -4,6 +4,7 @@ import SwiftUI
 struct MediaSourceOptionView: View {
     @State private var selectedMedia: PhotosPickerItem?
     @State private var media: Media?
+    @State private var isShowingCamera = false
 
     var body: some View {
         NavigationStack {
@@ -37,9 +38,10 @@ struct MediaSourceOptionView: View {
                     .padding(.bottom, 60)
 
                     Button {
+                        isShowingCamera = true
                     } label: {
-                        OptionItemView(
-                            icon: "Camera",
+                        MediaSourceOptionItemView(
+                            icon: "camera",
                             title: "직접 촬영하기",
                             subtitle: "서프라이즈를 할 순간을\n바로 담아보세요"
                         )
@@ -68,6 +70,11 @@ struct MediaSourceOptionView: View {
             }
             .navigationDestination(item: $media) { media in
                 MediaEditView(media: media.source)
+                    .navigationBarBackButtonHidden(true)
+                    .toolbar(.hidden, for: .navigationBar)
+            }
+            .fullScreenCover(isPresented: $isShowingCamera) {
+                MediaCameraView()
             }
         }
         .task(id: selectedMedia) {

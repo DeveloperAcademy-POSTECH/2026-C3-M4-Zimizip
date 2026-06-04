@@ -1,21 +1,32 @@
 import SwiftUI
-import UIKit
 
 struct MediaEditView: View {
+    @Environment(\.dismiss) private var dismiss
+
     let media: Data
 
     var body: some View {
         VStack {
-            if let image = UIImage(data: media) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                Text("사진을 불러올 수 없어요")
-            }
+            TopBar(
+                title: "사진 편집",
+                nextButtonTitle: "다음",
+                backButtonAction: {
+                    dismiss()
+                },
+                nextButtonAction: {}
+            )
+
+            Spacer()
+
+            MediaPreview(media: media)
+
+            Spacer()
+
+            EditToolBar()
+                .padding(.bottom, 75)
+                .padding(.horizontal, 14)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .padding(24)
+        .background(Color.white)
     }
 }
 
