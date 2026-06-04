@@ -1,17 +1,19 @@
 import AVFoundation
 import Combine
 
-final class CameraPreviewModel: ObservableObject {
+final class CameraPreviewModel: NSObject, ObservableObject {
     let session = AVCaptureSession()
 
     @Published private(set) var isFlashEnabled = false
     @Published private(set) var currentCameraPosition: AVCaptureDevice.Position = .back
+    @Published private(set) var selectedColorPreset: CameraColorPreset = .original
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
     private let photoOutput = AVCapturePhotoOutput()
 
     private var isSessionConfigured = false
     private var videoDeviceInput: AVCaptureDeviceInput?
+    private var pendingCaptureCompletion: ((Data?) -> Void)?
 
     func prepareCameraPreview() async {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -46,6 +48,17 @@ final class CameraPreviewModel: ObservableObject {
         }
 
         isFlashEnabled.toggle()
+    }
+
+    func capturePhoto(onPhotoCaptured: @escaping (Data?) -> Void) {
+        performPhotoCapture(
+            flashMode: isFlashEnabled ? .on : .off,
+            onPhotoCaptured: onPhotoCaptured
+        )
+    }
+
+    func setColorPreset(_ preset: CameraColorPreset) {
+        selectedColorPreset = preset
     }
 
     func switchCamera() {
@@ -84,6 +97,30 @@ final class CameraPreviewModel: ObservableObject {
             Task { @MainActor in
                 self.currentCameraPosition = nextPosition
             }
+        }
+    }
+
+    private func performPhotoCapture(
+        flashMode: AVCaptureDevice.FlashMode,
+        onPhotoCaptured: @escaping (Data?) -> Void
+    ) {
+        sessionQueue.async { [weak self] in
+            guard let self, self.isSessionConfigured else {
+                return
+            }
+
+            guard self.pendingCaptureCompletion == nil else {
+                return
+            }
+
+            let settings = AVCapturePhotoSettings()
+
+            if self.photoOutput.supportedFlashModes.contains(flashMode) {
+                settings.flashMode = flashMode
+            }
+
+            self.pendingCaptureCompletion = onPhotoCaptured
+            self.photoOutput.capturePhoto(with: settings, delegate: self)
         }
     }
 
@@ -135,6 +172,34 @@ final class CameraPreviewModel: ObservableObject {
             if !self.session.isRunning {
                 self.session.startRunning()
             }
+        }
+    }
+
+    private func finishCapture(with data: Data?) {
+        let completion = pendingCaptureCompletion
+        pendingCaptureCompletion = nil
+
+        Task { @MainActor in
+            completion?(data)
+        }
+    }
+}
+
+extension CameraPreviewModel: AVCapturePhotoCaptureDelegate {
+    func photoOutput(
+        _ output: AVCapturePhotoOutput,
+        didFinishProcessingPhoto photo: AVCapturePhoto,
+        error: Error?
+    ) {
+        guard error == nil, let photoData = photo.fileDataRepresentation() else {
+            sessionQueue.async { [weak self] in
+                self?.finishCapture(with: nil)
+            }
+            return
+        }
+
+        sessionQueue.async { [weak self] in
+            self?.finishCapture(with: photoData)
         }
     }
 }
