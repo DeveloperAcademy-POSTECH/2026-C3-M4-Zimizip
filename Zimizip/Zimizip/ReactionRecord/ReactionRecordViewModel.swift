@@ -11,6 +11,7 @@ final class ReactionRecordViewModel: ObservableObject {
     @Published var recordingElapsedSeconds = 0
     @Published var screenRecordingURL: URL?
     @Published var frontCameraRecordingURL: URL?
+    @Published var composedReactionVideoURL: URL?
 
     var recordingTimeText: String {
         let hours = recordingElapsedSeconds / 3600
@@ -24,6 +25,7 @@ final class ReactionRecordViewModel: ObservableObject {
     private let frontCameraRecorder: VideoRecording
     private let reactionVideoComposer: ReactionVideoComposing
     private var hasStartedRecording = false
+    private var isComposingReactionVideo = false
     private var recordingTimerTask: Task<Void, Never>?
 
     init(
@@ -73,6 +75,20 @@ final class ReactionRecordViewModel: ObservableObject {
         try await frontCameraRecorder.startRecording()
     }
 
+    func composeReactionVideoIfNeeded() async {
+        guard canStartReactionVideoComposition() else { return }
+
+        isComposingReactionVideo = true
+        defer { isComposingReactionVideo = false }
+
+        do {
+            let composedVideoURL = try await makeReactionVideo()
+            handleReactionVideoCompositionSuccess(composedVideoURL)
+        } catch {
+            handleReactionVideoCompositionFailure(error)
+        }
+    }
+
     func startRecordingTimerIfNeeded() {
         guard recordingTimerTask == nil else { return }
         recordingElapsedSeconds = 0
@@ -111,6 +127,50 @@ final class ReactionRecordViewModel: ObservableObject {
             if frontCameraRecordingURL == nil {
                 frontCameraRecordingURL = try? await frontCameraRecorder.stopRecording()
             }
+        }
+    }
+
+    private func canStartReactionVideoComposition() -> Bool {
+        guard isGeneratingReactionVideo else { return false }
+        guard !isComposingReactionVideo else { return false }
+        guard frontCameraRecordingURL != nil, screenRecordingURL != nil else {
+            isGeneratingReactionVideo = false
+            recordingErrorMessage = ReactionRecordError.missingRecordingFile.localizedDescription
+            return false
+        }
+        return true
+    }
+
+    private func makeReactionVideo() async throws -> URL {
+        guard let frontCameraRecordingURL, let screenRecordingURL else {
+            throw ReactionRecordError.missingRecordingFile
+        }
+
+        return try await reactionVideoComposer.compose(
+            frontCameraVideoURL: frontCameraRecordingURL,
+            screenRecordingURL: screenRecordingURL
+        )
+    }
+
+    private func handleReactionVideoCompositionSuccess(_ composedVideoURL: URL) {
+        composedReactionVideoURL = composedVideoURL
+        isGeneratingReactionVideo = false
+        isRecordingCompleted = true
+    }
+
+    private func handleReactionVideoCompositionFailure(_ error: Error) {
+        isGeneratingReactionVideo = false
+        recordingErrorMessage = error.localizedDescription
+    }
+}
+
+private enum ReactionRecordError: LocalizedError {
+    case missingRecordingFile
+
+    var errorDescription: String? {
+        switch self {
+        case .missingRecordingFile:
+            return "리액션 영상 생성에 필요한 녹화 파일을 찾을 수 없습니다."
         }
     }
 }

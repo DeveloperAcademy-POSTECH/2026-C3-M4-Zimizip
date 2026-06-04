@@ -30,6 +30,9 @@ struct ReactionRecordView: View {
                 )
             } else if viewModel.isGeneratingReactionVideo {
                 ReactionVideoGeneratingView()
+                    .task {
+                        await viewModel.composeReactionVideoIfNeeded()
+                    }
             } else {
                 ZStack {
                     ReactionRecordingContentView(recordingTimeText: viewModel.recordingTimeText) {
