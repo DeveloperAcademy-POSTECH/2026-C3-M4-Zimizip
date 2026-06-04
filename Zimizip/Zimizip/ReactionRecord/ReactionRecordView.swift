@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReactionRecordView: View {
     @StateObject private var viewModel: ReactionRecordViewModel
+    @State private var isShowingReactionVideoPreview = false
 
     init(
         screenRecorder: VideoRecording? = nil,
@@ -22,10 +23,14 @@ struct ReactionRecordView: View {
             Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            if viewModel.isRecordingCompleted {
+            if isShowingReactionVideoPreview, let composedReactionVideoURL = viewModel.composedReactionVideoURL {
+                ReactionVideoPreviewView(videoURL: composedReactionVideoURL)
+            } else if viewModel.isRecordingCompleted {
                 ReactionRecordCompleteView(
                     surpriseProjectTitle: "서프라이즈 프로젝트",
-                    onPrimaryButtonTap: {},
+                    onPrimaryButtonTap: {
+                        isShowingReactionVideoPreview = true
+                    },
                     onHomeButtonTap: {}
                 )
             } else if viewModel.isGeneratingReactionVideo {
