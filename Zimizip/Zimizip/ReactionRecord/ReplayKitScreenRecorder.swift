@@ -1,3 +1,4 @@
+import Foundation
 import ReplayKit
 
 final class ReplayKitScreenRecorder: ScreenRecording {
@@ -23,11 +24,15 @@ final class ReplayKitScreenRecorder: ScreenRecording {
         }
     }
 
-    func stopRecording() async throws -> RPPreviewViewController? {
-        guard isRecording else { return nil }
+    func stopRecording() async throws -> URL {
+        guard isRecording else { throw ReplayKitScreenRecorderError.notRecording }
 
-        return try await withCheckedThrowingContinuation { continuation in
-            recorder.stopRecording { [weak self] previewViewController, error in
+        let outputURL = makeScreenRecordingSourceURL()
+
+        try? FileManager.default.removeItem(at: outputURL)
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            recorder.stopRecording(withOutput: outputURL) { [weak self] error in
                 self?.isRecording = false
 
                 if let error {
@@ -35,12 +40,21 @@ final class ReplayKitScreenRecorder: ScreenRecording {
                     return
                 }
 
-                continuation.resume(returning: previewViewController)
+                continuation.resume()
             }
         }
+
+        return outputURL
+    }
+
+    private func makeScreenRecordingSourceURL() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("screen-recording-\(UUID().uuidString)")
+            .appendingPathExtension("mp4")
     }
 }
 
 enum ReplayKitScreenRecorderError: Error {
     case recordingUnavailable
+    case notRecording
 }

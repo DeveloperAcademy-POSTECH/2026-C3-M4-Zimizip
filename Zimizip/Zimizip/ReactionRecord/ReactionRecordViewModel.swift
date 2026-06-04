@@ -9,6 +9,7 @@ final class ReactionRecordViewModel: ObservableObject {
     @Published var recordingErrorMessage: String?
     @Published var isStoppingRecording = false
     @Published var recordingElapsedSeconds = 0
+    @Published var screenRecordingURL: URL?
 
     var recordingTimeText: String {
         let hours = recordingElapsedSeconds / 3600
@@ -50,7 +51,7 @@ final class ReactionRecordViewModel: ObservableObject {
         stopRecordingTimer()
 
         do {
-            _ = try await screenRecorder.stopRecording()
+            screenRecordingURL = try await screenRecorder.stopRecording()
             isGeneratingReactionVideo = false
             isRecordingCompleted = true
         } catch {
