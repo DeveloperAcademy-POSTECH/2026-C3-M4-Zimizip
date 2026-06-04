@@ -5,12 +5,14 @@ struct ReactionRecordView: View {
 
     init(
         screenRecorder: VideoRecording? = nil,
-        frontCameraRecorder: VideoRecording? = nil
+        frontCameraRecorder: VideoRecording? = nil,
+        reactionVideoComposer: ReactionVideoComposing? = nil
     ) {
         _viewModel = StateObject(
             wrappedValue: ReactionRecordViewModel(
                 screenRecorder: screenRecorder,
-                frontCameraRecorder: frontCameraRecorder
+                frontCameraRecorder: frontCameraRecorder,
+                reactionVideoComposer: reactionVideoComposer
             )
         )
     }

@@ -22,15 +22,18 @@ final class ReactionRecordViewModel: ObservableObject {
 
     private let screenRecorder: VideoRecording
     private let frontCameraRecorder: VideoRecording
+    private let reactionVideoComposer: ReactionVideoComposing
     private var hasStartedRecording = false
     private var recordingTimerTask: Task<Void, Never>?
 
     init(
         screenRecorder: VideoRecording? = nil,
-        frontCameraRecorder: VideoRecording? = nil
+        frontCameraRecorder: VideoRecording? = nil,
+        reactionVideoComposer: ReactionVideoComposing? = nil
     ) {
         self.screenRecorder = screenRecorder ?? ReplayKitScreenRecorder()
         self.frontCameraRecorder = frontCameraRecorder ?? AVFoundationFrontCameraRecorder()
+        self.reactionVideoComposer = reactionVideoComposer ?? AVFoundationReactionVideoComposer()
     }
 
     deinit {
