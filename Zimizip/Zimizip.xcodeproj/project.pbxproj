@@ -6,11 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXFileReference section */
-		9691D9032FC7DD3C00B54CA0 /* Zimizip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zimizip.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A10000012FCD000100000001 /* ZimizipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZimizipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-/* End PBXFileReference section */
-
 /* Begin PBXContainerItemProxy section */
 		A10000022FCD000100000002 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -20,6 +15,11 @@
 			remoteInfo = Zimizip;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		9691D9032FC7DD3C00B54CA0 /* Zimizip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zimizip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000012FCD000100000001 /* ZimizipTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZimizipTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		271E87D72FCD5CEF009E1DFC /* Exceptions for "Zimizip" folder in "Zimizip" target */ = {
@@ -67,18 +67,18 @@
 /* Begin PBXGroup section */
 		9691D8FA2FC7DD3C00B54CA0 = {
 			isa = PBXGroup;
-				children = (
-					9691D9052FC7DD3C00B54CA0 /* Zimizip */,
-					A10000032FCD000100000003 /* ZimizipTests */,
-					9691D9042FC7DD3C00B54CA0 /* Products */,
+			children = (
+				9691D9052FC7DD3C00B54CA0 /* Zimizip */,
+				A10000032FCD000100000003 /* ZimizipTests */,
+				9691D9042FC7DD3C00B54CA0 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
 		9691D9042FC7DD3C00B54CA0 /* Products */ = {
 			isa = PBXGroup;
-				children = (
-					9691D9032FC7DD3C00B54CA0 /* Zimizip.app */,
-					A10000012FCD000100000001 /* ZimizipTests.xctest */,
+			children = (
+				9691D9032FC7DD3C00B54CA0 /* Zimizip.app */,
+				A10000012FCD000100000001 /* ZimizipTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -141,13 +141,13 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-						9691D9022FC7DD3C00B54CA0 = {
-							CreatedOnToolsVersion = 26.4.1;
-						};
-						A10000052FCD000100000005 = {
-							CreatedOnToolsVersion = 26.4.1;
-							TestTargetID = 9691D9022FC7DD3C00B54CA0;
-						};
+					9691D9022FC7DD3C00B54CA0 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					A10000052FCD000100000005 = {
+						CreatedOnToolsVersion = 26.4.1;
+						TestTargetID = 9691D9022FC7DD3C00B54CA0;
+					};
 				};
 			};
 			buildConfigurationList = 9691D8FE2FC7DD3C00B54CA0 /* Build configuration list for PBXProject "Zimizip" */;
@@ -163,9 +163,9 @@
 			productRefGroup = 9691D9042FC7DD3C00B54CA0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-				targets = (
-					9691D9022FC7DD3C00B54CA0 /* Zimizip */,
-					A10000052FCD000100000005 /* ZimizipTests */,
+			targets = (
+				9691D9022FC7DD3C00B54CA0 /* Zimizip */,
+				A10000052FCD000100000005 /* ZimizipTests */,
 			);
 		};
 /* End PBXProject section */
