@@ -9,6 +9,8 @@ import SwiftUI
 import UIKit
 
 struct PhotoFramingView: View {
+    @State private var selectedBackgroundColor: PhotoFramingBackgroundColor = .white
+
     let media: Data
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
@@ -38,11 +40,14 @@ struct PhotoFramingView: View {
 
             PhotoFramingEditingArea(
                 media: media,
+                backgroundColor: selectedBackgroundColor.color,
                 sourcePreviewFrame: sourcePreviewFrame,
                 isLandscapeCapture: isLandscapeCapture
             )
 
-            PhotoFramingBackgroundPanelPlaceholder()
+            PhotoFramingBackgroundPanel(
+                selectedBackgroundColor: $selectedBackgroundColor
+            )
         }
         .background(Color.black)
     }
@@ -86,6 +91,7 @@ private struct PhotoFramingTopBar: View {
 
 private struct PhotoFramingEditingArea: View {
     let media: Data
+    let backgroundColor: Color
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
 
@@ -120,6 +126,7 @@ private struct PhotoFramingEditingArea: View {
 
                 PhotoFramingFrame(
                     image: image,
+                    backgroundColor: backgroundColor,
                     frameSize: frameSize,
                     photoSize: photoSize
                 )
@@ -132,12 +139,13 @@ private struct PhotoFramingEditingArea: View {
 
 private struct PhotoFramingFrame: View {
     let image: UIImage?
+    let backgroundColor: Color
     let frameSize: CGSize
     let photoSize: CGSize?
 
     var body: some View {
         ZStack {
-            Color.white
+            backgroundColor
 
             if let image, let photoSize {
                 PhotoFramingPhotoLayer(
@@ -241,9 +249,51 @@ private struct PhotoFramingGridGuide: View {
     }
 }
 
-private struct PhotoFramingBackgroundPanelPlaceholder: View {
+private enum PhotoFramingBackgroundColor: CaseIterable, Identifiable {
+    case white
+    case red
+    case orange
+    case yellow
+    case green
+
+    var id: Self { self }
+
+    var color: Color {
+        switch self {
+        case .white:
+            return .white
+        case .red:
+            return Color(red: 1.0, green: 0.07, blue: 0.05)
+        case .orange:
+            return Color(red: 1.0, green: 0.48, blue: 0.05)
+        case .yellow:
+            return Color(red: 1.0, green: 0.88, blue: 0.0)
+        case .green:
+            return Color(red: 0.12, green: 1.0, blue: 0.34)
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .white:
+            return "흰색"
+        case .red:
+            return "빨간색"
+        case .orange:
+            return "주황색"
+        case .yellow:
+            return "노란색"
+        case .green:
+            return "초록색"
+        }
+    }
+}
+
+private struct PhotoFramingBackgroundPanel: View {
+    @Binding var selectedBackgroundColor: PhotoFramingBackgroundColor
+
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 26) {
             HStack {
                 Text("배경색")
                     .font(.system(size: 15, weight: .semibold))
@@ -251,13 +301,50 @@ private struct PhotoFramingBackgroundPanelPlaceholder: View {
 
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
 
-            Spacer()
-                .frame(height: 92)
+            HStack(spacing: 30) {
+                ForEach(PhotoFramingBackgroundColor.allCases) { backgroundColor in
+                    PhotoFramingBackgroundSwatch(
+                        backgroundColor: backgroundColor,
+                        isSelected: selectedBackgroundColor == backgroundColor
+                    ) {
+                        selectedBackgroundColor = backgroundColor
+                    }
+                }
+            }
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(red: 0.12, green: 0.10, blue: 0.09))
+    }
+}
+
+private struct PhotoFramingBackgroundSwatch: View {
+    let backgroundColor: PhotoFramingBackgroundColor
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .stroke(
+                        Color(red: 1.0, green: 0.37, blue: 0.0),
+                        lineWidth: isSelected ? 3 : 0
+                    )
+                    .frame(width: 48, height: 48)
+
+                Circle()
+                    .fill(backgroundColor.color)
+                    .frame(width: 36, height: 36)
+            }
+            .frame(width: 48, height: 48)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(backgroundColor.accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
