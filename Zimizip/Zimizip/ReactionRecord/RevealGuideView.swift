@@ -12,8 +12,12 @@ struct RevealGuideView: View {
                 
                 Text("카드를 문질러보세요")
                     .font(Font.custom("Pretendard-Medium", size: 24))
-                    .foregroundStyle(Color(red: 255/255, green: 252/255, blue: 250/255))
+                    .foregroundStyle(.white)
             }
         }
     }
+}
+
+#Preview {
+    RevealGuideView()
 }

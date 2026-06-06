@@ -7,7 +7,7 @@ struct RevealTimingView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 255 / 255, green: 252 / 255, blue: 250 / 255)
+                Color.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading) {
