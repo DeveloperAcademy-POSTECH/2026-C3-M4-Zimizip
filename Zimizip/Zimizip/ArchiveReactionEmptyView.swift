@@ -7,17 +7,17 @@ struct ArchiveReactionEmptyView: View {
         ZStack {
             if selectedArchiveMode == .reaction {
                 emptyContent
-                    .transition(.archiveMode)
+                    .transition(.opacity)
             } else {
                 ArchivedSurpriseCardView {
-                    withAnimation(.archiveMode) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
                         selectedArchiveMode = .reaction
                     }
                 }
-                .transition(.archiveMode)
+                .transition(.opacity)
             }
         }
-        .animation(.archiveMode, value: selectedArchiveMode)
+        .animation(.easeInOut(duration: 0.2), value: selectedArchiveMode)
     }
 
     private var emptyContent: some View {
@@ -41,7 +41,7 @@ struct ArchiveReactionEmptyView: View {
                         ArchiveEmptyModeChip(icon: "play.square.fill", title: "리액션", isSelected: true)
 
                         Button {
-                            withAnimation(.archiveMode) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
                                 selectedArchiveMode = .surpriseCard
                             }
                         } label: {
@@ -69,7 +69,7 @@ struct ArchiveReactionEmptyView: View {
                             .foregroundStyle(Color.archiveText)
 
                         Button {
-                            withAnimation(.archiveMode) {
+                            withAnimation(.easeInOut(duration: 0.2)) {
                                 selectedArchiveMode = .surpriseCard
                             }
                         } label: {
