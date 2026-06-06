@@ -1,6 +1,9 @@
 import SwiftUI
 
 enum PhotoFramingLayout {
+    static let frameSize = CGSize(width: 297, height: 446)
+    static let frameCornerRadius: CGFloat = 16
+
     private static let landscapeCaptureAspectRatio: CGFloat = 402 / 226
 
     static func photoSize(

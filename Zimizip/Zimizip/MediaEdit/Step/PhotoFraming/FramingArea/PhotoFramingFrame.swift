@@ -23,7 +23,12 @@ struct PhotoFramingFrame: View {
             }
         }
         .frame(width: frameSize.width, height: frameSize.height)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous)
+                .inset(by: 0.5)
+                .stroke(.white, lineWidth: 1)
+        }
     }
 }
 

@@ -9,10 +9,7 @@ struct PhotoFramingEditingArea: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let availableWidth = max(proxy.size.width - 76, 0)
-            let availableHeightWidth = max(proxy.size.height * 2 / 3 - 40, 0)
-            let frameWidth = min(availableWidth, availableHeightWidth)
-            let frameSize = CGSize(width: frameWidth, height: frameWidth * 3 / 2)
+            let frameSize = PhotoFramingLayout.frameSize
             let image = UIImage(data: media)
             let photoSize = image.map {
                 PhotoFramingLayout.photoSize(
@@ -26,7 +23,7 @@ struct PhotoFramingEditingArea: View {
             ZStack {
                 Color.black
 
-                if let image, let photoSize {
+                if isLandscapeCapture, let image, let photoSize {
                     PhotoFramingPhotoLayer(
                         image: image,
                         contentMode: .fill
@@ -54,7 +51,7 @@ struct PhotoFramingEditingArea: View {
         media: Data(),
         backgroundColor: .white,
         sourcePreviewFrame: nil,
-        isLandscapeCapture: false
+        isLandscapeCapture: true
     )
     .frame(width: 402, height: 620)
 }
