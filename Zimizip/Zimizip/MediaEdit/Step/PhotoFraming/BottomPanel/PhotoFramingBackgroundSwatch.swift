@@ -8,13 +8,22 @@ struct PhotoFramingBackgroundSwatch: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                Circle()
-                    .fill(backgroundColor.color)
-                    .frame(width: fillSize, height: fillSize)
-
                 if isSelected {
+                    RoundedRectangle(cornerRadius: Self.selectedRingCornerRadius)
+                        .fill(.clear)
+                        .frame(width: Self.selectedRingSize, height: Self.selectedRingSize)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Self.selectedRingCornerRadius)
+                                .inset(by: -2)
+                                .stroke(Self.selectionColor, lineWidth: 4)
+                        }
+
+                    RoundedRectangle(cornerRadius: Self.selectedFillCornerRadius)
+                        .fill(backgroundColor.color)
+                        .frame(width: Self.selectedFillSize, height: Self.selectedFillSize)
+                } else {
                     Circle()
-                        .stroke(Self.selectionColor, lineWidth: 3)
+                        .fill(backgroundColor.color)
                         .frame(width: Self.swatchSize, height: Self.swatchSize)
                 }
             }
@@ -24,15 +33,15 @@ struct PhotoFramingBackgroundSwatch: View {
         .accessibilityLabel(backgroundColor.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
-
-    private var fillSize: CGFloat {
-        isSelected ? 36 : Self.swatchSize
-    }
 }
 
 private extension PhotoFramingBackgroundSwatch {
     static let swatchSize: CGFloat = 48
-    static let selectionColor = Color(red: 1.0, green: 0.37, blue: 0.0)
+    static let selectedRingSize: CGFloat = 40
+    static let selectedRingCornerRadius: CGFloat = 40
+    static let selectedFillSize: CGFloat = 33.33334
+    static let selectedFillCornerRadius: CGFloat = 33.33334
+    static let selectionColor = Color(red: 1.0, green: 0.42, blue: 0.13)
 }
 
 #Preview {

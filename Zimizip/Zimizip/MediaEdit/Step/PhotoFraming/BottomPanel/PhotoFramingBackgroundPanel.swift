@@ -47,7 +47,7 @@ struct PhotoFramingBackgroundPanel: View {
 }
 
 private extension PhotoFramingBackgroundPanel {
-    static let primaryColor = Color(red: 1.0, green: 0.37, blue: 0.0)
+    static let primaryColor = Color(red: 1.0, green: 0.42, blue: 0.13)
     static let panelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.20).opacity(0.5)
 }
 
