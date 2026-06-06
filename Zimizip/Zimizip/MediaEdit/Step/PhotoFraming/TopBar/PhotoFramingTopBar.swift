@@ -5,34 +5,32 @@ struct PhotoFramingTopBar: View {
     let completeButtonAction: () -> Void
 
     var body: some View {
-        HStack {
-            Button("취소") {
-                cancelButtonAction()
-            }
-            .font(.system(size: 17, weight: .regular))
-            .foregroundStyle(.white)
-            .frame(width: 56, alignment: .leading)
-            .buttonStyle(.plain)
-
-            Spacer()
-
+        ZStack {
             Text("사진 배치")
-                .font(.system(size: 17, weight: .bold))
+                .font(.custom("Pretendard", size: 16).weight(.semibold))
                 .foregroundStyle(.white)
 
-            Spacer()
+            HStack {
+                Button("취소") {
+                    cancelButtonAction()
+                }
+                .font(.custom("Pretendard", size: 16).weight(.medium))
+                .foregroundStyle(.white)
+                .buttonStyle(.plain)
 
-            Button("완료") {
-                completeButtonAction()
+                Spacer()
+
+                Button("완료") {
+                    completeButtonAction()
+                }
+                .font(.custom("Pretendard", size: 16).weight(.semibold))
+                .foregroundStyle(.white)
+                .buttonStyle(.plain)
             }
-            .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(width: 56, alignment: .trailing)
-            .buttonStyle(.plain)
-            .border(.red)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 18)
+        .padding(.vertical, 8)
+        .frame(height: 48)
     }
 }
 
@@ -41,5 +39,6 @@ struct PhotoFramingTopBar: View {
         cancelButtonAction: {},
         completeButtonAction: {}
     )
+    .frame(width: 402)
     .background(Color.black)
 }
