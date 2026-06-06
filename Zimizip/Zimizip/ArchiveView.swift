@@ -2,37 +2,10 @@ import SwiftUI
 
 struct ArchiveView: View {
     private let items = [
-        ArchiveItem(
-            title: "지나 쇼미 1차 합격",
-            count: "동영상 3개",
-            thumbnail: .stack([
-                ArchiveThumbnail(imageName: "ArchiveReaction1", offset: CGSize(width: -42, height: 3), rotation: -6.67),
-                ArchiveThumbnail(imageName: "ArchiveReaction2", offset: CGSize(width: 42, height: 0), rotation: 11.58),
-                ArchiveThumbnail(imageName: "ArchiveReaction3", offset: .zero, rotation: 0)
-            ])
-        ),
-        ArchiveItem(
-            title: "연 솔로지옥 등장 리...",
-            count: "동영상 6개",
-            thumbnail: .stack([
-                ArchiveThumbnail(imageName: "ArchiveReaction4", offset: CGSize(width: -30, height: 4), rotation: -13.43),
-                ArchiveThumbnail(imageName: "ArchiveReaction5", offset: CGSize(width: 0, height: -10), rotation: 0),
-                ArchiveThumbnail(imageName: "ArchiveReaction6", offset: CGSize(width: 31, height: 8), rotation: 8.13, overlayText: "+1")
-            ])
-        ),
-        ArchiveItem(
-            title: "쓔 흑백요리사 우승",
-            count: "동영상 1개",
-            thumbnail: .single("ArchiveReaction9")
-        ),
-        ArchiveItem(
-            title: "토바에 로또 당첨",
-            count: "동영상 6개",
-            thumbnail: .dashed([
-                ArchiveThumbnail(imageName: "ArchiveReaction7", offset: CGSize(width: -32, height: -30), rotation: 0),
-                ArchiveThumbnail(imageName: "ArchiveReaction8", offset: CGSize(width: 32, height: -30), rotation: 0)
-            ])
-        )
+        ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil),
+        ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: "+3"),
+        ArchiveItem(imageNames: ["ArchiveReaction7"], title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil),
+        ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil)
     ]
 
     private let columns = [
@@ -45,30 +18,33 @@ struct ArchiveView: View {
             Color.archiveBackground
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
-                Text("보관함")
-                    .font(Font.custom("Pretendard-Bold", size: 32))
-                    .foregroundStyle(Color.archiveText)
-                    .padding(.top, 30)
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("보관함")
+                        .font(Font.custom("Pretendard-Bold", size: 32))
+                        .tracking(-1.28)
+                        .foregroundStyle(Color.archiveText)
+                        .padding(.top, 82)
+                        .padding(.horizontal, 20)
+
+                    HStack(spacing: 8) {
+                        ArchiveFilterChip(icon: "play.square.fill", title: "리액션", isSelected: true)
+                        ArchiveFilterChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
+                    }
+                    .padding(.top, 20)
                     .padding(.horizontal, 20)
 
-                HStack(spacing: 8) {
-                    ArchiveFilterChip(icon: "play.square.fill", title: "리액션", isSelected: true)
-                    ArchiveFilterChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
-                }
-                .padding(.top, 16)
-                .padding(.horizontal, 20)
-
-                LazyVGrid(columns: columns, alignment: .center, spacing: 36) {
-                    ForEach(items) { item in
-                        ArchiveCard(item: item)
+                    LazyVGrid(columns: columns, spacing: 36) {
+                        ForEach(items) { item in
+                            ArchiveCard(item: item)
+                        }
                     }
+                    .padding(.top, 40)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 120)
                 }
-                .padding(.top, 52)
-                .padding(.horizontal, 20)
-
-                Spacer()
             }
+            .ignoresSafeArea(edges: .top)
 
             ArchiveTabBar()
                 .padding(.bottom, 38)
@@ -78,22 +54,10 @@ struct ArchiveView: View {
 
 private struct ArchiveItem: Identifiable {
     let id = UUID()
+    let imageNames: [String]
     let title: String
     let count: String
-    let thumbnail: ArchiveThumbnailStyle
-}
-
-private struct ArchiveThumbnail {
-    let imageName: String
-    let offset: CGSize
-    let rotation: Double
-    var overlayText: String?
-}
-
-private enum ArchiveThumbnailStyle {
-    case stack([ArchiveThumbnail])
-    case dashed([ArchiveThumbnail])
-    case single(String)
+    let overlayText: String?
 }
 
 private struct ArchiveFilterChip: View {
@@ -108,11 +72,18 @@ private struct ArchiveFilterChip: View {
 
             Text(title)
                 .font(Font.custom("Pretendard-Bold", size: 16))
+                .fixedSize(horizontal: true, vertical: false)
         }
-        .foregroundStyle(isSelected ? Color.orangePrimary : Color.archiveText)
+        .foregroundStyle(isSelected ? Color.archiveOrange : Color.archiveChipText)
         .frame(height: 36)
         .padding(.horizontal, 12)
-        .background(isSelected ? Color.orangePrimary.opacity(0.18) : Color.archiveGray50)
+        .background(isSelected ? Color.archiveOrangeSoft : Color.archiveGray50)
+        .overlay {
+            if !isSelected {
+                Capsule()
+                    .stroke(Color.archiveGray200, lineWidth: 1)
+            }
+        }
         .clipShape(Capsule())
     }
 }
@@ -122,7 +93,7 @@ private struct ArchiveCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            ArchiveThumbnailView(style: item.thumbnail)
+            ArchiveThumbnailView(item: item)
 
             HStack(alignment: .top, spacing: 6) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -134,6 +105,7 @@ private struct ArchiveCard: View {
                     Text(item.count)
                         .font(Font.custom("Pretendard-Regular", size: 14))
                         .foregroundStyle(Color.archiveGray400)
+                        .lineLimit(1)
                 }
 
                 Spacer(minLength: 0)
@@ -142,7 +114,7 @@ private struct ArchiveCard: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(Color.archiveText)
                     .frame(width: 24, height: 24)
-                    .padding(.top, 4)
+                    .padding(.top, 6)
             }
         }
         .frame(width: 171, alignment: .leading)
@@ -150,72 +122,79 @@ private struct ArchiveCard: View {
 }
 
 private struct ArchiveThumbnailView: View {
-    let style: ArchiveThumbnailStyle
+    let item: ArchiveItem
 
     var body: some View {
         ZStack {
-            Color.archiveGray50
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.archiveGray50)
 
-            switch style {
-            case .single(let imageName):
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 171, height: 171)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            if item.imageNames.count == 1 {
+                reactionImage(item.imageNames[0], width: 72, height: 108)
+            } else if item.imageNames.count == 2 {
+                reactionImage(item.imageNames[0], width: 60, height: 90)
+                    .rotationEffect(.degrees(-13.43))
+                    .offset(x: -26, y: -2)
 
-            case .stack(let thumbnails):
-                ForEach(Array(thumbnails.enumerated()), id: \.offset) { _, thumbnail in
-                    stackedImage(thumbnail)
+                reactionImage(item.imageNames[1], width: 60, height: 90)
+                    .rotationEffect(.degrees(13))
+                    .offset(x: 25, y: -2)
+            } else {
+                reactionImage(item.imageNames[0], width: 60, height: 90)
+                    .rotationEffect(.degrees(-13.43))
+                    .offset(x: -34, y: 4)
+
+                reactionImage(item.imageNames[1], width: 60, height: 90)
+                    .offset(x: 0, y: -4)
+
+                ZStack {
+                    reactionImage(item.imageNames[2], width: 60, height: 90)
+
+                    if let overlayText = item.overlayText {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color(red: 74 / 255, green: 64 / 255, blue: 58 / 255).opacity(0.5))
+
+                        Text(overlayText)
+                            .font(Font.custom("Pretendard-SemiBold", size: 16))
+                            .foregroundStyle(Color.archiveBackground)
+                    }
                 }
-
-            case .dashed(let thumbnails):
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color(red: 0.93, green: 0.89, blue: 0.80), style: StrokeStyle(lineWidth: 2, dash: [8, 6]))
-                    .frame(width: 156, height: 156)
-
-                ForEach(Array(thumbnails.enumerated()), id: \.offset) { _, thumbnail in
-                    stackedImage(thumbnail)
-                }
+                .frame(width: 60, height: 90)
+                .rotationEffect(.degrees(8.13))
+                .offset(x: 32, y: 8)
             }
         }
         .frame(width: 171, height: 171)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
-    private func stackedImage(_ thumbnail: ArchiveThumbnail) -> some View {
-        ZStack {
-            Image(thumbnail.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            if let overlayText = thumbnail.overlayText {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.black.opacity(0.5))
-                    .frame(width: 60, height: 60)
-
-                Text(overlayText)
-                    .font(Font.custom("Pretendard-SemiBold", size: 16))
-                    .foregroundStyle(Color.archiveBackground)
-            }
-        }
-        .rotationEffect(.degrees(thumbnail.rotation))
-        .offset(thumbnail.offset)
+    private func reactionImage(_ name: String, width: CGFloat, height: CGFloat) -> some View {
+        Image(name)
+            .resizable()
+            .scaledToFill()
+            .frame(width: width, height: height)
+            .clipShape(RoundedRectangle(cornerRadius: width == 72 ? 9.6 : 8, style: .continuous))
     }
 }
 
 private struct ArchiveTabBar: View {
     var body: some View {
-        HStack(spacing: 0) {
-            ArchiveTabBarItem(icon: "house.fill", title: "홈", isSelected: true)
-            ArchiveTabBarItem(icon: "archivebox.fill", title: "보관함", isSelected: false)
+        HStack(spacing: -8) {
+            ArchiveTabBarItem(icon: "house.fill", title: "홈", isSelected: false)
+            ArchiveTabBarItem(icon: "archivebox.fill", title: "보관함", isSelected: true)
         }
-        .padding(4)
-        .background(.white.opacity(0.72))
-        .clipShape(Capsule())
-        .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
+        .padding(.horizontal, 2)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(.white.opacity(0.65))
+                .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
+        )
+        .overlay(
+            Capsule()
+                .stroke(.white.opacity(0.4), lineWidth: 1)
+        )
+        .frame(width: 208, height: 58)
     }
 }
 
@@ -227,24 +206,35 @@ private struct ArchiveTabBarItem: View {
     var body: some View {
         VStack(spacing: 1) {
             Image(systemName: icon)
-                .font(.system(size: 22, weight: .semibold))
+                .font(.system(size: 24, weight: .semibold))
+                .frame(height: 28)
 
             Text(title)
                 .font(.system(size: 10, weight: .semibold))
+                .lineLimit(1)
         }
-        .foregroundStyle(isSelected ? Color.orangePrimary : Color.archiveGray400)
-        .frame(width: 102, height: 52)
-        .background(isSelected ? Color(red: 0.93, green: 0.93, blue: 0.93) : .clear)
-        .clipShape(Capsule())
+        .foregroundStyle(isSelected ? Color.archiveText : Color.archiveTabInactive)
+        .frame(width: 102, height: 50)
+        .background {
+            if isSelected {
+                Capsule()
+                    .fill(Color.archiveTabSelection)
+            }
+        }
     }
 }
 
 private extension Color {
-    static let archiveBackground = Color(red: 1.0, green: 0.99, blue: 0.98)
-    static let archiveText = Color(red: 0.18, green: 0.16, blue: 0.15)
-    static let archiveGray50 = Color(red: 0.98, green: 0.96, blue: 0.95)
-    static let archiveGray400 = Color(red: 0.39, green: 0.35, blue: 0.32)
-    static let OrangePrimary = Color(red: 1.0, green: 0.42, blue: 0.13)
+    static let archiveBackground = Color(red: 1.0, green: 252 / 255, blue: 250 / 255)
+    static let archiveText = Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255)
+    static let archiveChipText = Color(red: 67 / 255, green: 52 / 255, blue: 46 / 255)
+    static let archiveGray50 = Color(red: 250 / 255, green: 246 / 255, blue: 243 / 255)
+    static let archiveGray200 = Color(red: 209 / 255, green: 199 / 255, blue: 192 / 255)
+    static let archiveGray400 = Color(red: 100 / 255, green: 89 / 255, blue: 82 / 255)
+    static let archiveOrange = Color(red: 1.0, green: 106 / 255, blue: 33 / 255)
+    static let archiveOrangeSoft = Color(red: 1.0, green: 226 / 255, blue: 207 / 255)
+    static let archiveTabInactive = Color(red: 153 / 255, green: 153 / 255, blue: 153 / 255)
+    static let archiveTabSelection = Color(red: 237 / 255, green: 237 / 255, blue: 237 / 255)
 }
 
 #Preview {
