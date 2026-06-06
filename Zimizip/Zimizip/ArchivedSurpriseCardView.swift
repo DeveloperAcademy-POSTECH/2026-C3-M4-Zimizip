@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ArchivedSurpriseCardView: View {
+    var onSelectReaction: () -> Void = {}
+
     private let items = [
         ArchivedSurpriseCardItem(title: "지나 쇼미 1차 합격", count: "동영상 3개", imageName: "ArchivedSurpriseCard1"),
         ArchivedSurpriseCardItem(title: "연 솔로지옥 등장 리...", count: "동영상 4개", imageName: "ArchivedSurpriseCard2"),
@@ -35,7 +37,13 @@ struct ArchivedSurpriseCardView: View {
                             .padding(.top, 82)
 
                         HStack(spacing: 8) {
-                            ArchiveModeChip(icon: "play.square.fill", title: "리액션", isSelected: false)
+                            Button {
+                                onSelectReaction()
+                            } label: {
+                                ArchiveModeChip(icon: "play.square.fill", title: "리액션", isSelected: false)
+                            }
+                            .buttonStyle(.plain)
+
                             ArchiveModeChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: true)
                         }
                         .padding(.top, 20)
@@ -58,8 +66,6 @@ struct ArchivedSurpriseCardView: View {
                     .padding(.bottom, 38)
             }
         }
-        .navigationBarBackButtonHidden(true)
-        .toolbar(.hidden, for: .navigationBar)
     }
 }
 

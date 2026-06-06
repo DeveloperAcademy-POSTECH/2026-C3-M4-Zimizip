@@ -1,7 +1,26 @@
 import SwiftUI
 
 struct ArchiveReactionEmptyView: View {
+    @State private var selectedArchiveMode: ArchiveMode = .reaction
+
     var body: some View {
+        ZStack {
+            if selectedArchiveMode == .reaction {
+                emptyContent
+                    .transition(.archiveMode)
+            } else {
+                ArchivedSurpriseCardView {
+                    withAnimation(.archiveMode) {
+                        selectedArchiveMode = .reaction
+                    }
+                }
+                .transition(.archiveMode)
+            }
+        }
+        .animation(.archiveMode, value: selectedArchiveMode)
+    }
+
+    private var emptyContent: some View {
         GeometryReader { geometry in
             let contentWidth = min(362, geometry.size.width - 40)
             let contentLeading = max(20, (geometry.size.width - contentWidth) / 2)
@@ -20,7 +39,15 @@ struct ArchiveReactionEmptyView: View {
 
                     HStack(spacing: 8) {
                         ArchiveEmptyModeChip(icon: "play.square.fill", title: "리액션", isSelected: true)
-                        ArchiveEmptyModeChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
+
+                        Button {
+                            withAnimation(.archiveMode) {
+                                selectedArchiveMode = .surpriseCard
+                            }
+                        } label: {
+                            ArchiveEmptyModeChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.top, 20)
 
@@ -42,6 +69,9 @@ struct ArchiveReactionEmptyView: View {
                             .foregroundStyle(Color.archiveText)
 
                         Button {
+                            withAnimation(.archiveMode) {
+                                selectedArchiveMode = .surpriseCard
+                            }
                         } label: {
                             HStack(spacing: 4) {
                                 Text("서프라이즈 준비하기")

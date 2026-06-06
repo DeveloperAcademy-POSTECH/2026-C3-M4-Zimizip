@@ -1,19 +1,30 @@
 import SwiftUI
 
 struct ArchiveReactionView: View {
+    @State private var selectedArchiveMode: ArchiveMode = .reaction
+
     private let items = [
-        ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil),
-        ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], cardFrameName: "ReactionCardFrame2", title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: "+3"),
-        ArchiveItem(imageNames: ["ArchiveReaction7"], cardFrameName: "ReactionCardFrame3", title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil),
-        ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], cardFrameName: "ReactionCardFrame4", title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil)
+        ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "아카데미 C6 시작 ...", count: "동영상 3개", overlayText: nil),
+        ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], cardFrameName: "ReactionCardFrame2", title: "우주대폭발 광경 ...", count: "동영상 6개", overlayText: "+3"),
+        ArchiveItem(imageNames: ["ArchiveReaction7"], cardFrameName: "ReactionCardFrame3", title: "메이슨 결혼식 축가 ...", count: "동영상 1개", overlayText: nil),
+        ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], cardFrameName: "ReactionCardFrame4", title: "도라네이션최고 ...", count: "동영상 2개", overlayText: nil)
     ]
 
     var body: some View {
-        NavigationStack {
-            archiveContent
-                .navigationBarBackButtonHidden(true)
-                .toolbar(.hidden, for: .navigationBar)
+        ZStack {
+            if selectedArchiveMode == .reaction {
+                archiveContent
+                    .transition(.archiveMode)
+            } else {
+                ArchivedSurpriseCardView {
+                    withAnimation(.archiveMode) {
+                        selectedArchiveMode = .reaction
+                    }
+                }
+                .transition(.archiveMode)
+            }
         }
+        .animation(.archiveMode, value: selectedArchiveMode)
     }
 
     private var archiveContent: some View {
@@ -45,8 +56,10 @@ struct ArchiveReactionView: View {
                         HStack(spacing: 8) {
                             ArchiveFilterChip(icon: "play.square.fill", title: "리액션", isSelected: true)
 
-                            NavigationLink {
-                                ArchivedSurpriseCardView()
+                            Button {
+                                withAnimation(.archiveMode) {
+                                    selectedArchiveMode = .surpriseCard
+                                }
                             } label: {
                                 ArchiveFilterChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
                             }
@@ -73,6 +86,11 @@ struct ArchiveReactionView: View {
             }
         }
     }
+}
+
+enum ArchiveMode {
+    case reaction
+    case surpriseCard
 }
 
 private struct ArchiveItem: Identifiable {
