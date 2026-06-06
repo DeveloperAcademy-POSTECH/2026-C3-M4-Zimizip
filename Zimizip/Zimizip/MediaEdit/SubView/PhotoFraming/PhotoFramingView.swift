@@ -10,8 +10,24 @@ import UIKit
 
 struct PhotoFramingView: View {
     let media: Data
+    let sourcePreviewFrame: CGRect?
+    let isLandscapeCapture: Bool
     let cancelButtonAction: () -> Void
     let completeButtonAction: () -> Void
+
+    init(
+        media: Data,
+        sourcePreviewFrame: CGRect? = nil,
+        isLandscapeCapture: Bool = false,
+        cancelButtonAction: @escaping () -> Void,
+        completeButtonAction: @escaping () -> Void
+    ) {
+        self.media = media
+        self.sourcePreviewFrame = sourcePreviewFrame
+        self.isLandscapeCapture = isLandscapeCapture
+        self.cancelButtonAction = cancelButtonAction
+        self.completeButtonAction = completeButtonAction
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,7 +36,11 @@ struct PhotoFramingView: View {
                 completeButtonAction: completeButtonAction
             )
 
-            PhotoFramingEditingArea(media: media)
+            PhotoFramingEditingArea(
+                media: media,
+                sourcePreviewFrame: sourcePreviewFrame,
+                isLandscapeCapture: isLandscapeCapture
+            )
 
             PhotoFramingBackgroundPanelPlaceholder()
         }
@@ -66,6 +86,8 @@ private struct PhotoFramingTopBar: View {
 
 private struct PhotoFramingEditingArea: View {
     let media: Data
+    let sourcePreviewFrame: CGRect?
+    let isLandscapeCapture: Bool
 
     var body: some View {
         GeometryReader { proxy in
@@ -73,18 +95,25 @@ private struct PhotoFramingEditingArea: View {
             let availableHeightWidth = max(proxy.size.height * 2 / 3 - 40, 0)
             let frameWidth = min(availableWidth, availableHeightWidth)
             let frameSize = CGSize(width: frameWidth, height: frameWidth * 3 / 2)
-            let photoHeight = frameSize.width * 0.62
             let image = UIImage(data: media)
+            let photoSize = image.map {
+                PhotoFramingLayout.photoSize(
+                    imageSize: $0.size,
+                    frameSize: frameSize,
+                    sourcePreviewFrame: sourcePreviewFrame,
+                    isLandscapeCapture: isLandscapeCapture
+                )
+            }
 
             ZStack {
                 Color.black
 
-                if let image {
+                if let image, let photoSize {
                     PhotoFramingPhotoLayer(
                         image: image,
                         contentMode: .fill
                     )
-                    .frame(width: proxy.size.width, height: photoHeight)
+                    .frame(width: photoSize.width, height: photoSize.height)
                     .opacity(0.34)
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
                 }
@@ -92,7 +121,7 @@ private struct PhotoFramingEditingArea: View {
                 PhotoFramingFrame(
                     image: image,
                     frameSize: frameSize,
-                    photoHeight: photoHeight
+                    photoSize: photoSize
                 )
                 .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
             }
@@ -104,25 +133,22 @@ private struct PhotoFramingEditingArea: View {
 private struct PhotoFramingFrame: View {
     let image: UIImage?
     let frameSize: CGSize
-    let photoHeight: CGFloat
+    let photoSize: CGSize?
 
     var body: some View {
         ZStack {
             Color.white
 
-            if let image {
+            if let image, let photoSize {
                 PhotoFramingPhotoLayer(
                     image: image,
                     contentMode: .fill
                 )
-                .frame(width: frameSize.width, height: photoHeight)
-            } else {
-                PhotoFramingPhotoPlaceholder()
-                    .frame(width: frameSize.width, height: photoHeight)
-            }
+                .frame(width: photoSize.width, height: photoSize.height)
 
-            PhotoFramingGridGuide()
-                .frame(width: frameSize.width, height: photoHeight)
+                PhotoFramingGridGuide()
+                    .frame(width: photoSize.width, height: photoSize.height)
+            }
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -141,10 +167,55 @@ private struct PhotoFramingPhotoLayer: View {
     }
 }
 
-private struct PhotoFramingPhotoPlaceholder: View {
-    var body: some View {
-        Rectangle()
-            .fill(Color(white: 0.86))
+private enum PhotoFramingLayout {
+    private static let landscapeCaptureAspectRatio: CGFloat = 402 / 226
+
+    static func photoSize(
+        imageSize: CGSize,
+        frameSize: CGSize,
+        sourcePreviewFrame: CGRect?,
+        isLandscapeCapture: Bool
+    ) -> CGSize {
+        guard imageSize.width > 0, imageSize.height > 0 else {
+            return .zero
+        }
+
+        let photoAspectRatio = sourceAspectRatio(
+            imageSize: imageSize,
+            sourcePreviewFrame: sourcePreviewFrame,
+            isLandscapeCapture: isLandscapeCapture
+        )
+        let frameAspectRatio = frameSize.width / frameSize.height
+
+        if photoAspectRatio > frameAspectRatio {
+            return CGSize(
+                width: frameSize.width,
+                height: frameSize.width / photoAspectRatio
+            )
+        } else {
+            return CGSize(
+                width: frameSize.height * photoAspectRatio,
+                height: frameSize.height
+            )
+        }
+    }
+
+    private static func sourceAspectRatio(
+        imageSize: CGSize,
+        sourcePreviewFrame: CGRect?,
+        isLandscapeCapture: Bool
+    ) -> CGFloat {
+        if isLandscapeCapture {
+            return landscapeCaptureAspectRatio
+        }
+
+        if let sourcePreviewFrame,
+           sourcePreviewFrame.width > 0,
+           sourcePreviewFrame.height > 0 {
+            return sourcePreviewFrame.width / sourcePreviewFrame.height
+        }
+
+        return imageSize.width / imageSize.height
     }
 }
 
