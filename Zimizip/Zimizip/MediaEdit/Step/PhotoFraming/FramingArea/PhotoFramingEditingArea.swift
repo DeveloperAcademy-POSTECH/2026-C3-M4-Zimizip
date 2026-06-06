@@ -42,7 +42,6 @@ struct PhotoFramingEditingArea: View {
                 .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

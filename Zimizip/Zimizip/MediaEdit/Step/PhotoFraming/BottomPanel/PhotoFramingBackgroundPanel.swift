@@ -20,7 +20,7 @@ struct PhotoFramingBackgroundPanel: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .frame(height: 48, alignment: .leading)
+        .frame(height: 48)
         .background(Self.panelBackgroundColor)
     }
 
@@ -41,7 +41,7 @@ struct PhotoFramingBackgroundPanel: View {
             }
         }
         .padding(20)
-        .frame(height: 108, alignment: .center)
+        .frame(height: 108)
         .background(Self.panelBackgroundColor)
     }
 }
