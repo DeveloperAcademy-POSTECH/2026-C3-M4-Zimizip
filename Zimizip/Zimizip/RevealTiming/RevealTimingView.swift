@@ -33,8 +33,7 @@ struct RevealTimingView: View {
                         OptionItemView(
                             icon: "MobileCamera",
                             title: "지금 바로 전하기",
-                            subtitle: "상대방에게 바로 보여주고\n그 순간을 기록해요",
-                            style: .revealTiming
+                            subtitle: "상대방에게 바로 보여주고\n그 순간을 기록해요"
                         )
                     }
                     .buttonStyle(.plain)
@@ -47,8 +46,7 @@ struct RevealTimingView: View {
                         OptionItemView(
                             icon: "CalendarClock",
                             title: "나중에 전하기",
-                            subtitle: "앱에 저장해두고\n원하는 순간에 열어요",
-                            style: .revealTiming
+                            subtitle: "앱에 저장해두고\n원하는 순간에 열어요"
                         )
                     }
                     .buttonStyle(.plain)
