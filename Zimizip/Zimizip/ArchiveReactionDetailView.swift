@@ -2,16 +2,37 @@ import SwiftUI
 
 struct ArchiveReactionDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedPlayerItem: ArchiveReactionDetailItem?
 
     var onBack: (() -> Void)?
 
     private let items = [
-        ArchiveReactionDetailItem(title: "리액션 3", dateText: "금요일 오후 8:57", imageName: "ArchiveReaction1", cardFrameName: "ReactionCardFrame1"),
+        ArchiveReactionDetailItem(title: "리액션 3", dateText: "금요일 오후 8:57", imageName: "ArchiveReaction1", cardFrameName: "ReactionCardFrame1", opensPlayer: true),
         ArchiveReactionDetailItem(title: "리액션 2", dateText: "5월 19일 오후 1:43", imageName: "ArchiveReaction2", cardFrameName: "ReactionCardFrame1"),
         ArchiveReactionDetailItem(title: "리액션 1", dateText: "5월 12일 오전 7:00", imageName: "ArchiveReaction3", cardFrameName: "ReactionCardFrame1")
     ]
 
     var body: some View {
+        ZStack {
+            if let selectedPlayerItem {
+                ArchiveReactionPlayerView(
+                    title: "아카데미 C6 시작 잇슈",
+                    subtitle: selectedPlayerItem.title,
+                    imageName: selectedPlayerItem.imageName,
+                    cardFrameName: selectedPlayerItem.cardFrameName
+                ) {
+                    showReactionDetailList()
+                }
+                .transition(.opacity)
+            } else {
+                detailContent
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: selectedPlayerItem?.id)
+    }
+
+    private var detailContent: some View {
         GeometryReader { geometry in
             let horizontalPadding: CGFloat = 20
             let columnSpacing: CGFloat = 20
@@ -35,7 +56,18 @@ struct ArchiveReactionDetailView: View {
 
                         LazyVGrid(columns: columns, alignment: .center, spacing: 38) {
                             ForEach(items) { item in
-                                ArchiveReactionDetailCell(item: item, width: cardWidth)
+                                if item.opensPlayer {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedPlayerItem = item
+                                        }
+                                    } label: {
+                                        ArchiveReactionDetailCell(item: item, width: cardWidth)
+                                    }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    ArchiveReactionDetailCell(item: item, width: cardWidth)
+                                }
                             }
 
                             ArchiveReactionDetailAddCell(width: cardWidth)
@@ -62,6 +94,12 @@ struct ArchiveReactionDetailView: View {
             dismiss()
         }
     }
+
+    private func showReactionDetailList() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            selectedPlayerItem = nil
+        }
+    }
 }
 
 private struct ArchiveReactionDetailItem: Identifiable {
@@ -70,6 +108,21 @@ private struct ArchiveReactionDetailItem: Identifiable {
     let dateText: String
     let imageName: String
     let cardFrameName: String
+    let opensPlayer: Bool
+
+    init(
+        title: String,
+        dateText: String,
+        imageName: String,
+        cardFrameName: String,
+        opensPlayer: Bool = false
+    ) {
+        self.title = title
+        self.dateText = dateText
+        self.imageName = imageName
+        self.cardFrameName = cardFrameName
+        self.opensPlayer = opensPlayer
+    }
 }
 
 private struct ArchiveReactionDetailHeader: View {
