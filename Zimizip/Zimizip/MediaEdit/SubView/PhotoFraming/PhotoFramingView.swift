@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct PhotoFramingView: View {
     let media: Data
@@ -19,7 +20,7 @@ struct PhotoFramingView: View {
                 completeButtonAction: completeButtonAction
             )
 
-            PhotoFramingEditingArea()
+            PhotoFramingEditingArea(media: media)
 
             PhotoFramingBackgroundPanelPlaceholder()
         }
@@ -64,11 +65,108 @@ private struct PhotoFramingTopBar: View {
 }
 
 private struct PhotoFramingEditingArea: View {
+    let media: Data
+
     var body: some View {
-        ZStack {
-            Color.black
+        GeometryReader { proxy in
+            let availableWidth = max(proxy.size.width - 76, 0)
+            let availableHeightWidth = max(proxy.size.height * 2 / 3 - 40, 0)
+            let frameWidth = min(availableWidth, availableHeightWidth)
+            let frameSize = CGSize(width: frameWidth, height: frameWidth * 3 / 2)
+            let photoHeight = frameSize.width * 0.62
+            let image = UIImage(data: media)
+
+            ZStack {
+                Color.black
+
+                if let image {
+                    PhotoFramingPhotoLayer(
+                        image: image,
+                        contentMode: .fill
+                    )
+                    .frame(width: proxy.size.width, height: photoHeight)
+                    .opacity(0.34)
+                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+                }
+
+                PhotoFramingFrame(
+                    image: image,
+                    frameSize: frameSize,
+                    photoHeight: photoHeight
+                )
+                .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct PhotoFramingFrame: View {
+    let image: UIImage?
+    let frameSize: CGSize
+    let photoHeight: CGFloat
+
+    var body: some View {
+        ZStack {
+            Color.white
+
+            if let image {
+                PhotoFramingPhotoLayer(
+                    image: image,
+                    contentMode: .fill
+                )
+                .frame(width: frameSize.width, height: photoHeight)
+            } else {
+                PhotoFramingPhotoPlaceholder()
+                    .frame(width: frameSize.width, height: photoHeight)
+            }
+
+            PhotoFramingGridGuide()
+                .frame(width: frameSize.width, height: photoHeight)
+        }
+        .frame(width: frameSize.width, height: frameSize.height)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+}
+
+private struct PhotoFramingPhotoLayer: View {
+    let image: UIImage
+    let contentMode: ContentMode
+
+    var body: some View {
+        Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: contentMode)
+            .clipped()
+    }
+}
+
+private struct PhotoFramingPhotoPlaceholder: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color(white: 0.86))
+    }
+}
+
+private struct PhotoFramingGridGuide: View {
+    var body: some View {
+        GeometryReader { proxy in
+            Path { path in
+                let columnWidth = proxy.size.width / 3
+                let rowHeight = proxy.size.height / 3
+
+                for index in 1...2 {
+                    let x = columnWidth * CGFloat(index)
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: proxy.size.height))
+
+                    let y = rowHeight * CGFloat(index)
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: proxy.size.width, y: y))
+                }
+            }
+            .stroke(Color.white.opacity(0.62), lineWidth: 1)
+        }
     }
 }
 
