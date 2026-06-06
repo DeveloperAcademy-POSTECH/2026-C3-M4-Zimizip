@@ -4,7 +4,7 @@ struct ArchiveReactionView: View {
     @State private var selectedArchiveMode: ArchiveMode = .reaction
 
     private let items = [
-        ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "아카데미 C6 시작 ...", count: "동영상 3개", overlayText: nil),
+        ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "아카데미 C6 시작 ...", count: "동영상 3개", overlayText: nil, opensDetail: true),
         ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], cardFrameName: "ReactionCardFrame2", title: "우주대폭발 광경 ...", count: "동영상 6개", overlayText: "+3"),
         ArchiveItem(imageNames: ["ArchiveReaction7"], cardFrameName: "ReactionCardFrame3", title: "메이슨 결혼식 축가 ...", count: "동영상 1개", overlayText: nil),
         ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], cardFrameName: "ReactionCardFrame4", title: "도라네이션최고 ...", count: "동영상 2개", overlayText: nil)
@@ -15,16 +15,25 @@ struct ArchiveReactionView: View {
             if selectedArchiveMode == .reaction {
                 archiveContent
                     .transition(.opacity)
-            } else {
+            } else if selectedArchiveMode == .surpriseCard {
                 ArchivedSurpriseCardView {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedArchiveMode = .reaction
                     }
                 }
                 .transition(.opacity)
+            } else {
+                ArchiveReactionDetailView(onBack: showArchiveReactionView)
+                .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: selectedArchiveMode)
+    }
+
+    private func showArchiveReactionView() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            selectedArchiveMode = .reaction
+        }
     }
 
     private var archiveContent: some View {
@@ -69,7 +78,18 @@ struct ArchiveReactionView: View {
 
                         LazyVGrid(columns: columns, alignment: .center, spacing: 36) {
                             ForEach(items) { item in
-                                ArchiveCard(item: item, width: cardWidth)
+                                if item.opensDetail {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedArchiveMode = .reactionDetail
+                                        }
+                                    } label: {
+                                        ArchiveCard(item: item, width: cardWidth)
+                                    }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    ArchiveCard(item: item, width: cardWidth)
+                                }
                             }
                         }
                         .padding(.top, 40)
@@ -91,6 +111,7 @@ struct ArchiveReactionView: View {
 enum ArchiveMode {
     case reaction
     case surpriseCard
+    case reactionDetail
 }
 
 private struct ArchiveItem: Identifiable {
@@ -100,6 +121,23 @@ private struct ArchiveItem: Identifiable {
     let title: String
     let count: String
     let overlayText: String?
+    let opensDetail: Bool
+
+    init(
+        imageNames: [String],
+        cardFrameName: String,
+        title: String,
+        count: String,
+        overlayText: String?,
+        opensDetail: Bool = false
+    ) {
+        self.imageNames = imageNames
+        self.cardFrameName = cardFrameName
+        self.title = title
+        self.count = count
+        self.overlayText = overlayText
+        self.opensDetail = opensDetail
+    }
 }
 
 private struct ArchiveFilterChip: View {
