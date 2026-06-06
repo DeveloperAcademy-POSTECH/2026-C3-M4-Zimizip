@@ -1,21 +1,15 @@
 import SwiftUI
 
 struct OptionItemView: View {
-    enum Style: Equatable {
-        case mediaSource
-        case revealTiming
-    }
-
     let icon: String
     let title: String
     let subtitle: String
     var isSelected = false
-    var style: Style = .mediaSource
 
     var body: some View {
         HStack(spacing: 0) {
             Circle()
-                .fill(circleColor)
+                .fill(.primary100)
                 .frame(width: 86, height: 86)
                 .overlay {
                     Image(icon)
@@ -27,14 +21,13 @@ struct OptionItemView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
+                    .foregroundStyle(.text)
                     .lineLimit(1)
                     .layoutPriority(1)
 
                 Text(subtitle)
                     .font(.system(size: 14))
-                    .foregroundStyle(subtitleColor)
-                    .lineSpacing(style == .revealTiming ? 2 : 0)
+                    .foregroundStyle(.gray400)
             }
             .padding(.leading, 24)
 
@@ -42,7 +35,7 @@ struct OptionItemView: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(chevronColor)
+                .foregroundStyle(.gray250)
         }
         .padding(.horizontal, 16)
         .frame(height: 128)
@@ -54,48 +47,16 @@ struct OptionItemView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var circleColor: Color {
-        isSelected
-            ? Color(red: 1, green: 224 / 255, blue: 204 / 255)
-            : Color(red: 1, green: 239 / 255, blue: 229 / 255)
-    }
+    private var borderColor: Color { isSelected ? .gray150 : .primary250 }
 
-    private var subtitleColor: Color {
-        switch style {
-        case .mediaSource:
-            Color(red: 129 / 255, green: 121 / 255, blue: 115 / 255)
-        case .revealTiming:
-            Color(red: 91 / 255, green: 83 / 255, blue: 78 / 255)
-        }
-    }
-
-    private var chevronColor: Color {
-        isSelected
-            ? Color(red: 159 / 255, green: 145 / 255, blue: 137 / 255)
-            : Color(red: 215 / 255, green: 206 / 255, blue: 200 / 255)
-    }
-
-    private var borderColor: Color {
-        isSelected
-            ? Color(red: 1, green: 170 / 255, blue: 122 / 255)
-            : Color(red: 227 / 255, green: 218 / 255, blue: 212 / 255)
-    }
-
-    private var backgroundColor: Color {
-        guard isSelected else {
-            return .clear
-        }
-
-        return Color(red: 1, green: 247 / 255, blue: 241 / 255)
-    }
+    private var backgroundColor: Color { isSelected ? .backgroundPrimary : .primary100 }
 }
 
 #Preview {
     OptionItemView(
         icon: "CalendarClock",
         title: "나중에 전하기",
-        subtitle: "앱에 저장해두고\n원하는 순간에 열어요",
-        style: .revealTiming
+        subtitle: "앱에 저장해두고\n원하는 순간에 열어요"
     )
     .padding()
 }
