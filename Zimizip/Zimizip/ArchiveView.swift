@@ -8,46 +8,55 @@ struct ArchiveView: View {
         ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], title: "연 솔로지옥 등장 리...", count: "동영상 6개", overlayText: nil)
     ]
 
-    private let columns = [
-        GridItem(.fixed(171), spacing: 20),
-        GridItem(.fixed(171), spacing: 20)
-    ]
-
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color.archiveBackground
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let horizontalPadding: CGFloat = 20
+            let columnSpacing: CGFloat = 20
+            let availableWidth = geometry.size.width - (horizontalPadding * 2) - columnSpacing
+            let cardWidth = min(171, max(120, availableWidth / 2))
+            let contentWidth = (cardWidth * 2) + columnSpacing
+            let contentLeading = max(horizontalPadding, (geometry.size.width - contentWidth) / 2)
+            let columns = [
+                GridItem(.fixed(cardWidth), spacing: columnSpacing),
+                GridItem(.fixed(cardWidth), spacing: 0)
+            ]
 
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("보관함")
-                        .font(Font.custom("Pretendard-Bold", size: 32))
-                        .tracking(-1.28)
-                        .foregroundStyle(Color.archiveText)
-                        .padding(.top, 82)
-                        .padding(.horizontal, 20)
+            ZStack(alignment: .bottomLeading) {
+                Color.archiveBackground
+                    .ignoresSafeArea()
 
-                    HStack(spacing: 8) {
-                        ArchiveFilterChip(icon: "play.square.fill", title: "리액션", isSelected: true)
-                        ArchiveFilterChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
-                    }
-                    .padding(.top, 20)
-                    .padding(.horizontal, 20)
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("보관함")
+                            .font(Font.custom("Pretendard-Bold", size: 32))
+                            .tracking(-1.28)
+                            .foregroundStyle(Color.archiveText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 82)
 
-                    LazyVGrid(columns: columns, spacing: 36) {
-                        ForEach(items) { item in
-                            ArchiveCard(item: item)
+                        HStack(spacing: 8) {
+                            ArchiveFilterChip(icon: "play.square.fill", title: "리액션", isSelected: true)
+                            ArchiveFilterChip(icon: "square.stack.3d.up.fill", title: "서프라이즈 카드", isSelected: false)
                         }
+                        .padding(.top, 20)
+
+                        LazyVGrid(columns: columns, alignment: .center, spacing: 36) {
+                            ForEach(items) { item in
+                                ArchiveCard(item: item, width: cardWidth)
+                            }
+                        }
+                        .padding(.top, 40)
                     }
-                    .padding(.top, 40)
-                    .padding(.horizontal, 20)
+                    .frame(width: contentWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                     .padding(.bottom, 120)
                 }
-            }
-            .ignoresSafeArea(edges: .top)
+                .ignoresSafeArea(edges: .top)
 
-            ArchiveTabBar()
-                .padding(.bottom, 38)
+                ArchiveTabBar()
+                    .padding(.leading, contentLeading)
+                    .padding(.bottom, 38)
+            }
         }
     }
 }
@@ -90,10 +99,13 @@ private struct ArchiveFilterChip: View {
 
 private struct ArchiveCard: View {
     let item: ArchiveItem
+    let width: CGFloat
 
     var body: some View {
+        let thumbnailSize = width
+
         VStack(alignment: .leading, spacing: 20) {
-            ArchiveThumbnailView(item: item)
+            ArchiveThumbnailView(item: item, size: thumbnailSize)
 
             HStack(alignment: .top, spacing: 6) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -117,54 +129,57 @@ private struct ArchiveCard: View {
                     .padding(.top, 6)
             }
         }
-        .frame(width: 171, alignment: .leading)
+        .frame(width: width, alignment: .leading)
     }
 }
 
 private struct ArchiveThumbnailView: View {
     let item: ArchiveItem
+    let size: CGFloat
 
     var body: some View {
+        let imageScale = size / 171
+
         ZStack {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color.archiveGray50)
 
             if item.imageNames.count == 1 {
-                reactionImage(item.imageNames[0], width: 72, height: 108)
+                reactionImage(item.imageNames[0], width: 72 * imageScale, height: 108 * imageScale)
             } else if item.imageNames.count == 2 {
-                reactionImage(item.imageNames[0], width: 60, height: 90)
+                reactionImage(item.imageNames[0], width: 60 * imageScale, height: 90 * imageScale)
                     .rotationEffect(.degrees(-13.43))
-                    .offset(x: -26, y: -2)
+                    .offset(x: -26 * imageScale, y: -2 * imageScale)
 
-                reactionImage(item.imageNames[1], width: 60, height: 90)
+                reactionImage(item.imageNames[1], width: 60 * imageScale, height: 90 * imageScale)
                     .rotationEffect(.degrees(13))
-                    .offset(x: 25, y: -2)
+                    .offset(x: 25 * imageScale, y: -2 * imageScale)
             } else {
-                reactionImage(item.imageNames[0], width: 60, height: 90)
+                reactionImage(item.imageNames[0], width: 60 * imageScale, height: 90 * imageScale)
                     .rotationEffect(.degrees(-13.43))
-                    .offset(x: -34, y: 4)
+                    .offset(x: -34 * imageScale, y: 4 * imageScale)
 
-                reactionImage(item.imageNames[1], width: 60, height: 90)
-                    .offset(x: 0, y: -4)
+                reactionImage(item.imageNames[1], width: 60 * imageScale, height: 90 * imageScale)
+                    .offset(x: 0, y: -4 * imageScale)
 
                 ZStack {
-                    reactionImage(item.imageNames[2], width: 60, height: 90)
+                    reactionImage(item.imageNames[2], width: 60 * imageScale, height: 90 * imageScale)
 
                     if let overlayText = item.overlayText {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color(red: 74 / 255, green: 64 / 255, blue: 58 / 255).opacity(0.5))
+                            .fill(Color.archiveGray450.opacity(0.5))
 
                         Text(overlayText)
                             .font(Font.custom("Pretendard-SemiBold", size: 16))
                             .foregroundStyle(Color.archiveBackground)
                     }
                 }
-                .frame(width: 60, height: 90)
+                .frame(width: 60 * imageScale, height: 90 * imageScale)
                 .rotationEffect(.degrees(8.13))
-                .offset(x: 32, y: 8)
+                .offset(x: 32 * imageScale, y: 8 * imageScale)
             }
         }
-        .frame(width: 171, height: 171)
+        .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
@@ -187,12 +202,12 @@ private struct ArchiveTabBar: View {
         .padding(.vertical, 4)
         .background(
             Capsule()
-                .fill(.white.opacity(0.65))
+                .fill(Color.archiveBackground.opacity(0.65))
                 .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
         )
         .overlay(
             Capsule()
-                .stroke(.white.opacity(0.4), lineWidth: 1)
+                .stroke(Color.archiveGray50.opacity(0.4), lineWidth: 1)
         )
         .frame(width: 208, height: 58)
     }
@@ -225,16 +240,19 @@ private struct ArchiveTabBarItem: View {
 }
 
 private extension Color {
-    static let archiveBackground = Color(red: 1.0, green: 252 / 255, blue: 250 / 255)
-    static let archiveText = Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255)
-    static let archiveChipText = Color(red: 67 / 255, green: 52 / 255, blue: 46 / 255)
-    static let archiveGray50 = Color(red: 250 / 255, green: 246 / 255, blue: 243 / 255)
-    static let archiveGray200 = Color(red: 209 / 255, green: 199 / 255, blue: 192 / 255)
-    static let archiveGray400 = Color(red: 100 / 255, green: 89 / 255, blue: 82 / 255)
-    static let archiveOrange = Color(red: 1.0, green: 106 / 255, blue: 33 / 255)
-    static let archiveOrangeSoft = Color(red: 1.0, green: 226 / 255, blue: 207 / 255)
-    static let archiveTabInactive = Color(red: 153 / 255, green: 153 / 255, blue: 153 / 255)
-    static let archiveTabSelection = Color(red: 237 / 255, green: 237 / 255, blue: 237 / 255)
+    static let archiveBackground = Color("BackgroundPrimary")
+    static let archiveText = Color("TextPrimary")
+    static let archiveChipText = Color("Gray450")
+    static let archiveGray50 = Color("Gray50")
+    static let archiveGray150 = Color("Gray150")
+    static let archiveGray200 = Color("Gray200")
+    static let archiveGray300 = Color("Gray300")
+    static let archiveGray400 = Color("Gray400")
+    static let archiveGray450 = Color("Gray450")
+    static let archiveOrange = Color("BrandPrimary")
+    static let archiveOrangeSoft = Color("BrandPrimary").opacity(0.18)
+    static let archiveTabInactive = Color("Gray300")
+    static let archiveTabSelection = Color("Gray100")
 }
 
 #Preview {
