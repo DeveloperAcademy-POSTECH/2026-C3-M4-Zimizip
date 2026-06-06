@@ -14,13 +14,13 @@ enum PhotoFramingBackgroundColor: CaseIterable, Identifiable {
         case .white:
             return .white
         case .red:
-            return Color(red: 1.0, green: 0.07, blue: 0.05)
+            return Color(red: 1.0, green: 0.08, blue: 0.08)
         case .orange:
-            return Color(red: 1.0, green: 0.48, blue: 0.05)
+            return Color(red: 1.0, green: 0.49, blue: 0.04)
         case .yellow:
-            return Color(red: 1.0, green: 0.88, blue: 0.0)
+            return Color(red: 1.0, green: 0.90, blue: 0.0)
         case .green:
-            return Color(red: 0.12, green: 1.0, blue: 0.34)
+            return Color(red: 0.13, green: 1.0, blue: 0.34)
         }
     }
 

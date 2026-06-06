@@ -4,33 +4,51 @@ struct PhotoFramingBackgroundPanel: View {
     @Binding var selectedBackgroundColor: PhotoFramingBackgroundColor
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 26) {
-            HStack {
-                Text("배경색")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Color(red: 1.0, green: 0.37, blue: 0.0))
+        VStack(spacing: 0) {
+            labelRow
+            swatchRow
+        }
+    }
 
-                Spacer()
-            }
+    private var labelRow: some View {
+        HStack(alignment: .center, spacing: 20) {
+            Text("배경색")
+                .font(.custom("Pretendard", size: 16).weight(.semibold))
+                .foregroundStyle(Self.primaryColor)
 
-            HStack(spacing: 30) {
-                ForEach(PhotoFramingBackgroundColor.allCases) { backgroundColor in
-                    PhotoFramingBackgroundSwatch(
-                        backgroundColor: backgroundColor,
-                        isSelected: selectedBackgroundColor == backgroundColor
-                    ) {
-                        selectedBackgroundColor = backgroundColor
-                    }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .frame(height: 48, alignment: .leading)
+        .background(Self.panelBackgroundColor)
+    }
+
+    private var swatchRow: some View {
+        HStack(alignment: .center, spacing: 0) {
+            let backgroundColors = PhotoFramingBackgroundColor.allCases
+            ForEach(Array(backgroundColors.enumerated()), id: \.element) { index, backgroundColor in
+                PhotoFramingBackgroundSwatch(
+                    backgroundColor: backgroundColor,
+                    isSelected: selectedBackgroundColor == backgroundColor
+                ) {
+                    selectedBackgroundColor = backgroundColor
+                }
+
+                if index < backgroundColors.count - 1 {
+                    Spacer(minLength: 0)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 20)
-        .padding(.bottom, 24)
-        //.frame(maxWidth: .infinity, alignment: .leading)
-        .border(.red)
-        .background(Color(red: 0.12, green: 0.10, blue: 0.09))
+        .padding(20)
+        .frame(height: 108, alignment: .center)
+        .background(Self.panelBackgroundColor)
     }
+}
+
+private extension PhotoFramingBackgroundPanel {
+    static let primaryColor = Color(red: 1.0, green: 0.37, blue: 0.0)
+    static let panelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.20).opacity(0.5)
 }
 
 #Preview {
@@ -39,4 +57,6 @@ struct PhotoFramingBackgroundPanel: View {
     PhotoFramingBackgroundPanel(
         selectedBackgroundColor: $selectedBackgroundColor
     )
+    .frame(width: 402)
+    .background(Color.black)
 }

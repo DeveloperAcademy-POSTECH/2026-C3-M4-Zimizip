@@ -9,22 +9,30 @@ struct PhotoFramingBackgroundSwatch: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .stroke(
-                        Color(red: 1.0, green: 0.37, blue: 0.0),
-                        lineWidth: isSelected ? 3 : 0
-                    )
-                    .frame(width: 48, height: 48)
-
-                Circle()
                     .fill(backgroundColor.color)
-                    .frame(width: 36, height: 36)
+                    .frame(width: fillSize, height: fillSize)
+
+                if isSelected {
+                    Circle()
+                        .stroke(Self.selectionColor, lineWidth: 3)
+                        .frame(width: Self.swatchSize, height: Self.swatchSize)
+                }
             }
-            .frame(width: 48, height: 48)
+            .frame(width: Self.swatchSize, height: Self.swatchSize)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(backgroundColor.accessibilityLabel)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
+
+    private var fillSize: CGFloat {
+        isSelected ? 36 : Self.swatchSize
+    }
+}
+
+private extension PhotoFramingBackgroundSwatch {
+    static let swatchSize: CGFloat = 48
+    static let selectionColor = Color(red: 1.0, green: 0.37, blue: 0.0)
 }
 
 #Preview {
