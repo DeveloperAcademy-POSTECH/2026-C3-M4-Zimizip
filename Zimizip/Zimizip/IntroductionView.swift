@@ -35,6 +35,7 @@ struct IntroductionView: View {
             let scale = min(screenWidth / 402, 1)
             let imageScale = scale * 0.5
             let contentWidth = min(362, screenWidth - 40)
+            let imageWidth = 244.38 * imageScale
             let imageHeight = 301.05 * imageScale
             let imageCenterY = 205 * scale + imageHeight / 2
             let textGroupTop = screenHeight / 2 + 98
