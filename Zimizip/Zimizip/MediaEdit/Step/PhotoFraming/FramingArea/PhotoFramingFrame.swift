@@ -21,14 +21,10 @@ struct PhotoFramingFrame: View {
                     height: transformState.photoSize.height
                 )
                 .offset(transformState.offset)
-
-                PhotoFramingGridGuide()
-                    .frame(
-                        width: transformState.photoSize.width,
-                        height: transformState.photoSize.height
-                    )
-                    .offset(transformState.offset)
             }
+
+            PhotoFramingGridGuide()
+                .frame(width: frameSize.width, height: frameSize.height)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))

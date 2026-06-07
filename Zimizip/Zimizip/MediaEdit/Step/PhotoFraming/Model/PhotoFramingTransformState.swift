@@ -3,6 +3,7 @@ import CoreGraphics
 struct PhotoFramingTransformLayout: Equatable {
     let frameSize: CGSize
     let basePhotoSize: CGSize
+    let minimumScale: CGFloat
     let sourceAspectRatio: CGFloat
 
     var isValid: Bool {
@@ -10,16 +11,17 @@ struct PhotoFramingTransformLayout: Equatable {
         frameSize.height > 0 &&
         basePhotoSize.width > 0 &&
         basePhotoSize.height > 0 &&
+        minimumScale > 0 &&
         sourceAspectRatio > 0
     }
 }
 
 struct PhotoFramingTransformState {
-    static let minimumScale: CGFloat = 1
     static let maximumScale: CGFloat = 4
 
     var frameSize: CGSize = .zero
     var basePhotoSize: CGSize = .zero
+    var minimumScale: CGFloat = 1
     var scale: CGFloat = 1
     var offset: CGSize = .zero
     var sourceAspectRatio: CGFloat = 1
@@ -29,6 +31,7 @@ struct PhotoFramingTransformState {
         frameSize.height > 0 &&
         basePhotoSize.width > 0 &&
         basePhotoSize.height > 0 &&
+        minimumScale > 0 &&
         scale > 0 &&
         sourceAspectRatio > 0
     }
@@ -42,6 +45,7 @@ struct PhotoFramingTransformState {
 
         frameSize = layout.frameSize
         basePhotoSize = layout.basePhotoSize
+        minimumScale = layout.minimumScale
         sourceAspectRatio = layout.sourceAspectRatio
     }
 
@@ -52,9 +56,14 @@ struct PhotoFramingTransformState {
         )
     }
 
+    var hasOverflow: Bool {
+        photoSize.width > frameSize.width ||
+        photoSize.height > frameSize.height
+    }
+
     mutating func updateScale(_ newScale: CGFloat) {
         scale = min(
-            max(newScale, Self.minimumScale),
+            max(newScale, minimumScale),
             Self.maximumScale
         )
         offset = clampedOffset(offset)
@@ -80,6 +89,7 @@ struct PhotoFramingTransformState {
     private func isConfigured(for layout: PhotoFramingTransformLayout) -> Bool {
         frameSize == layout.frameSize &&
         basePhotoSize == layout.basePhotoSize &&
+        minimumScale == layout.minimumScale &&
         sourceAspectRatio == layout.sourceAspectRatio
     }
 

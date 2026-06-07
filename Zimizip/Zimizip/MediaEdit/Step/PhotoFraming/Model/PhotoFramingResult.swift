@@ -8,6 +8,8 @@ struct PhotoFramingResult {
     let basePhotoSize: CGSize
     let scale: CGFloat
     let offset: CGSize
+    let normalizedBasePhotoSize: CGSize
+    let normalizedOffset: CGSize
     let sourceAspectRatio: CGFloat
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
@@ -25,8 +27,28 @@ struct PhotoFramingResult {
         self.basePhotoSize = transformState.basePhotoSize
         self.scale = transformState.scale
         self.offset = transformState.offset
+        self.normalizedBasePhotoSize = Self.normalized(
+            transformState.basePhotoSize,
+            by: transformState.frameSize
+        )
+        self.normalizedOffset = Self.normalized(
+            transformState.offset,
+            by: transformState.frameSize
+        )
         self.sourceAspectRatio = transformState.sourceAspectRatio
         self.sourcePreviewFrame = sourcePreviewFrame
         self.isLandscapeCapture = isLandscapeCapture
+    }
+
+    private static func normalized(_ size: CGSize, by frameSize: CGSize) -> CGSize {
+        guard frameSize.width > 0,
+              frameSize.height > 0 else {
+            return .zero
+        }
+
+        return CGSize(
+            width: size.width / frameSize.width,
+            height: size.height / frameSize.height
+        )
     }
 }

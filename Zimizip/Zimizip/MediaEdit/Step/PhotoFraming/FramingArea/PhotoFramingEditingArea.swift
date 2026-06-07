@@ -6,40 +6,43 @@ struct PhotoFramingEditingArea: View {
     @State private var dragStartOffset: CGSize?
     @State private var pinchStartScale: CGFloat?
 
-    let media: Data
     let backgroundColor: Color
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
     let transformChangeAction: (PhotoFramingTransformState?) -> Void
+    private let image: UIImage?
+
+    init(
+        media: Data,
+        backgroundColor: Color,
+        sourcePreviewFrame: CGRect?,
+        isLandscapeCapture: Bool,
+        transformChangeAction: @escaping (PhotoFramingTransformState?) -> Void
+    ) {
+        self.backgroundColor = backgroundColor
+        self.sourcePreviewFrame = sourcePreviewFrame
+        self.isLandscapeCapture = isLandscapeCapture
+        self.transformChangeAction = transformChangeAction
+        self.image = UIImage(data: media)
+    }
 
     var body: some View {
         GeometryReader { proxy in
             let frameSize = PhotoFramingLayout.frameSize(in: proxy.size)
-            let image = UIImage(data: media)
-            let transformLayout = image.map {
-                PhotoFramingTransformLayout(
-                    frameSize: frameSize,
-                    basePhotoSize: PhotoFramingLayout.photoSize(
-                        imageSize: $0.size,
-                        frameSize: frameSize,
-                        sourcePreviewFrame: sourcePreviewFrame,
-                        isLandscapeCapture: isLandscapeCapture
-                    ),
-                    sourceAspectRatio: PhotoFramingLayout.sourceAspectRatio(
-                        imageSize: $0.size,
-                        sourcePreviewFrame: sourcePreviewFrame,
-                        isLandscapeCapture: isLandscapeCapture
-                    )
-                )
-            }
-            let currentTransformState = transformLayout.map {
-                transformState.resolved(for: $0)
-            }
+            let transformLayout = transformLayout(
+                frameSize: frameSize,
+                containerSize: proxy.size
+            )
+            let currentTransformState = currentTransformState(
+                for: transformLayout
+            )
 
             ZStack {
                 Color.black
 
-                if isLandscapeCapture, let image, let currentTransformState {
+                if let image,
+                   let currentTransformState,
+                   currentTransformState.hasOverflow {
                     PhotoFramingPhotoLayer(
                         image: image,
                         contentMode: .fill
@@ -76,6 +79,47 @@ struct PhotoFramingEditingArea: View {
 }
 
 private extension PhotoFramingEditingArea {
+    func transformLayout(
+        frameSize: CGSize,
+        containerSize: CGSize
+    ) -> PhotoFramingTransformLayout? {
+        guard let image else {
+            return nil
+        }
+
+        let basePhotoSize = PhotoFramingLayout.photoSize(
+            imageSize: image.size,
+            frameSize: frameSize,
+            containerSize: containerSize,
+            sourcePreviewFrame: sourcePreviewFrame,
+            isLandscapeCapture: isLandscapeCapture
+        )
+
+        return PhotoFramingTransformLayout(
+            frameSize: frameSize,
+            basePhotoSize: basePhotoSize,
+            minimumScale: PhotoFramingLayout.minimumScale(
+                photoSize: basePhotoSize,
+                frameSize: frameSize
+            ),
+            sourceAspectRatio: PhotoFramingLayout.sourceAspectRatio(
+                imageSize: image.size,
+                sourcePreviewFrame: sourcePreviewFrame,
+                isLandscapeCapture: isLandscapeCapture
+            )
+        )
+    }
+
+    func currentTransformState(
+        for layout: PhotoFramingTransformLayout?
+    ) -> PhotoFramingTransformState? {
+        guard let layout else {
+            return nil
+        }
+
+        return transformState.resolved(for: layout)
+    }
+
     func dragGesture(for layout: PhotoFramingTransformLayout?) -> some Gesture {
         DragGesture()
             .onChanged { value in
