@@ -4,9 +4,9 @@ struct HomeView: View {
     @State private var selectedCardIndex = 1
 
     private let surpriseCards = [
-        HomeSurpriseCard(imageName: "HomeSurpriseCardLeft", imageMode: .leftCrop, title: "연 솔로지옥 등장 리액션"),
-        HomeSurpriseCard(imageName: "HomeSurpriseCardCenter", imageMode: .fill, title: "연 솔로지옥 등장 리액션"),
-        HomeSurpriseCard(imageName: "HomeSurpriseCardRight", imageMode: .rightCrop, title: "연 솔로지옥 등장 리액션")
+        HomeSurpriseCard(imageName: "HomeSurpriseCardLeft", imageMode: .leftCrop, title: "토바에의 깜짝 소식"),
+        HomeSurpriseCard(imageName: "HomeSurpriseCardCenter", imageMode: .fill, title: "지미집 생일파티"),
+        HomeSurpriseCard(imageName: "HomeSurpriseCardRight", imageMode: .rightCrop, title: "해피버스데이투유")
     ]
 
     var body: some View {
