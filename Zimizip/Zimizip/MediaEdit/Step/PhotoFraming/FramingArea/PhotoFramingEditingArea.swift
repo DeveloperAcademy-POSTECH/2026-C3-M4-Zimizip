@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct PhotoFramingEditingArea: View {
+    @State private var transformState = PhotoFramingTransformState()
+
     let media: Data
     let backgroundColor: Color
     let sourcePreviewFrame: CGRect?
@@ -11,24 +13,39 @@ struct PhotoFramingEditingArea: View {
         GeometryReader { proxy in
             let frameSize = PhotoFramingLayout.frameSize(in: proxy.size)
             let image = UIImage(data: media)
-            let photoSize = image.map {
-                PhotoFramingLayout.photoSize(
-                    imageSize: $0.size,
+            let transformLayout = image.map {
+                PhotoFramingTransformLayout(
                     frameSize: frameSize,
-                    sourcePreviewFrame: sourcePreviewFrame,
-                    isLandscapeCapture: isLandscapeCapture
+                    basePhotoSize: PhotoFramingLayout.photoSize(
+                        imageSize: $0.size,
+                        frameSize: frameSize,
+                        sourcePreviewFrame: sourcePreviewFrame,
+                        isLandscapeCapture: isLandscapeCapture
+                    ),
+                    sourceAspectRatio: PhotoFramingLayout.sourceAspectRatio(
+                        imageSize: $0.size,
+                        sourcePreviewFrame: sourcePreviewFrame,
+                        isLandscapeCapture: isLandscapeCapture
+                    )
                 )
+            }
+            let currentTransformState = transformLayout.map {
+                transformState.resolved(for: $0)
             }
 
             ZStack {
                 Color.black
 
-                if isLandscapeCapture, let image, let photoSize {
+                if isLandscapeCapture, let image, let currentTransformState {
                     PhotoFramingPhotoLayer(
                         image: image,
                         contentMode: .fill
                     )
-                    .frame(width: photoSize.width, height: photoSize.height)
+                    .frame(
+                        width: currentTransformState.photoSize.width,
+                        height: currentTransformState.photoSize.height
+                    )
+                    .offset(currentTransformState.offset)
                     .opacity(0.34)
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
                 }
@@ -37,9 +54,15 @@ struct PhotoFramingEditingArea: View {
                     image: image,
                     backgroundColor: backgroundColor,
                     frameSize: frameSize,
-                    photoSize: photoSize
+                    transformState: currentTransformState
                 )
                 .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+            }
+            .onAppear {
+                transformState.reset(to: transformLayout)
+            }
+            .onChange(of: transformLayout) { _, newValue in
+                transformState.reset(to: newValue)
             }
         }
     }

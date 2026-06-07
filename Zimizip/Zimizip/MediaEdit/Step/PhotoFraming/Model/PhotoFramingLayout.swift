@@ -66,7 +66,7 @@ enum PhotoFramingLayout {
         }
     }
 
-    private static func sourceAspectRatio(
+    static func sourceAspectRatio(
         imageSize: CGSize,
         sourcePreviewFrame: CGRect?,
         isLandscapeCapture: Bool
