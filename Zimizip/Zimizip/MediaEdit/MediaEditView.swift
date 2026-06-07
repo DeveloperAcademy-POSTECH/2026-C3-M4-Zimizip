@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MediaEditView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var photoFramingResult: PhotoFramingResult?
 
     let media: Data
     let sourcePreviewFrame: CGRect?
@@ -25,7 +26,9 @@ struct MediaEditView: View {
             cancelButtonAction: {
                 dismiss()
             },
-            completeButtonAction: {}
+            completeButtonAction: { result in
+                photoFramingResult = result
+            }
         )
     }
 }

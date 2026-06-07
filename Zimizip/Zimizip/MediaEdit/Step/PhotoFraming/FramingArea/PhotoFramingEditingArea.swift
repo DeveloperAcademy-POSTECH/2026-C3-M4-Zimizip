@@ -10,6 +10,7 @@ struct PhotoFramingEditingArea: View {
     let backgroundColor: Color
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
+    let transformChangeAction: (PhotoFramingTransformState?) -> Void
 
     var body: some View {
         GeometryReader { proxy in
@@ -62,9 +63,11 @@ struct PhotoFramingEditingArea: View {
             }
             .onAppear {
                 transformState.reset(to: transformLayout)
+                transformChangeAction(currentTransformState)
             }
             .onChange(of: transformLayout) { _, newValue in
                 transformState.reset(to: newValue)
+                transformChangeAction(newValue.map { PhotoFramingTransformState(layout: $0) })
             }
             .simultaneousGesture(dragGesture(for: transformLayout))
             .simultaneousGesture(pinchGesture(for: transformLayout))
@@ -90,6 +93,7 @@ private extension PhotoFramingEditingArea {
                     )
                 )
                 transformState = nextState
+                transformChangeAction(nextState)
             }
             .onEnded { _ in
                 dragStartOffset = nil
@@ -108,6 +112,7 @@ private extension PhotoFramingEditingArea {
                 pinchStartScale = startScale
                 nextState.updateScale(startScale * value)
                 transformState = nextState
+                transformChangeAction(nextState)
             }
             .onEnded { _ in
                 pinchStartScale = nil
@@ -120,7 +125,8 @@ private extension PhotoFramingEditingArea {
         media: Data(),
         backgroundColor: .white,
         sourcePreviewFrame: nil,
-        isLandscapeCapture: true
+        isLandscapeCapture: true,
+        transformChangeAction: { _ in }
     )
     .frame(width: 402, height: 620)
 }

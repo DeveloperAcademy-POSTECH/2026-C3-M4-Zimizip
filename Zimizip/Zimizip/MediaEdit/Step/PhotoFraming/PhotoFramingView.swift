@@ -9,19 +9,20 @@ import SwiftUI
 
 struct PhotoFramingView: View {
     @State private var selectedBackgroundColor: PhotoFramingBackgroundColor = .white
+    @State private var transformState: PhotoFramingTransformState?
 
     let media: Data
     let sourcePreviewFrame: CGRect?
     let isLandscapeCapture: Bool
     let cancelButtonAction: () -> Void
-    let completeButtonAction: () -> Void
+    let completeButtonAction: (PhotoFramingResult) -> Void
 
     init(
         media: Data,
         sourcePreviewFrame: CGRect? = nil,
         isLandscapeCapture: Bool = false,
         cancelButtonAction: @escaping () -> Void,
-        completeButtonAction: @escaping () -> Void
+        completeButtonAction: @escaping (PhotoFramingResult) -> Void
     ) {
         self.media = media
         self.sourcePreviewFrame = sourcePreviewFrame
@@ -34,14 +35,17 @@ struct PhotoFramingView: View {
         VStack(spacing: 0) {
             PhotoFramingTopBar(
                 cancelButtonAction: cancelButtonAction,
-                completeButtonAction: completeButtonAction
+                completeButtonAction: completeFraming
             )
 
             PhotoFramingEditingArea(
                 media: media,
                 backgroundColor: selectedBackgroundColor.color,
                 sourcePreviewFrame: sourcePreviewFrame,
-                isLandscapeCapture: isLandscapeCapture
+                isLandscapeCapture: isLandscapeCapture,
+                transformChangeAction: { transformState in
+                    self.transformState = transformState
+                }
             )
 
             PhotoFramingBackgroundPanel(
@@ -50,12 +54,29 @@ struct PhotoFramingView: View {
         }
         .background(Color.black)
     }
+
+    private func completeFraming() {
+        guard let transformState,
+              transformState.isValid else {
+            return
+        }
+
+        completeButtonAction(
+            PhotoFramingResult(
+                source: media,
+                backgroundColor: selectedBackgroundColor,
+                transformState: transformState,
+                sourcePreviewFrame: sourcePreviewFrame,
+                isLandscapeCapture: isLandscapeCapture
+            )
+        )
+    }
 }
 
 #Preview {
     PhotoFramingView(
         media: Data(),
         cancelButtonAction: {},
-        completeButtonAction: {}
+        completeButtonAction: { _ in }
     )
 }

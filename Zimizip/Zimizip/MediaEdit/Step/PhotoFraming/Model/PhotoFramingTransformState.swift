@@ -24,6 +24,15 @@ struct PhotoFramingTransformState {
     var offset: CGSize = .zero
     var sourceAspectRatio: CGFloat = 1
 
+    var isValid: Bool {
+        frameSize.width > 0 &&
+        frameSize.height > 0 &&
+        basePhotoSize.width > 0 &&
+        basePhotoSize.height > 0 &&
+        scale > 0 &&
+        sourceAspectRatio > 0
+    }
+
     init() {}
 
     init(layout: PhotoFramingTransformLayout) {
