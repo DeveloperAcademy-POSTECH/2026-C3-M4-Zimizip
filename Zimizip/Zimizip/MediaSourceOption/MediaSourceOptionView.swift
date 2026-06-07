@@ -3,7 +3,7 @@ import SwiftUI
 
 struct MediaSourceOptionView: View {
     @State private var selectedMedia: PhotosPickerItem?
-    @State private var media: Media?
+    @State private var mediaEditInput: MediaEditInput?
     @State private var isShowingCamera = false
 
     var body: some View {
@@ -68,18 +68,18 @@ struct MediaSourceOptionView: View {
                 }
                 .padding(.horizontal, 20)
             }
-            .navigationDestination(item: $media) { media in
+            .navigationDestination(item: $mediaEditInput) { mediaEditInput in
                 MediaEditView(
-                    media: media.source,
-                    sourcePreviewFrame: media.sourcePreviewFrame,
-                    isLandscapeCapture: media.isLandscapeCapture
+                    media: mediaEditInput.source,
+                    sourcePreviewFrame: mediaEditInput.sourcePreviewFrame,
+                    isLandscapeCapture: mediaEditInput.isLandscapeCapture
                 )
                     .navigationBarBackButtonHidden(true)
                     .toolbar(.hidden, for: .navigationBar)
             }
             .fullScreenCover(isPresented: $isShowingCamera) {
                 MediaCameraView { photoData, previewFrame, isLandscapeCapture in
-                    media = Media(
+                    mediaEditInput = MediaEditInput(
                         source: photoData,
                         sourcePreviewFrame: previewFrame,
                         isLandscapeCapture: isLandscapeCapture
@@ -92,7 +92,7 @@ struct MediaSourceOptionView: View {
                 return
             }
 
-            media = Media(source: selectedMediaSource)
+            mediaEditInput = MediaEditInput(source: selectedMediaSource)
             selectedMedia = nil
         }
     }
