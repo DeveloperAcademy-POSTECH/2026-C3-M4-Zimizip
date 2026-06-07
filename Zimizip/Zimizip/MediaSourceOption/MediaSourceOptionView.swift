@@ -69,13 +69,21 @@ struct MediaSourceOptionView: View {
                 .padding(.horizontal, 20)
             }
             .navigationDestination(item: $media) { media in
-                MediaEditView(media: media.source)
+                MediaEditView(
+                    media: media.source,
+                    sourcePreviewFrame: media.sourcePreviewFrame,
+                    isLandscapeCapture: media.isLandscapeCapture
+                )
                     .navigationBarBackButtonHidden(true)
                     .toolbar(.hidden, for: .navigationBar)
             }
             .fullScreenCover(isPresented: $isShowingCamera) {
-                MediaCameraView { photoData in
-                    media = Media(source: photoData)
+                MediaCameraView { photoData, previewFrame, isLandscapeCapture in
+                    media = Media(
+                        source: photoData,
+                        sourcePreviewFrame: previewFrame,
+                        isLandscapeCapture: isLandscapeCapture
+                    )
                 }
             }
         }
