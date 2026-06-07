@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-struct MediaEditInput: Identifiable {
+struct MediaEditInput: Hashable, Identifiable {
     let id = UUID()
     let source: Data
     let sourcePreviewFrame: CGRect?
@@ -15,5 +15,13 @@ struct MediaEditInput: Identifiable {
         self.source = source
         self.sourcePreviewFrame = sourcePreviewFrame
         self.isLandscapeCapture = isLandscapeCapture
+    }
+
+    static func == (lhs: MediaEditInput, rhs: MediaEditInput) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
