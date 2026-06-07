@@ -39,7 +39,10 @@ enum PhotoFramingLayout {
         sourcePreviewFrame: CGRect?,
         isLandscapeCapture: Bool
     ) -> CGSize {
-        guard imageSize.width > 0, imageSize.height > 0 else {
+        guard imageSize.width > 0,
+              imageSize.height > 0,
+              frameSize.width > 0,
+              frameSize.height > 0 else {
             return .zero
         }
 
