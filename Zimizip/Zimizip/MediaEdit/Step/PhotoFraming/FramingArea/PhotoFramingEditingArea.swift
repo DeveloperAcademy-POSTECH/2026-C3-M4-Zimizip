@@ -3,6 +3,8 @@ import UIKit
 
 struct PhotoFramingEditingArea: View {
     @State private var transformState = PhotoFramingTransformState()
+    @State private var dragStartOffset: CGSize?
+    @State private var pinchStartScale: CGFloat?
 
     let media: Data
     let backgroundColor: Color
@@ -64,7 +66,52 @@ struct PhotoFramingEditingArea: View {
             .onChange(of: transformLayout) { _, newValue in
                 transformState.reset(to: newValue)
             }
+            .simultaneousGesture(dragGesture(for: transformLayout))
+            .simultaneousGesture(pinchGesture(for: transformLayout))
         }
+    }
+}
+
+private extension PhotoFramingEditingArea {
+    func dragGesture(for layout: PhotoFramingTransformLayout?) -> some Gesture {
+        DragGesture()
+            .onChanged { value in
+                guard let layout else {
+                    return
+                }
+
+                var nextState = transformState.resolved(for: layout)
+                let startOffset = dragStartOffset ?? nextState.offset
+                dragStartOffset = startOffset
+                nextState.updateOffset(
+                    CGSize(
+                        width: startOffset.width + value.translation.width,
+                        height: startOffset.height + value.translation.height
+                    )
+                )
+                transformState = nextState
+            }
+            .onEnded { _ in
+                dragStartOffset = nil
+            }
+    }
+
+    func pinchGesture(for layout: PhotoFramingTransformLayout?) -> some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                guard let layout else {
+                    return
+                }
+
+                var nextState = transformState.resolved(for: layout)
+                let startScale = pinchStartScale ?? nextState.scale
+                pinchStartScale = startScale
+                nextState.updateScale(startScale * value)
+                transformState = nextState
+            }
+            .onEnded { _ in
+                pinchStartScale = nil
+            }
     }
 }
 

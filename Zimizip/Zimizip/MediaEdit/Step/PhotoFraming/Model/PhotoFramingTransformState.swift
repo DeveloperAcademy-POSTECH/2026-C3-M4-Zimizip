@@ -15,6 +15,9 @@ struct PhotoFramingTransformLayout: Equatable {
 }
 
 struct PhotoFramingTransformState {
+    static let minimumScale: CGFloat = 1
+    static let maximumScale: CGFloat = 4
+
     var frameSize: CGSize = .zero
     var basePhotoSize: CGSize = .zero
     var scale: CGFloat = 1
@@ -40,6 +43,18 @@ struct PhotoFramingTransformState {
         )
     }
 
+    mutating func updateScale(_ newScale: CGFloat) {
+        scale = min(
+            max(newScale, Self.minimumScale),
+            Self.maximumScale
+        )
+        offset = clampedOffset(offset)
+    }
+
+    mutating func updateOffset(_ newOffset: CGSize) {
+        offset = clampedOffset(newOffset)
+    }
+
     func resolved(for layout: PhotoFramingTransformLayout) -> PhotoFramingTransformState {
         isConfigured(for: layout) ? self : PhotoFramingTransformState(layout: layout)
     }
@@ -57,5 +72,15 @@ struct PhotoFramingTransformState {
         frameSize == layout.frameSize &&
         basePhotoSize == layout.basePhotoSize &&
         sourceAspectRatio == layout.sourceAspectRatio
+    }
+
+    private func clampedOffset(_ offset: CGSize) -> CGSize {
+        let maximumOffsetX = abs(photoSize.width - frameSize.width) / 2
+        let maximumOffsetY = abs(photoSize.height - frameSize.height) / 2
+
+        return CGSize(
+            width: min(max(offset.width, -maximumOffsetX), maximumOffsetX),
+            height: min(max(offset.height, -maximumOffsetY), maximumOffsetY)
+        )
     }
 }
