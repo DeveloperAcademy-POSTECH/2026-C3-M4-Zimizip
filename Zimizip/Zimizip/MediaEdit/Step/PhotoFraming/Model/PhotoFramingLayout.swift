@@ -1,10 +1,37 @@
 import SwiftUI
 
 enum PhotoFramingLayout {
-    static let frameSize = CGSize(width: 297, height: 446)
     static let frameCornerRadius: CGFloat = 16
 
+    private static let frameAspectRatio: CGFloat = 2 / 3
+    private static let horizontalInset: CGFloat = 40
+    private static let verticalInset: CGFloat = 24
+    private static let maximumFrameWidth: CGFloat = 420
     private static let landscapeCaptureAspectRatio: CGFloat = 402 / 226
+
+    static func frameSize(in containerSize: CGSize) -> CGSize {
+        guard containerSize.width > 0, containerSize.height > 0 else {
+            return .zero
+        }
+
+        let availableWidth = max(containerSize.width - horizontalInset * 2, 0)
+        let availableHeight = max(containerSize.height - verticalInset * 2, 0)
+        let widthThatFitsHeight = availableHeight * frameAspectRatio
+        let frameWidth = min(
+            availableWidth,
+            widthThatFitsHeight,
+            maximumFrameWidth
+        )
+
+        guard frameWidth > 0 else {
+            return .zero
+        }
+
+        return CGSize(
+            width: frameWidth,
+            height: frameWidth / frameAspectRatio
+        )
+    }
 
     static func photoSize(
         imageSize: CGSize,

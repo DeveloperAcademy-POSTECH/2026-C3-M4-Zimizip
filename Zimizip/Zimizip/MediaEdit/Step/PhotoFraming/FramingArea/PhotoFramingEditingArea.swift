@@ -9,7 +9,7 @@ struct PhotoFramingEditingArea: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let frameSize = PhotoFramingLayout.frameSize
+            let frameSize = PhotoFramingLayout.frameSize(in: proxy.size)
             let image = UIImage(data: media)
             let photoSize = image.map {
                 PhotoFramingLayout.photoSize(
