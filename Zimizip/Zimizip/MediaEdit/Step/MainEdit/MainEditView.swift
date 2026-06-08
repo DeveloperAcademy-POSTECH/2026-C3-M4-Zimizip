@@ -69,13 +69,7 @@ struct MainEditView: View {
         }
         .background(Color.black)
         .onChange(of: selectedTool) { _, newValue in
-            if newValue == .filter {
-                previewFilterPreset = appliedFilterPreset
-                prepareFilterThumbnailImagesIfNeeded()
-                updateCanvasImage(applying: appliedFilterPreset)
-            } else {
-                updateCanvasImage(applying: appliedFilterPreset)
-            }
+            handleSelectedToolChange(newValue)
         }
         .onChange(of: previewFilterPreset) { _, newValue in
             if selectedTool == .filter {
@@ -141,15 +135,27 @@ private extension MainEditView {
         }
     }
 
-    func cancelFilterPreview() {
+    func handleSelectedToolChange(_ tool: MainEditTool?) {
+        if tool == .filter {
+            beginFilterPreview()
+        } else {
+            updateCanvasImage(applying: appliedFilterPreset)
+        }
+    }
+
+    func beginFilterPreview() {
         previewFilterPreset = appliedFilterPreset
+        prepareFilterThumbnailImagesIfNeeded()
         updateCanvasImage(applying: appliedFilterPreset)
+    }
+
+    func cancelFilterPreview() {
         selectedTool = nil
+        previewFilterPreset = appliedFilterPreset
     }
 
     func applyFilterPreview() {
         appliedFilterPreset = previewFilterPreset
-        updateCanvasImage(applying: previewFilterPreset)
         selectedTool = nil
     }
 
