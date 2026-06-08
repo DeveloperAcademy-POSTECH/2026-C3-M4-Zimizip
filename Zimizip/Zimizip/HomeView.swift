@@ -221,9 +221,7 @@ private struct SurpriseCard: View {
             .padding(0)
             .frame(width: imageSize.width, height: imageSize.height, alignment: .center)
             .background(
-                Image(imageName)
-                    .resizable()
-                    .modifier(CardImageModifier(mode: imageMode))
+                cardImage
                     .frame(width: imageSize.width, height: imageSize.height)
                     .clipped()
             )
@@ -241,24 +239,23 @@ private struct SurpriseCard: View {
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
     }
-}
-
-private struct CardImageModifier: ViewModifier {
-    let mode: SurpriseCard.ImageMode
 
     @ViewBuilder
-    func body(content: Content) -> some View {
-        switch mode {
+    private var cardImage: some View {
+        switch imageMode {
         case .fill:
-            content
+            Image(imageName)
+                .resizable()
                 .scaledToFill()
         case .leftCrop:
-            content
+            Image(imageName)
+                .resizable()
                 .scaledToFill()
                 .scaleEffect(1.18)
                 .offset(x: -18, y: -3)
         case .rightCrop:
-            content
+            Image(imageName)
+                .resizable()
                 .scaledToFill()
                 .scaleEffect(1.44)
                 .offset(x: -24, y: -3)
