@@ -4,11 +4,10 @@ struct CoverSelectionView: View {
     @State private var isShowingSurpriseCardInput = false
 
     let backButtonAction: () -> Void
-    let nextButtonAction: () -> Void
 
     var body: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .top) {
+            ZStack {
                 Color.black
                     .ignoresSafeArea()
 
@@ -18,26 +17,19 @@ struct CoverSelectionView: View {
                     backButtonAction: backButtonAction,
                     nextButtonAction: {
                         isShowingSurpriseCardInput = true
-                    },
-                    topPadding: proxy.safeAreaInsets.top + MainEditLayout.topBarTopPadding
+                    }
                 )
-                .frame(maxWidth: .infinity)
             }
         }
         .background(Color.black)
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingSurpriseCardInput) {
-            SurpriseCardInputView {
-                nextButtonAction()
-            }
+            SurpriseCardInputView()
             .navigationBarBackButtonHidden(true)
         }
     }
 }
 
 #Preview {
-    CoverSelectionView(
-        backButtonAction: {},
-        nextButtonAction: {}
-    )
+    CoverSelectionView(backButtonAction: {})
 }

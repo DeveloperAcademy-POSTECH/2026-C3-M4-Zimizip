@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SurpriseCardInputView: View {
-    let primaryButtonAction: () -> Void
+    @State private var isShowingRevealTiming = false
 
     var body: some View {
         ZStack {
@@ -9,14 +9,18 @@ struct SurpriseCardInputView: View {
                 .ignoresSafeArea()
 
             ZimizipPrimaryButton(title: "다음") {
-                primaryButtonAction()
+                isShowingRevealTiming = true
             }
             .padding(.horizontal, 20)
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $isShowingRevealTiming) {
+            RevealTimingView()
+                .navigationBarBackButtonHidden(true)
+        }
     }
 }
 
 #Preview {
-    SurpriseCardInputView {}
+    SurpriseCardInputView()
 }
