@@ -7,6 +7,8 @@ struct MainEditView: View {
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
+    @State private var undoStack: [MainEditEditState] = []
+    @State private var redoStack: [MainEditEditState] = []
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -146,17 +148,21 @@ private extension MainEditView {
 
     @ViewBuilder
     var historyControls: some View {
-        let canUndo = false
-        let canRedo = false
+        let canUndo = !undoStack.isEmpty
+        let canRedo = !redoStack.isEmpty
 
-        if selectedTool == nil {
+        if selectedTool == nil && (canUndo || canRedo) {
             MainEditHistoryControls(
                 canUndo: canUndo,
                 canRedo: canRedo,
-                undoAction: {},
-                redoAction: {}
+                undoAction: undoEdit,
+                redoAction: redoEdit
             )
         }
+    }
+
+    var currentEditState: MainEditEditState {
+        MainEditEditState(filterPreset: appliedFilterPreset)
     }
 
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
@@ -193,8 +199,45 @@ private extension MainEditView {
     }
 
     func applyFilterPreview() {
-        appliedFilterPreset = previewFilterPreset
+        commitEditState(
+            MainEditEditState(filterPreset: previewFilterPreset)
+        )
         selectedTool = nil
+    }
+
+    func commitEditState(_ newState: MainEditEditState) {
+        let previousState = currentEditState
+
+        guard newState != previousState else {
+            return
+        }
+
+        undoStack.append(previousState)
+        redoStack.removeAll()
+        applyEditState(newState)
+    }
+
+    func undoEdit() {
+        guard let previousState = undoStack.popLast() else {
+            return
+        }
+
+        redoStack.append(currentEditState)
+        applyEditState(previousState)
+    }
+
+    func redoEdit() {
+        guard let nextState = redoStack.popLast() else {
+            return
+        }
+
+        undoStack.append(currentEditState)
+        applyEditState(nextState)
+    }
+
+    func applyEditState(_ state: MainEditEditState) {
+        previewFilterPreset = state.filterPreset
+        appliedFilterPreset = state.filterPreset
     }
 
     func showCoverSelection() {
