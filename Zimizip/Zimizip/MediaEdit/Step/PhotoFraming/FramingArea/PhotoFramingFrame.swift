@@ -5,22 +5,26 @@ struct PhotoFramingFrame: View {
     let image: UIImage?
     let backgroundColor: Color
     let frameSize: CGSize
-    let photoSize: CGSize?
+    let transformState: PhotoFramingTransformState?
 
     var body: some View {
         ZStack {
             backgroundColor
 
-            if let image, let photoSize {
+            if let image, let transformState {
                 PhotoFramingPhotoLayer(
                     image: image,
                     contentMode: .fill
                 )
-                .frame(width: photoSize.width, height: photoSize.height)
-
-                PhotoFramingGridGuide()
-                    .frame(width: photoSize.width, height: photoSize.height)
+                .frame(
+                    width: transformState.photoSize.width,
+                    height: transformState.photoSize.height
+                )
+                .offset(transformState.offset)
             }
+
+            PhotoFramingGridGuide()
+                .frame(width: frameSize.width, height: frameSize.height)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
@@ -37,7 +41,7 @@ struct PhotoFramingFrame: View {
         image: nil,
         backgroundColor: .white,
         frameSize: CGSize(width: 297, height: 446),
-        photoSize: nil
+        transformState: nil
     )
     .background(Color.black)
 }

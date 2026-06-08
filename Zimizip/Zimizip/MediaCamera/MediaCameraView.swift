@@ -22,9 +22,9 @@ struct MediaCameraView: View {
     @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
     @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
 
-    let onPhotoCaptured: (Data) -> Void
+    let onPhotoCaptured: (Data, CGRect, Bool) -> Void
 
-    init(onPhotoCaptured: @escaping (Data) -> Void = { _ in }) {
+    init(onPhotoCaptured: @escaping (Data, CGRect, Bool) -> Void = { _, _, _ in }) {
         self.onPhotoCaptured = onPhotoCaptured
     }
 
@@ -147,7 +147,11 @@ struct MediaCameraView: View {
             return
         }
 
-        onPhotoCaptured(capturedPhotoData)
+        onPhotoCaptured(
+            capturedPhotoData,
+            capturedPreviewFrame,
+            isCapturedLandscape
+        )
         dismiss()
     }
 
