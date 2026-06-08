@@ -41,7 +41,7 @@ struct SurpriseCardInputView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingRevealTiming) {
-            RevealTimingView()
+            RevealTimingView(surpriseCardPayload: surpriseCardPayload)
                 .navigationBarBackButtonHidden(true)
         }
     }
@@ -118,6 +118,15 @@ private extension SurpriseCardInputView {
                 .frame(height: 24)
                 .id(Self.contentBottomID)
         }
+    }
+
+    var surpriseCardPayload: SurpriseCardPayload {
+        SurpriseCardPayload(
+            title: surpriseTitle,
+            framingResult: framingResult,
+            image: image,
+            coverImageName: coverImageName
+        )
     }
 
     static let surpriseTitleFieldID = "surpriseTitleField"

@@ -2,11 +2,14 @@ import SwiftUI
 
 struct ReactionRecordView: View {
     @StateObject private var viewModel: ReactionRecordViewModel
+    let surpriseCardPayload: SurpriseCardPayload
 
     init(
+        surpriseCardPayload: SurpriseCardPayload,
         screenRecorder: VideoRecording? = nil,
         frontCameraRecorder: VideoRecording? = nil
     ) {
+        self.surpriseCardPayload = surpriseCardPayload
         _viewModel = StateObject(
             wrappedValue: ReactionRecordViewModel(
                 screenRecorder: screenRecorder,
@@ -61,6 +64,6 @@ struct ReactionRecordView: View {
 
 #Preview {
     NavigationStack {
-        ReactionRecordView()
+        ReactionRecordView(surpriseCardPayload: .previewValue)
     }
 }

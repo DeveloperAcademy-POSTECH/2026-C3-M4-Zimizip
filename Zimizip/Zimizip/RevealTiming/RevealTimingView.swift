@@ -4,6 +4,8 @@ struct RevealTimingView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var isShowingReactionRecordGuide = false
 
+    let surpriseCardPayload: SurpriseCardPayload
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -56,12 +58,12 @@ struct RevealTimingView: View {
                 .padding(.horizontal, 20)
             }
             .navigationDestination(isPresented: $isShowingReactionRecordGuide) {
-                ReactionRecordGuideView()
+                ReactionRecordGuideView(surpriseCardPayload: surpriseCardPayload)
             }
         }
     }
 }
 
 #Preview {
-    RevealTimingView()
+    RevealTimingView(surpriseCardPayload: .previewValue)
 }
