@@ -57,12 +57,10 @@ struct MainEditView: View {
                         frameSize: canvasSize
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
-                    .position(x: proxy.size.width / 2, y: canvasCenterY)
                     
                     Spacer()
 
                     EditToolBar(selectedTool: $selectedTool)
-                        .padding(.bottom, proxy.safeAreaInsets.bottom)
                         .frame(height: bottomToolBarHeight, alignment: .top)
                         .background(MainEditLayout.panelBackgroundColor)
                 }
