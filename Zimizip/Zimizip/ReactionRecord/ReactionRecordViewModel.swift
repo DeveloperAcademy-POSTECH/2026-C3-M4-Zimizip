@@ -9,6 +9,8 @@ final class ReactionRecordViewModel: ObservableObject {
     @Published var recordingErrorMessage: String?
     @Published var isStoppingRecording = false
     @Published var recordingElapsedSeconds = 0
+    @Published var screenRecordingURL: URL?
+    @Published var frontCameraRecordingURL: URL?
 
     var recordingTimeText: String {
         let hours = recordingElapsedSeconds / 3600
@@ -18,12 +20,17 @@ final class ReactionRecordViewModel: ObservableObject {
         return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    private let screenRecorder: ScreenRecording
+    private let screenRecorder: VideoRecording
+    private let frontCameraRecorder: VideoRecording
     private var hasStartedRecording = false
     private var recordingTimerTask: Task<Void, Never>?
 
-    init(screenRecorder: ScreenRecording? = nil) {
+    init(
+        screenRecorder: VideoRecording? = nil,
+        frontCameraRecorder: VideoRecording? = nil
+    ) {
         self.screenRecorder = screenRecorder ?? ReplayKitScreenRecorder()
+        self.frontCameraRecorder = frontCameraRecorder ?? AVFoundationFrontCameraRecorder()
     }
 
     deinit {
@@ -50,13 +57,19 @@ final class ReactionRecordViewModel: ObservableObject {
         stopRecordingTimer()
 
         do {
-            _ = try await screenRecorder.stopRecording()
+            screenRecordingURL = try await screenRecorder.stopRecording()
+            frontCameraRecordingURL = try await frontCameraRecorder.stopRecording()
             isGeneratingReactionVideo = false
             isRecordingCompleted = true
         } catch {
+            stopRemainingRecordersIfNeeded()
             isGeneratingReactionVideo = false
             recordingErrorMessage = error.localizedDescription
         }
+    }
+
+    func startFrontCameraRecording() async throws {
+        try await frontCameraRecorder.startRecording()
     }
 
     func startRecordingTimerIfNeeded() {
@@ -86,5 +99,17 @@ final class ReactionRecordViewModel: ObservableObject {
 
     func clearRecordingError() {
         recordingErrorMessage = nil
+    }
+
+    private func stopRemainingRecordersIfNeeded() {
+        Task {
+            if screenRecordingURL == nil {
+                screenRecordingURL = try? await screenRecorder.stopRecording()
+            }
+
+            if frontCameraRecordingURL == nil {
+                frontCameraRecordingURL = try? await frontCameraRecorder.stopRecording()
+            }
+        }
     }
 }

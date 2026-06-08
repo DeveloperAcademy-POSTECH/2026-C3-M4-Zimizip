@@ -3,8 +3,16 @@ import SwiftUI
 struct ReactionRecordView: View {
     @StateObject private var viewModel: ReactionRecordViewModel
 
-    init(screenRecorder: ScreenRecording? = nil) {
-        _viewModel = StateObject(wrappedValue: ReactionRecordViewModel(screenRecorder: screenRecorder))
+    init(
+        screenRecorder: VideoRecording? = nil,
+        frontCameraRecorder: VideoRecording? = nil
+    ) {
+        _viewModel = StateObject(
+            wrappedValue: ReactionRecordViewModel(
+                screenRecorder: screenRecorder,
+                frontCameraRecorder: frontCameraRecorder
+            )
+        )
     }
 
     var body: some View {
