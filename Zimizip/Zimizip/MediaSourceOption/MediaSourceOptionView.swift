@@ -2,6 +2,8 @@ import PhotosUI
 import SwiftUI
 
 struct MediaSourceOptionView: View {
+    @Environment(\.dismiss) private var dismiss
+
     @State private var selectedMedia: PhotosPickerItem?
     @State private var mediaEditInput: MediaEditInput?
     @State private var isShowingCamera = false
@@ -14,7 +16,7 @@ struct MediaSourceOptionView: View {
 
                 VStack(alignment: .leading) {
                     Button {
-
+                        dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 24, weight: .medium))
