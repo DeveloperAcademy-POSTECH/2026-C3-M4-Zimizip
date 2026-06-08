@@ -65,6 +65,18 @@ struct MainEditView: View {
                         .background(MainEditLayout.bottomPanelBackgroundColor)
                 }
                 .ignoresSafeArea(edges: .bottom)
+
+                historyControls
+                    .padding(.leading, MainEditLayout.historyControlLeadingPadding)
+                    .padding(
+                        .bottom,
+                        panelHeight + MainEditLayout.historyControlBottomSpacing
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .bottomLeading
+                    )
             }
         }
         .background(Color.black)
@@ -129,6 +141,21 @@ private extension MainEditView {
             )
         } else {
             EditToolBar(selectedTool: $selectedTool)
+        }
+    }
+
+    @ViewBuilder
+    var historyControls: some View {
+        let canUndo = false
+        let canRedo = false
+
+        if selectedTool == nil {
+            MainEditHistoryControls(
+                canUndo: canUndo,
+                canRedo: canRedo,
+                undoAction: {},
+                redoAction: {}
+            )
         }
     }
 
