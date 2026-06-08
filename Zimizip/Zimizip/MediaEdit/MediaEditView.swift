@@ -36,6 +36,7 @@ struct MediaEditView: View {
                 )
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

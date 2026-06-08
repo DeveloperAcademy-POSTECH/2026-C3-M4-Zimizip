@@ -11,16 +11,13 @@ struct TopBar: View {
     var backButtonFont: Font = .system(size: MainEditLayout.backButtonIconSize, weight: .medium)
     var backButtonColor: Color = .white
     var nextButtonFont: Font = .custom("Pretendard", size: 16).weight(.bold)
-    var nextButtonBackgroundColor: Color = Color(.primary)
+    var nextButtonBackgroundColor: Color = .brandPrimary
     var nextButtonForegroundColor: Color = .white
     var nextButtonSize = CGSize(
         width: MainEditLayout.completeButtonWidth,
         height: MainEditLayout.topBarButtonHeight
     )
     var nextButtonCornerRadius: CGFloat = MainEditLayout.completeButtonCornerRadius
-    var horizontalPadding: CGFloat = MainEditLayout.topBarHorizontalPadding
-    var topPadding: CGFloat = MainEditLayout.topBarTopPadding
-    var bottomPadding: CGFloat = MainEditLayout.topBarBottomPadding
     var backgroundColor: Color = .black
 
     var body: some View {
@@ -55,9 +52,6 @@ struct TopBar: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, horizontalPadding)
-        .padding(.top, topPadding)
-        .padding(.bottom, bottomPadding)
         .background(backgroundColor)
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var selectedCardIndex = 1
+    @State private var isShowingMediaSourceOption = false
 
     private let surpriseCards = [
         HomeSurpriseCard(imageName: "HomeSurpriseCardLeft", imageMode: .leftCrop, title: "토바에의 깜짝 소식"),
@@ -10,68 +11,75 @@ struct HomeView: View {
     ]
 
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
-            let horizontalPadding: CGFloat = 20
-            let contentWidth = min(362, screenWidth - (horizontalPadding * 2))
-            let contentLeading = max(horizontalPadding, (screenWidth - contentWidth) / 2)
-            let cardScale = min(screenWidth / 402, 1)
-            let carouselWidth = 402 * cardScale
-            let carouselHeight = 430 * cardScale
-            let carouselCenterY = min(screenHeight * 0.5 + 32, 469)
-            let titleY = carouselCenterY + (180 * cardScale) + 39
+        NavigationStack {
+            GeometryReader { geometry in
+                let screenWidth = geometry.size.width
+                let screenHeight = geometry.size.height
+                let horizontalPadding: CGFloat = 20
+                let contentWidth = min(362, screenWidth - (horizontalPadding * 2))
+                let contentLeading = max(horizontalPadding, (screenWidth - contentWidth) / 2)
+                let cardScale = min(screenWidth / 402, 1)
+                let carouselWidth = 402 * cardScale
+                let carouselHeight = 430 * cardScale
+                let carouselCenterY = min(screenHeight * 0.5 + 32, 469)
+                let titleY = carouselCenterY + (180 * cardScale) + 39
 
-            ZStack(alignment: .bottomLeading) {
-                Color.homeBackground
-                    .ignoresSafeArea()
+                ZStack(alignment: .bottomLeading) {
+                    Color.homeBackground
+                        .ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: 0) {
-                    StrokedTitleText("soprize")
-                        .padding(.top, 82)
+                    VStack(alignment: .leading, spacing: 0) {
+                        StrokedTitleText("soprize")
+                            .padding(.top, 82)
 
-                    Text("대기 중인\n서프라이즈 카드")
-                        .font(Font.custom("Pretendard-Bold", size: 28))
-                        .foregroundStyle(Color.homeText)
-                        .lineSpacing(2)
-                        .padding(.top, 42)
+                        Text("대기 중인\n서프라이즈 카드")
+                            .font(Font.custom("Pretendard-Bold", size: 28))
+                            .foregroundStyle(Color.homeText)
+                            .lineSpacing(2)
+                            .padding(.top, 42)
 
-                    Spacer(minLength: 0)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(width: contentWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea(edges: .top)
+
+                    SurpriseCardCarousel(
+                        cards: surpriseCards,
+                        selectedIndex: $selectedCardIndex,
+                        scale: cardScale
+                    )
+                        .frame(width: carouselWidth, height: carouselHeight)
+                        .position(x: screenWidth / 2, y: carouselCenterY)
+
+                    Text(surpriseCards[selectedCardIndex].title)
+                        .font(Font.custom("Pretendard-Bold", size: 16))
+                        .foregroundStyle(Color.homeSecondaryText)
+                        .frame(width: 240)
+                        .position(x: screenWidth / 2, y: titleY)
+
+                    BottomTabBar()
+                        .padding(.leading, contentLeading)
+                        .padding(.bottom, 1)
+
+                    Button {
+                        isShowingMediaSourceOption = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 30, weight: .regular))
+                            .foregroundStyle(Color.homeWhite)
+                            .frame(width: 58, height: 58)
+                            .background(Color("OrangePrimary"))
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
+                    }
+                    .buttonStyle(.plain)
+                    .position(x: screenWidth - contentLeading - 40, y: screenHeight - 28)
                 }
-                .frame(width: contentWidth, alignment: .leading)
-                .frame(maxWidth: .infinity)
-                .ignoresSafeArea(edges: .top)
-
-                SurpriseCardCarousel(
-                    cards: surpriseCards,
-                    selectedIndex: $selectedCardIndex,
-                    scale: cardScale
-                )
-                    .frame(width: carouselWidth, height: carouselHeight)
-                    .position(x: screenWidth / 2, y: carouselCenterY)
-
-                Text(surpriseCards[selectedCardIndex].title)
-                    .font(Font.custom("Pretendard-Bold", size: 16))
-                    .foregroundStyle(Color.homeSecondaryText)
-                    .frame(width: 240)
-                    .position(x: screenWidth / 2, y: titleY)
-
-                BottomTabBar()
-                    .padding(.leading, contentLeading)
-                    .padding(.bottom, 1)
-
-                Button {
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 30, weight: .regular))
-                        .foregroundStyle(Color.homeWhite)
-                        .frame(width: 58, height: 58)
-                        .background(Color("OrangePrimary"))
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.12), radius: 20, x: 0, y: 8)
-                }
-                .buttonStyle(.plain)
-                .position(x: screenWidth - contentLeading - 40, y: screenHeight - 28)
+            }
+            .navigationDestination(isPresented: $isShowingMediaSourceOption) {
+                MediaSourceOptionView()
+                    .navigationBarBackButtonHidden(true)
             }
         }
     }
