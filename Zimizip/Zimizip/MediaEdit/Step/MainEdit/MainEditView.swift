@@ -3,6 +3,7 @@ import UIKit
 
 struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
+    @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
     let backButtonAction: () -> Void
@@ -44,7 +45,9 @@ struct MainEditView: View {
 
                 TopBar(
                     backButtonAction: backButtonAction,
-                    nextButtonAction: completeButtonAction,
+                    nextButtonAction: {
+                        isShowingCoverSelection = true
+                    },
                     topPadding: proxy.safeAreaInsets.top + MainEditLayout.topBarTopPadding
                 )
                 .frame(height: topBarHeight)
@@ -72,6 +75,15 @@ struct MainEditView: View {
         }
         .background(Color.black)
         .ignoresSafeArea()
+        .navigationDestination(isPresented: $isShowingCoverSelection) {
+            CoverSelectionView(
+                backButtonAction: {
+                    isShowingCoverSelection = false
+                },
+                nextButtonAction: {}
+            )
+            .navigationBarBackButtonHidden(true)
+        }
     }
 }
 
