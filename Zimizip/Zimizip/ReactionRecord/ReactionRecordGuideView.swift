@@ -15,7 +15,7 @@ struct ReactionRecordGuideView: View {
                 
                 Text("시작하기 버튼을 누르고\n기기를 상대방에게 건네주세요")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundStyle(.text)
+                    .foregroundStyle(.textPrimary)
                     .padding(.horizontal, 20)
                 
                 Spacer()
