@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 struct MainEditView: View {
+    @State private var selectedTool: MainEditTool?
+
     let framingResult: PhotoFramingResult
     let backButtonAction: () -> Void
     let completeButtonAction: () -> Void
@@ -39,7 +41,7 @@ struct MainEditView: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                EditToolBar()
+                EditToolBar(selectedTool: $selectedTool)
             }
             .background(Color.black)
         }

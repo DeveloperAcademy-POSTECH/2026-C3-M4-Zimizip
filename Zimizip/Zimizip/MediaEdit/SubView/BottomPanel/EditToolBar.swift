@@ -1,16 +1,21 @@
 import SwiftUI
 
 struct EditToolBar: View {
+    @Binding var selectedTool: MainEditTool?
+
     var body: some View {
         HStack(alignment: .top) {
-            ForEach(Array(EditTool.allCases.enumerated()), id: \.element.id) { index, tool in
+            ForEach(Array(MainEditTool.allCases.enumerated()), id: \.element.id) { index, tool in
                 EditToolButton(
                     title: tool.title,
                     imageName: tool.imageName,
-                    action: {}
+                    isSelected: selectedTool == tool,
+                    action: {
+                        select(tool)
+                    }
                 )
 
-                if index < EditTool.allCases.count - 1 {
+                if index < MainEditTool.allCases.count - 1 {
                     Spacer(minLength: 0)
                 }
             }
@@ -20,11 +25,16 @@ struct EditToolBar: View {
         .frame(height: MainEditLayout.bottomToolBarHeight, alignment: .top)
         .background(Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5))
     }
+
+    private func select(_ tool: MainEditTool) {
+        selectedTool = selectedTool == tool ? nil : tool
+    }
 }
 
 private struct EditToolButton: View {
     let title: String
     let imageName: String
+    let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
@@ -36,7 +46,7 @@ private struct EditToolButton: View {
                     .resizable()
                     .renderingMode(.template)
                     .scaledToFit()
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foregroundColor)
                     .frame(
                         width: MainEditLayout.toolIconSize,
                         height: MainEditLayout.toolIconSize
@@ -44,49 +54,20 @@ private struct EditToolButton: View {
 
                 Text(title)
                     .font(.custom("Pretendard", size: 16).weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foregroundColor)
             }
             .frame(minWidth: 44)
         }
         .buttonStyle(.plain)
     }
-}
 
-private enum EditTool: CaseIterable, Identifiable {
-    case filter
-    case adjustment
-    case text
-    case sticker
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .filter:
-            return "필터"
-        case .adjustment:
-            return "조정"
-        case .text:
-            return "텍스트"
-        case .sticker:
-            return "스티커"
-        }
-    }
-
-    var imageName: String {
-        switch self {
-        case .filter:
-            return "mingcute_color-filter-line"
-        case .adjustment:
-            return "exposure"
-        case .text:
-            return "format_size"
-        case .sticker:
-            return "sticker_add"
-        }
+    private var foregroundColor: Color {
+        isSelected ? Color(.primary) : .white
     }
 }
 
 #Preview {
-    EditToolBar()
+    @Previewable @State var selectedTool: MainEditTool?
+
+    EditToolBar(selectedTool: $selectedTool)
 }
