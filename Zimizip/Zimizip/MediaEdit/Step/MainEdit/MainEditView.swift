@@ -3,6 +3,7 @@ import UIKit
 
 struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
+    @State private var selectedFilterPreset: MainEditFilterPreset = .original
     @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
@@ -23,18 +24,17 @@ struct MainEditView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let topPanelHeight = topPanelHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
+            let panelHeight = bottomPanelHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
             let canvasSize = MainEditLayout.canvasSize(
                 in: proxy.size,
-                safeAreaInsets: proxy.safeAreaInsets
-            )
-            let canvasCenterY = MainEditLayout.canvasCenterY(
-                in: proxy.size,
-                canvasSize: canvasSize,
-                safeAreaInsets: proxy.safeAreaInsets
-            )
-            let topBarHeight = MainEditLayout.topBarContentHeight
-            let bottomToolBarHeight = MainEditLayout.bottomToolBarTotalHeight(
-                safeAreaInsets: proxy.safeAreaInsets
+                safeAreaInsets: proxy.safeAreaInsets,
+                topPanelHeight: topPanelHeight,
+                bottomPanelHeight: panelHeight
             )
 
             ZStack {
@@ -42,12 +42,7 @@ struct MainEditView: View {
                     .ignoresSafeArea()
 
                 VStack {
-                    TopBar(
-                        backButtonAction: backButtonAction,
-                        nextButtonAction: {
-                            isShowingCoverSelection = true
-                        }
-                    )
+                    topPanel
                     
                     Spacer()
 
@@ -60,9 +55,9 @@ struct MainEditView: View {
                     
                     Spacer()
 
-                    EditToolBar(selectedTool: $selectedTool)
-                        .frame(height: bottomToolBarHeight, alignment: .top)
-                        .background(MainEditLayout.panelBackgroundColor)
+                    bottomPanel
+                        .frame(height: panelHeight, alignment: .top)
+                        .background(MainEditLayout.bottomPanelBackgroundColor)
                 }
                 .ignoresSafeArea(edges: .bottom)
             }
@@ -76,6 +71,52 @@ struct MainEditView: View {
             )
             .navigationBarBackButtonHidden(true)
         }
+    }
+}
+
+private extension MainEditView {
+    @ViewBuilder
+    var topPanel: some View {
+        if selectedTool != .filter {
+            TopBar(
+                backButtonAction: backButtonAction,
+                nextButtonAction: {
+                    isShowingCoverSelection = true
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    var bottomPanel: some View {
+        if selectedTool == .filter {
+            MainEditFilterPanel(
+                selectedFilterPreset: $selectedFilterPreset,
+                thumbnailImage: image,
+                cancelAction: dismissFilterPanel,
+                confirmAction: dismissFilterPanel
+            )
+        } else {
+            EditToolBar(selectedTool: $selectedTool)
+        }
+    }
+
+    func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        selectedTool == .filter
+            ? 0
+            : MainEditLayout.topBarTotalHeight(safeAreaInsets: safeAreaInsets)
+    }
+
+    func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        if selectedTool == .filter {
+            MainEditLayout.filterPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else {
+            MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
+        }
+    }
+
+    func dismissFilterPanel() {
+        selectedTool = nil
     }
 }
 

@@ -18,7 +18,20 @@ enum MainEditLayout {
     static let canvasTopSpacing: CGFloat = 20
     static let maximumCanvasWidth: CGFloat = 420
     static let canvasAspectRatio: CGFloat = 2 / 3
-    static let panelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5)
+    static let bottomPanelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5)
+    static let bottomPanelActionIconSize: CGFloat = 24
+    static let bottomPanelActionHorizontalPadding: CGFloat = 20
+    static let bottomPanelActionBottomPadding: CGFloat = 32
+    static let bottomPanelActionContentHeight: CGFloat = 24
+    static let bottomPanelActionTitleFontSize: CGFloat = 16
+    static let bottomPanelCancelIconName = "close"
+    static let bottomPanelConfirmIconName = "check"
+    static let panelBackgroundColor = bottomPanelBackgroundColor
+    static let filterPanelTitle = "필터"
+    static let filterThumbnailPanelHeight: CGFloat = 132
+    static let filterThumbnailPanelPadding: CGFloat = 20
+    static let filterThumbnailSize = CGSize(width: 55, height: 65)
+    static let filterThumbnailLabelFontSize: CGFloat = 14
 
     static var topBarContentHeight: CGFloat {
         topBarTopPadding + topBarButtonHeight + topBarBottomPadding
@@ -32,9 +45,18 @@ enum MainEditLayout {
         bottomToolBarHeight + safeAreaInsets.bottom
     }
 
+    static func filterPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        filterThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
     static func canvasSize(
         in containerSize: CGSize,
-        safeAreaInsets: EdgeInsets
+        safeAreaInsets: EdgeInsets,
+        topPanelHeight: CGFloat? = nil,
+        bottomPanelHeight: CGFloat? = nil
     ) -> CGSize {
         guard containerSize.width > 0,
               containerSize.height > 0 else {
@@ -42,10 +64,14 @@ enum MainEditLayout {
         }
 
         let availableWidth = max(containerSize.width - canvasHorizontalInset * 2, 0)
+        let resolvedTopPanelHeight = topPanelHeight ??
+            topBarTotalHeight(safeAreaInsets: safeAreaInsets)
+        let resolvedBottomPanelHeight = bottomPanelHeight ??
+            bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         let availableHeight = max(
             containerSize.height -
-            topBarTotalHeight(safeAreaInsets: safeAreaInsets) -
-            bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets) -
+            resolvedTopPanelHeight -
+            resolvedBottomPanelHeight -
             canvasVerticalInset * 2,
             0
         )
