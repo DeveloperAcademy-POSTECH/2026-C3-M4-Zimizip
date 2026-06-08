@@ -7,6 +7,8 @@ struct ReactionRecordGuideView: View {
     @State private var screenRecorder = ReplayKitScreenRecorder()
     @State private var frontCameraRecorder = AVFoundationFrontCameraRecorder()
 
+    let surpriseCardPayload: SurpriseCardPayload
+
     var body: some View {
         ZStack {
             Color.backgroundPrimary
@@ -43,6 +45,7 @@ struct ReactionRecordGuideView: View {
         }
         .navigationDestination(isPresented: $isShowingReactionRecord) {
             ReactionRecordView(
+                surpriseCardPayload: surpriseCardPayload,
                 screenRecorder: screenRecorder,
                 frontCameraRecorder: frontCameraRecorder
             )
@@ -84,5 +87,5 @@ struct ReactionRecordGuideView: View {
 }
 
 #Preview {
-    ReactionRecordGuideView()
+    ReactionRecordGuideView(surpriseCardPayload: .previewValue)
 }

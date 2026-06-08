@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReactionRecordingContentView: View {
     let recordingTimeText: String
+    let surpriseCardPayload: SurpriseCardPayload
     let onStopButtonTap: () -> Void
 
     var body: some View {
@@ -15,11 +16,7 @@ struct ReactionRecordingContentView: View {
 
             Spacer()
 
-            SurpriseContentFrameView {
-                Image("Image")
-                    .resizable()
-                    .scaledToFit()
-            }
+            ReactionRevealCardView(surpriseCardPayload: surpriseCardPayload)
 
             Spacer()
 
@@ -46,5 +43,8 @@ struct ReactionRecordingContentView: View {
 }
 
 #Preview {
-    ReactionRecordingContentView(recordingTimeText: "00:00:02") {}
+    ReactionRecordingContentView(
+        recordingTimeText: "00:00:02",
+        surpriseCardPayload: .previewValue
+    ) {}
 }
