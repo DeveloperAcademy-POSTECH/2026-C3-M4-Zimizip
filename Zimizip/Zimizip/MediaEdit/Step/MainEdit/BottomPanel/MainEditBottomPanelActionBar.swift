@@ -1,54 +1,56 @@
 import SwiftUI
 
-struct MainEditFilterActionBar: View {
+struct MainEditBottomPanelActionBar: View {
+    let title: String
     let cancelAction: () -> Void
     let confirmAction: () -> Void
 
     var body: some View {
         HStack(alignment: .top) {
             Button(action: cancelAction) {
-                Image("close")
+                Image(MainEditLayout.bottomPanelCancelIconName)
                     .resizable()
                     .renderingMode(.template)
                     .foregroundStyle(Color.baseWhite)
                     .scaledToFit()
                     .frame(
-                        width: MainEditLayout.filterActionIconSize,
-                        height: MainEditLayout.filterActionIconSize
+                        width: MainEditLayout.bottomPanelActionIconSize,
+                        height: MainEditLayout.bottomPanelActionIconSize
                     )
             }
             .buttonStyle(.plain)
 
             Spacer(minLength: 0)
 
-            Text("필터")
-                .font(.custom("Pretendard", size: 16).weight(.semibold))
+            Text(title)
+                .font(.custom("Pretendard", size: MainEditLayout.bottomPanelActionTitleFontSize).weight(.semibold))
                 .foregroundStyle(Color.baseWhite)
 
             Spacer(minLength: 0)
 
             Button(action: confirmAction) {
-                Image("check")
+                Image(MainEditLayout.bottomPanelConfirmIconName)
                     .resizable()
                     .renderingMode(.template)
                     .foregroundStyle(Color.brandPrimary)
                     .scaledToFit()
                     .frame(
-                        width: MainEditLayout.filterActionIconSize,
-                        height: MainEditLayout.filterActionIconSize
+                        width: MainEditLayout.bottomPanelActionIconSize,
+                        height: MainEditLayout.bottomPanelActionIconSize
                     )
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, MainEditLayout.filterActionBarHorizontalPadding)
+        .padding(.horizontal, MainEditLayout.bottomPanelActionHorizontalPadding)
         .padding(.top, 0)
-        .padding(.bottom, MainEditLayout.filterActionBarBottomPadding)
-        .background(MainEditLayout.panelBackgroundColor)
+        .padding(.bottom, MainEditLayout.bottomPanelActionBottomPadding)
+        .background(MainEditLayout.bottomPanelBackgroundColor)
     }
 }
 
 #Preview {
-    MainEditFilterActionBar(
+    MainEditBottomPanelActionBar(
+        title: MainEditLayout.filterPanelTitle,
         cancelAction: {},
         confirmAction: {}
     )

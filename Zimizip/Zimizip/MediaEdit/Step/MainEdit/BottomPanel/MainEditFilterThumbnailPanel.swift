@@ -26,7 +26,7 @@ struct MainEditFilterThumbnailPanel: View {
         .padding(MainEditLayout.filterThumbnailPanelPadding)
         .frame(maxWidth: .infinity)
         .frame(height: MainEditLayout.filterThumbnailPanelHeight, alignment: .top)
-        .background(MainEditLayout.panelBackgroundColor)
+        .background(MainEditLayout.bottomPanelBackgroundColor)
     }
 }
 

@@ -26,7 +26,7 @@ private extension MainEditFilterThumbnail {
                 .clipped()
 
             Text(preset.title)
-                .font(.custom("Pretendard", size: 14).weight(isSelected ? .semibold : .bold))
+                .font(.custom("Pretendard", size: MainEditLayout.filterThumbnailLabelFontSize).weight(isSelected ? .semibold : .bold))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(labelColor)
                 .frame(width: MainEditLayout.filterThumbnailSize.width, alignment: .center)

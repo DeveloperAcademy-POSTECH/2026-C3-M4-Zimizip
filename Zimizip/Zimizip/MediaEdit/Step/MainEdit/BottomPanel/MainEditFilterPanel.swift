@@ -15,12 +15,13 @@ struct MainEditFilterPanel: View {
                 thumbnailImage: thumbnailImage
             )
 
-            MainEditFilterActionBar(
+            MainEditBottomPanelActionBar(
+                title: MainEditLayout.filterPanelTitle,
                 cancelAction: cancelAction,
                 confirmAction: confirmAction
             )
         }
-        .background(MainEditLayout.panelBackgroundColor)
+        .background(MainEditLayout.bottomPanelBackgroundColor)
     }
 }
 

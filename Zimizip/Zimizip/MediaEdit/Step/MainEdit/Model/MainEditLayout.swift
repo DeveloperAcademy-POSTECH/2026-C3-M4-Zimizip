@@ -18,14 +18,20 @@ enum MainEditLayout {
     static let canvasTopSpacing: CGFloat = 20
     static let maximumCanvasWidth: CGFloat = 420
     static let canvasAspectRatio: CGFloat = 2 / 3
-    static let panelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5)
+    static let bottomPanelBackgroundColor = Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5)
+    static let bottomPanelActionIconSize: CGFloat = 24
+    static let bottomPanelActionHorizontalPadding: CGFloat = 20
+    static let bottomPanelActionBottomPadding: CGFloat = 32
+    static let bottomPanelActionContentHeight: CGFloat = 24
+    static let bottomPanelActionTitleFontSize: CGFloat = 16
+    static let bottomPanelCancelIconName = "close"
+    static let bottomPanelConfirmIconName = "check"
+    static let panelBackgroundColor = bottomPanelBackgroundColor
+    static let filterPanelTitle = "필터"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
     static let filterThumbnailSize = CGSize(width: 55, height: 65)
-    static let filterActionIconSize: CGFloat = 24
-    static let filterActionBarHorizontalPadding: CGFloat = 20
-    static let filterActionBarBottomPadding: CGFloat = 32
-    static let filterActionBarContentHeight: CGFloat = 24
+    static let filterThumbnailLabelFontSize: CGFloat = 14
 
     static var topBarContentHeight: CGFloat {
         topBarTopPadding + topBarButtonHeight + topBarBottomPadding
@@ -41,8 +47,8 @@ enum MainEditLayout {
 
     static func filterPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         filterThumbnailPanelHeight +
-            filterActionBarContentHeight +
-            filterActionBarBottomPadding +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
             safeAreaInsets.bottom
     }
 

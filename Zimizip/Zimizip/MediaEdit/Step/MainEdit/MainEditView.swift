@@ -57,7 +57,7 @@ struct MainEditView: View {
 
                     bottomPanel
                         .frame(height: panelHeight, alignment: .top)
-                        .background(MainEditLayout.panelBackgroundColor)
+                        .background(MainEditLayout.bottomPanelBackgroundColor)
                 }
                 .ignoresSafeArea(edges: .bottom)
             }
