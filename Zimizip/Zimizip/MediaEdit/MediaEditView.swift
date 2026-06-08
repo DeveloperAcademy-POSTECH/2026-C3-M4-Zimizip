@@ -19,17 +19,41 @@ struct MediaEditView: View {
     }
 
     var body: some View {
-        PhotoFramingView(
-            media: media,
-            sourcePreviewFrame: sourcePreviewFrame,
-            isLandscapeCapture: isLandscapeCapture,
-            cancelButtonAction: {
-                dismiss()
-            },
-            completeButtonAction: { result in
-                photoFramingResult = result
+        Group {
+            if let photoFramingResult {
+                MainEditView(
+                    framingResult: photoFramingResult,
+                    backButtonAction: returnToPhotoFraming,
+                    completeButtonAction: completeEdit
+                )
+            } else {
+                PhotoFramingView(
+                    media: media,
+                    sourcePreviewFrame: sourcePreviewFrame,
+                    isLandscapeCapture: isLandscapeCapture,
+                    cancelButtonAction: cancelEdit,
+                    completeButtonAction: showMainEdit
+                )
             }
-        )
+        }
+    }
+}
+
+private extension MediaEditView {
+    func cancelEdit() {
+        dismiss()
+    }
+
+    func showMainEdit(with result: PhotoFramingResult) {
+        photoFramingResult = result
+    }
+
+    func returnToPhotoFraming() {
+        photoFramingResult = nil
+    }
+
+    func completeEdit() {
+        dismiss()
     }
 }
 
