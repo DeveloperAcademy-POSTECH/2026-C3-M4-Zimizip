@@ -5,6 +5,7 @@ struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
+    @State private var canvasImage: UIImage?
     @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
@@ -20,7 +21,9 @@ struct MainEditView: View {
         self.framingResult = framingResult
         self.backButtonAction = backButtonAction
         self.completeButtonAction = completeButtonAction
-        self.image = UIImage(data: framingResult.source)
+        let image = UIImage(data: framingResult.source)
+        self.image = image
+        self._canvasImage = State(initialValue: image)
     }
 
     var body: some View {
@@ -49,7 +52,7 @@ struct MainEditView: View {
 
                     MainEditCanvas(
                         framingResult: framingResult,
-                        image: image,
+                        image: canvasImage,
                         frameSize: canvasSize
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
@@ -67,6 +70,19 @@ struct MainEditView: View {
         .onChange(of: selectedTool) { _, newValue in
             if newValue == .filter {
                 previewFilterPreset = appliedFilterPreset
+                updateCanvasImage(applying: appliedFilterPreset)
+            } else {
+                updateCanvasImage(applying: appliedFilterPreset)
+            }
+        }
+        .onChange(of: previewFilterPreset) { _, newValue in
+            if selectedTool == .filter {
+                updateCanvasImage(applying: newValue)
+            }
+        }
+        .onChange(of: appliedFilterPreset) { _, newValue in
+            if selectedTool != .filter {
+                updateCanvasImage(applying: newValue)
             }
         }
         .navigationDestination(isPresented: $isShowingCoverSelection) {
@@ -125,12 +141,26 @@ private extension MainEditView {
 
     func cancelFilterPreview() {
         previewFilterPreset = appliedFilterPreset
+        updateCanvasImage(applying: appliedFilterPreset)
         selectedTool = nil
     }
 
     func applyFilterPreview() {
         appliedFilterPreset = previewFilterPreset
+        updateCanvasImage(applying: previewFilterPreset)
         selectedTool = nil
+    }
+
+    func updateCanvasImage(applying preset: MainEditFilterPreset) {
+        guard let image else {
+            canvasImage = nil
+            return
+        }
+
+        canvasImage = MainEditFilterRenderer.shared.image(
+            applying: preset,
+            to: image
+        )
     }
 }
 
