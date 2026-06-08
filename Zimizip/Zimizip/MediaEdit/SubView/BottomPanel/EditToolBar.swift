@@ -62,7 +62,7 @@ private struct EditToolButton: View {
     }
 
     private var foregroundColor: Color {
-        isSelected ? Color(.primary) : .white
+        isSelected ? .brandPrimary : .white
     }
 }
 

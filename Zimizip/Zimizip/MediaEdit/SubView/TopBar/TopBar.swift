@@ -11,7 +11,7 @@ struct TopBar: View {
     var backButtonFont: Font = .system(size: MainEditLayout.backButtonIconSize, weight: .medium)
     var backButtonColor: Color = .white
     var nextButtonFont: Font = .custom("Pretendard", size: 16).weight(.bold)
-    var nextButtonBackgroundColor: Color = Color(.primary)
+    var nextButtonBackgroundColor: Color = .brandPrimary
     var nextButtonForegroundColor: Color = .white
     var nextButtonSize = CGSize(
         width: MainEditLayout.completeButtonWidth,
