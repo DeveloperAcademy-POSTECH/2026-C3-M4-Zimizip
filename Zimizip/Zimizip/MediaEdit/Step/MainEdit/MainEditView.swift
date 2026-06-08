@@ -3,6 +3,7 @@ import UIKit
 
 struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
+    @State private var selectedFilterPreset: MainEditFilterPreset = .original
     @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
