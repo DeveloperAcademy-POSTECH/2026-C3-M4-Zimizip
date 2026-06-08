@@ -23,4 +23,19 @@ enum MainEditFilterPreset: CaseIterable, Identifiable {
             return "모노"
         }
     }
+
+    var ciFilterName: String? {
+        switch self {
+        case .original:
+            return nil
+        case .warm:
+            return "CIPhotoEffectTransfer"
+        case .cool:
+            return "CIPhotoEffectProcess"
+        case .vivid:
+            return "CIPhotoEffectChrome"
+        case .mono:
+            return "CIPhotoEffectMono"
+        }
+    }
 }
