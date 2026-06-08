@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CoverSelectionView: View {
+    @State private var isShowingSurpriseCardInput = false
+
     let backButtonAction: () -> Void
     let nextButtonAction: () -> Void
 
@@ -14,7 +16,9 @@ struct CoverSelectionView: View {
                     title: "커버 선택",
                     nextButtonTitle: "다음",
                     backButtonAction: backButtonAction,
-                    nextButtonAction: nextButtonAction,
+                    nextButtonAction: {
+                        isShowingSurpriseCardInput = true
+                    },
                     topPadding: proxy.safeAreaInsets.top + MainEditLayout.topBarTopPadding
                 )
                 .frame(maxWidth: .infinity)
@@ -22,6 +26,12 @@ struct CoverSelectionView: View {
         }
         .background(Color.black)
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $isShowingSurpriseCardInput) {
+            SurpriseCardInputView {
+                nextButtonAction()
+            }
+            .navigationBarBackButtonHidden(true)
+        }
     }
 }
 
