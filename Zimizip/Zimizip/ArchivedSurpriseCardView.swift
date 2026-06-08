@@ -210,18 +210,18 @@ private struct ArchiveBottomTabBarItem: View {
 }
 
 private extension Color {
-    static let archiveBackground = Color("BackgroundPrimary")
-    static let archiveText = Color("TextPrimary")
-    static let archiveGray50 = Color("Gray50")
-    static let archiveGray100 = Color("Gray100")
-    static let archiveGray200 = Color("Gray200")
-    static let archiveGray400 = Color("Gray400")
-    static let archiveOrange = Color("BrandPrimary")
-    static let archiveOrangeSoft = Color("BrandPrimary").opacity(0.18)
-    static let archiveCoverLine = Color("CoverLine")
-    static let archiveBaseWhite = Color("BaseWhite")
-    static let archiveTabInactive = Color("Gray300")
-    static let archiveTabSelection = Color("Gray100")
+    static let archiveBackground = Color.backgroundPrimary
+    static let archiveText = Color.textPrimary
+    static let archiveGray50 = Color.gray50
+    static let archiveGray100 = Color.gray100
+    static let archiveGray200 = Color.gray200
+    static let archiveGray400 = Color.gray400
+    static let archiveOrange = Color.primary
+    static let archiveOrangeSoft = Color.primary.opacity(0.18)
+    static let archiveCoverLine = Color.coverLine
+    static let archiveBaseWhite = Color.baseWhite
+    static let archiveTabInactive = Color.gray300
+    static let archiveTabSelection = Color.gray100
 }
 
 #Preview {

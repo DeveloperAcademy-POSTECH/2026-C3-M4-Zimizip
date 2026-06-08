@@ -21,7 +21,7 @@ struct OptionItemView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(.text)
+                    .foregroundStyle(.textPrimary)
                     .lineLimit(1)
                     .layoutPriority(1)
 

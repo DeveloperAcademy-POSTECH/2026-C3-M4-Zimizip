@@ -320,19 +320,19 @@ private struct ArchiveTabBarItem: View {
 }
 
 private extension Color {
-    static let archiveBackground = Color("BackgroundPrimary")
-    static let archiveText = Color("TextPrimary")
-    static let archiveChipText = Color("Gray450")
-    static let archiveGray50 = Color("Gray50")
-    static let archiveGray150 = Color("Gray150")
-    static let archiveGray200 = Color("Gray200")
-    static let archiveGray300 = Color("Gray300")
-    static let archiveGray400 = Color("Gray400")
-    static let archiveGray450 = Color("Gray450")
-    static let archiveOrange = Color("BrandPrimary")
-    static let archiveOrangeSoft = Color("BrandPrimary").opacity(0.18)
-    static let archiveTabInactive = Color("Gray300")
-    static let archiveTabSelection = Color("Gray100")
+    static let archiveBackground = Color.backgroundPrimary
+    static let archiveText = Color.textPrimary
+    static let archiveChipText = Color.gray450
+    static let archiveGray50 = Color.gray50
+    static let archiveGray150 = Color.gray150
+    static let archiveGray200 = Color.gray200
+    static let archiveGray300 = Color.gray300
+    static let archiveGray400 = Color.gray400
+    static let archiveGray450 = Color.gray450
+    static let archiveOrange = Color.primary
+    static let archiveOrangeSoft = Color.primary.opacity(0.18)
+    static let archiveTabInactive = Color.gray300
+    static let archiveTabSelection = Color.gray100
 }
 
 #Preview {

@@ -288,16 +288,16 @@ private struct ArchiveReactionDetailTabBarItem: View {
 }
 
 private extension Color {
-    static let archiveDetailBackground = Color("BackgroundPrimary")
-    static let archiveDetailText = Color("TextPrimary")
-    static let archiveDetailGray50 = Color("Gray50")
-    static let archiveDetailGray100 = Color("Gray100")
-    static let archiveDetailGray400 = Color("Gray400")
-    static let archiveDetailGray450 = Color("Gray450")
-    static let archiveDetailOrange = Color("BrandPrimary")
-    static let archiveDetailBaseWhite = Color("BaseWhite")
-    static let archiveDetailTabInactive = Color("Gray300")
-    static let archiveDetailTabSelection = Color("Gray100")
+    static let archiveDetailBackground = Color.backgroundPrimary
+    static let archiveDetailText = Color.textPrimary
+    static let archiveDetailGray50 = Color.gray50
+    static let archiveDetailGray100 = Color.gray100
+    static let archiveDetailGray400 = Color.gray400
+    static let archiveDetailGray450 = Color.gray450
+    static let archiveDetailOrange = Color.primary
+    static let archiveDetailBaseWhite = Color.baseWhite
+    static let archiveDetailTabInactive = Color.gray300
+    static let archiveDetailTabSelection = Color.gray100
 }
 
 #Preview {

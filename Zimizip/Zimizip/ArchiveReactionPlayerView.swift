@@ -264,16 +264,16 @@ private struct ArchiveReactionPlaybackControl: View {
 }
 
 private extension Color {
-    static let reactionPlayerBackground = Color("BackgroundPrimary")
-    static let reactionPlayerText = Color("TextPrimary")
-    static let reactionPlayerBlack = Color("BaseBlack")
-    static let reactionPlayerWhite = Color("BaseWhite")
-    static let reactionPlayerGray100 = Color("Gray100")
-    static let reactionPlayerGray150 = Color("Gray150")
-    static let reactionPlayerGray250 = Color("Gray250")
-    static let reactionPlayerGray400 = Color("Gray400")
-    static let reactionPlayerGray450 = Color("Gray450")
-    static let reactionPlayerCoverLine = Color("CoverLine")
+    static let reactionPlayerBackground = Color.backgroundPrimary
+    static let reactionPlayerText = Color.textPrimary
+    static let reactionPlayerBlack = Color.baseBlack
+    static let reactionPlayerWhite = Color.baseWhite
+    static let reactionPlayerGray100 = Color.gray100
+    static let reactionPlayerGray150 = Color.gray150
+    static let reactionPlayerGray250 = Color.gray250
+    static let reactionPlayerGray400 = Color.gray400
+    static let reactionPlayerGray450 = Color.gray450
+    static let reactionPlayerCoverLine = Color.coverLine
 }
 
 #Preview {
