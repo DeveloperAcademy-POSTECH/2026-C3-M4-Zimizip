@@ -1,7 +1,4 @@
-
 import SwiftUI
-import UIKit
-import ImageIO
 
 struct IntroductionPage {
     let text: String
@@ -29,162 +26,55 @@ struct IntroductionView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
-            let scale = min(screenWidth / 402, 1)
-            let imageScale = scale * 0.5
-            let contentWidth = min(362, screenWidth - 40)
-            let imageWidth = 244.38 * imageScale
-            let imageHeight = 301.05 * imageScale
-            let imageCenterY = 205 * scale + imageHeight / 2
-            let textGroupTop = screenHeight / 2 + 98
-            let textGroupHeight: CGFloat = 98
-            let buttonCenterY = screenHeight - 88
+        ZStack {
+            Color("BackgroundPrimary")
+                .ignoresSafeArea()
 
-            ZStack {
-                Color("BackgroundPrimary")
-                    .ignoresSafeArea()
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 205)
 
-                AnimatedAssetImage(name: "IntroductionCoverCharacter")
-                    .frame(width: imageWidth, height: imageHeight)
-                    .position(x: screenWidth / 2, y: imageCenterY)
+                Image("IntroductionCoverCharacter")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 244, height: 301)
 
-                VStack(spacing: 40) {
-                    Text("서프라이즈할 사진을 꾸미고\n커버로 덮어 숨겨보세요")
-                        .font(Font.custom("Pretendard-Bold", size: 20))
-                        .foregroundStyle(Color.introductionText)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-                        .frame(maxWidth: .infinity)
+                Text("서프라이즈할 사진을 꾸미고\n커버로 덮어 숨겨보세요")
+                    .font(Font.custom("Pretendard-Bold", size: 20))
+                    .foregroundStyle(Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .padding(.top, -16)
 
-                    HStack(spacing: 4) {
-                        Capsule()
-                            .fill(Color.introductionPrimary)
-                            .frame(width: 16, height: 8)
+                HStack(spacing: 4) {
+                    Capsule()
+                        .fill(Color(red: 1, green: 0.42, blue: 0.13))
+                        .frame(width: 16, height: 8)
 
-                        Circle()
-                            .fill(Color.introductionInactiveDot)
-                            .frame(width: 8, height: 8)
-                    }
+                    Circle()
+                        .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
+                        .frame(width: 8, height: 8)
                 }
-                .frame(width: contentWidth)
-                .position(x: screenWidth / 2, y: textGroupTop + textGroupHeight / 2)
+                .padding(.top, 40)
+
+                Spacer()
 
                 Button {
                 } label: {
                     Text("다음")
                         .font(Font.custom("Pretendard-Bold", size: 16))
                         .foregroundStyle(.white)
-                        .frame(width: contentWidth, height: 56)
-                        .background(Color.introductionPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color(red: 1, green: 0.42, blue: 0.13))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .buttonStyle(.plain)
-                .position(x: screenWidth / 2, y: buttonCenterY)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 71)
             }
         }
     }
-}
-
-private struct AnimatedAssetImage: UIViewRepresentable {
-    let name: String
-
-    func makeUIView(context: Context) -> UIImageView {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
-        configure(imageView)
-        return imageView
-    }
-
-    func updateUIView(_ imageView: UIImageView, context: Context) {
-        configure(imageView)
-    }
-
-    private func configure(_ imageView: UIImageView) {
-        if let animation = UIImage.apngAnimationAsset(named: "\(name)Data") {
-            imageView.image = animation.frames.first
-            imageView.animationImages = animation.frames
-            imageView.animationDuration = animation.duration
-            imageView.animationRepeatCount = 0
-        } else {
-            imageView.image = UIImage(named: name)
-            imageView.animationImages = nil
-        }
-
-        imageView.startAnimating()
-    }
-}
-
-private extension UIImage {
-    struct PNGAnimation {
-        let frames: [UIImage]
-        let duration: TimeInterval
-    }
-
-    static func apngAnimationAsset(named name: String) -> PNGAnimation? {
-        guard let dataAsset = NSDataAsset(name: name) else {
-            return nil
-        }
-
-        return pngAnimation(from: dataAsset.data)
-    }
-
-    static func pngAnimation(from data: Data) -> PNGAnimation? {
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
-            return nil
-        }
-
-        let frameCount = CGImageSourceGetCount(source)
-        guard frameCount > 1 else {
-            return nil
-        }
-
-        var frames: [UIImage] = []
-        var duration: TimeInterval = 0
-
-        for index in 0..<frameCount {
-            guard let cgImage = CGImageSourceCreateImageAtIndex(source, index, nil) else {
-                continue
-            }
-
-            frames.append(UIImage(cgImage: cgImage, scale: UIScreen.main.scale, orientation: .up))
-            duration += frameDuration(at: index, source: source)
-        }
-
-        guard !frames.isEmpty else {
-            return nil
-        }
-
-        let fasterDuration = duration * 0.6
-        return PNGAnimation(frames: frames, duration: max(fasterDuration, TimeInterval(frames.count) * 0.02))
-    }
-
-    static func frameDuration(at index: Int, source: CGImageSource) -> TimeInterval {
-        guard
-            let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any],
-            let pngProperties = properties[kCGImagePropertyPNGDictionary] as? [CFString: Any]
-        else {
-            return 0.1
-        }
-
-        if let unclampedDelay = pngProperties[kCGImagePropertyAPNGUnclampedDelayTime] as? TimeInterval {
-            return max(unclampedDelay, 0.015)
-        }
-
-        if let delay = pngProperties[kCGImagePropertyAPNGDelayTime] as? TimeInterval {
-            return max(delay, 0.015)
-        }
-
-        return 0.1
-    }
-}
-
-private extension Color {
-    static let introductionPrimary = Color(red: 1, green: 0.42, blue: 0.13)
-    static let introductionText = Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255)
-    static let introductionInactiveDot = Color(red: 0.85, green: 0.85, blue: 0.85)
 }
 
 #Preview {
