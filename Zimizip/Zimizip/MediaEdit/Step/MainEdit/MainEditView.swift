@@ -26,26 +26,52 @@ struct MainEditView: View {
                 in: proxy.size,
                 safeAreaInsets: proxy.safeAreaInsets
             )
+            let canvasCenterY = MainEditLayout.canvasCenterY(
+                in: proxy.size,
+                canvasSize: canvasSize,
+                safeAreaInsets: proxy.safeAreaInsets
+            )
+            let topBarHeight = MainEditLayout.topBarTotalHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
+            let bottomToolBarHeight = MainEditLayout.bottomToolBarTotalHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
 
-            VStack(spacing: 0) {
+            ZStack(alignment: .top) {
+                Color.black
+                    .ignoresSafeArea()
+
                 TopBar(
                     backButtonAction: backButtonAction,
-                    nextButtonAction: completeButtonAction
+                    nextButtonAction: completeButtonAction,
+                    topPadding: proxy.safeAreaInsets.top + MainEditLayout.topBarTopPadding
                 )
-                .frame(height: MainEditLayout.topBarHeight)
+                .frame(height: topBarHeight)
+                .frame(maxWidth: .infinity)
 
                 MainEditCanvas(
                     framingResult: framingResult,
                     image: image,
                     frameSize: canvasSize
                 )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: canvasSize.width, height: canvasSize.height)
+                .position(x: proxy.size.width / 2, y: canvasCenterY)
 
-                EditToolBar(selectedTool: $selectedTool)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+
+                    EditToolBar(selectedTool: $selectedTool)
+                        .padding(.bottom, proxy.safeAreaInsets.bottom)
+                        .frame(height: bottomToolBarHeight, alignment: .top)
+                        .background(MainEditLayout.panelBackgroundColor)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(edges: .bottom)
             }
-            .background(Color.black)
         }
         .background(Color.black)
+        .ignoresSafeArea()
     }
 }
 

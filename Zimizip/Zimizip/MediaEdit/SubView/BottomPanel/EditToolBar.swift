@@ -23,7 +23,7 @@ struct EditToolBar: View {
         .padding(MainEditLayout.bottomToolBarPadding)
         .frame(maxWidth: .infinity)
         .frame(height: MainEditLayout.bottomToolBarHeight, alignment: .top)
-        .background(Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5))
+        .background(MainEditLayout.panelBackgroundColor)
     }
 
     private func select(_ tool: MainEditTool) {
