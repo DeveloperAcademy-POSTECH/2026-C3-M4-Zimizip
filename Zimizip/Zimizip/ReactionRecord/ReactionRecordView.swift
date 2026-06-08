@@ -33,7 +33,10 @@ struct ReactionRecordView: View {
                 ReactionVideoGeneratingView()
             } else {
                 ZStack {
-                    ReactionRecordingContentView(recordingTimeText: viewModel.recordingTimeText) {
+                    ReactionRecordingContentView(
+                        recordingTimeText: viewModel.recordingTimeText,
+                        surpriseCardPayload: surpriseCardPayload
+                    ) {
                         Task {
                             await viewModel.stopRecording()
                         }
