@@ -7,7 +7,7 @@ struct MainEditView: View {
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
-    @State private var isShowingCoverSelection = false
+    @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
     let backButtonAction: () -> Void
@@ -81,27 +81,38 @@ struct MainEditView: View {
                 updateCanvasImage(applying: newValue)
             }
         }
-        .navigationDestination(isPresented: $isShowingCoverSelection) {
-            CoverSelectionView(
-                framingResult: framingResult,
-                image: image,
-                backButtonAction: {
-                    isShowingCoverSelection = false
-                }
-            )
-            .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: isShowingCoverSelection) {
+            if let mainEditResult {
+                CoverSelectionView(
+                    mainEditResult: mainEditResult,
+                    backButtonAction: {
+                        self.mainEditResult = nil
+                    }
+                )
+                .navigationBarBackButtonHidden(true)
+            }
         }
     }
 }
 
 private extension MainEditView {
+    var isShowingCoverSelection: Binding<Bool> {
+        Binding {
+            mainEditResult != nil
+        } set: { isPresented in
+            if !isPresented {
+                mainEditResult = nil
+            }
+        }
+    }
+
     @ViewBuilder
     var topPanel: some View {
         if selectedTool != .filter {
             TopBar(
                 backButtonAction: backButtonAction,
                 nextButtonAction: {
-                    isShowingCoverSelection = true
+                    showCoverSelection()
                 }
             )
         }
@@ -159,13 +170,28 @@ private extension MainEditView {
         selectedTool = nil
     }
 
+    func showCoverSelection() {
+        mainEditResult = makeMainEditResult()
+    }
+
+    func makeMainEditResult() -> MainEditResult {
+        MainEditResult(
+            framingResult: framingResult,
+            appliedFilterPreset: appliedFilterPreset,
+            image: renderedImage(applying: appliedFilterPreset)
+        )
+    }
+
     func updateCanvasImage(applying preset: MainEditFilterPreset) {
+        canvasImage = renderedImage(applying: preset)
+    }
+
+    func renderedImage(applying preset: MainEditFilterPreset) -> UIImage? {
         guard let image else {
-            canvasImage = nil
-            return
+            return nil
         }
 
-        canvasImage = MainEditFilterRenderer.shared.image(
+        return MainEditFilterRenderer.shared.image(
             applying: preset,
             to: image
         )
