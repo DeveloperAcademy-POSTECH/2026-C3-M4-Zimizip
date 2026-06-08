@@ -24,12 +24,16 @@ struct MainEditView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let topPanelHeight = topPanelHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
             let panelHeight = bottomPanelHeight(
                 safeAreaInsets: proxy.safeAreaInsets
             )
             let canvasSize = MainEditLayout.canvasSize(
                 in: proxy.size,
                 safeAreaInsets: proxy.safeAreaInsets,
+                topPanelHeight: topPanelHeight,
                 bottomPanelHeight: panelHeight
             )
 
@@ -38,12 +42,7 @@ struct MainEditView: View {
                     .ignoresSafeArea()
 
                 VStack {
-                    TopBar(
-                        backButtonAction: backButtonAction,
-                        nextButtonAction: {
-                            isShowingCoverSelection = true
-                        }
-                    )
+                    topPanel
                     
                     Spacer()
 
@@ -77,6 +76,18 @@ struct MainEditView: View {
 
 private extension MainEditView {
     @ViewBuilder
+    var topPanel: some View {
+        if selectedTool != .filter {
+            TopBar(
+                backButtonAction: backButtonAction,
+                nextButtonAction: {
+                    isShowingCoverSelection = true
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
     var bottomPanel: some View {
         if selectedTool == .filter {
             MainEditFilterPanel(
@@ -88,6 +99,12 @@ private extension MainEditView {
         } else {
             EditToolBar(selectedTool: $selectedTool)
         }
+    }
+
+    func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        selectedTool == .filter
+            ? 0
+            : MainEditLayout.topBarTotalHeight(safeAreaInsets: safeAreaInsets)
     }
 
     func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {

@@ -49,6 +49,7 @@ enum MainEditLayout {
     static func canvasSize(
         in containerSize: CGSize,
         safeAreaInsets: EdgeInsets,
+        topPanelHeight: CGFloat? = nil,
         bottomPanelHeight: CGFloat? = nil
     ) -> CGSize {
         guard containerSize.width > 0,
@@ -57,11 +58,13 @@ enum MainEditLayout {
         }
 
         let availableWidth = max(containerSize.width - canvasHorizontalInset * 2, 0)
+        let resolvedTopPanelHeight = topPanelHeight ??
+            topBarTotalHeight(safeAreaInsets: safeAreaInsets)
         let resolvedBottomPanelHeight = bottomPanelHeight ??
             bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         let availableHeight = max(
             containerSize.height -
-            topBarTotalHeight(safeAreaInsets: safeAreaInsets) -
+            resolvedTopPanelHeight -
             resolvedBottomPanelHeight -
             canvasVerticalInset * 2,
             0
