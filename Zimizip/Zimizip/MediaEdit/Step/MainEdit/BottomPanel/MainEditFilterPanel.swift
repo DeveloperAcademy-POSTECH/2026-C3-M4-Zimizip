@@ -4,7 +4,7 @@ import UIKit
 struct MainEditFilterPanel: View {
     @Binding var previewFilterPreset: MainEditFilterPreset
 
-    let thumbnailImage: UIImage?
+    let thumbnailImages: [MainEditFilterPreset: UIImage]
     let cancelAction: () -> Void
     let confirmAction: () -> Void
 
@@ -12,7 +12,7 @@ struct MainEditFilterPanel: View {
         VStack(spacing: 0) {
             MainEditFilterThumbnailPanel(
                 previewFilterPreset: $previewFilterPreset,
-                thumbnailImage: thumbnailImage
+                thumbnailImages: thumbnailImages
             )
 
             MainEditBottomPanelActionBar(
@@ -30,7 +30,7 @@ struct MainEditFilterPanel: View {
 
     MainEditFilterPanel(
         previewFilterPreset: $previewFilterPreset,
-        thumbnailImage: nil,
+        thumbnailImages: [:],
         cancelAction: {},
         confirmAction: {}
     )

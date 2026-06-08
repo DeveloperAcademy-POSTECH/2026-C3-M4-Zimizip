@@ -4,7 +4,7 @@ import UIKit
 struct MainEditFilterThumbnailPanel: View {
     @Binding var previewFilterPreset: MainEditFilterPreset
 
-    let thumbnailImage: UIImage?
+    let thumbnailImages: [MainEditFilterPreset: UIImage]
 
     var body: some View {
         HStack(alignment: .top) {
@@ -12,7 +12,7 @@ struct MainEditFilterThumbnailPanel: View {
             ForEach(Array(presets.enumerated()), id: \.element.id) { index, preset in
                 MainEditFilterThumbnail(
                     preset: preset,
-                    thumbnailImage: thumbnailImage,
+                    thumbnailImage: thumbnailImages[preset],
                     isSelected: previewFilterPreset == preset
                 ) {
                     previewFilterPreset = preset
@@ -35,7 +35,7 @@ struct MainEditFilterThumbnailPanel: View {
 
     MainEditFilterThumbnailPanel(
         previewFilterPreset: $previewFilterPreset,
-        thumbnailImage: nil
+        thumbnailImages: [:]
     )
     .background(Color.black)
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-enum MainEditFilterPreset: CaseIterable, Identifiable {
+enum MainEditFilterPreset: CaseIterable, Hashable, Identifiable {
     case original
     case warm
     case cool

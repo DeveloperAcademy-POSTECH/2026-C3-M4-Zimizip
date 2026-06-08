@@ -6,6 +6,7 @@ struct MainEditView: View {
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var canvasImage: UIImage?
+    @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
@@ -70,6 +71,7 @@ struct MainEditView: View {
         .onChange(of: selectedTool) { _, newValue in
             if newValue == .filter {
                 previewFilterPreset = appliedFilterPreset
+                prepareFilterThumbnailImagesIfNeeded()
                 updateCanvasImage(applying: appliedFilterPreset)
             } else {
                 updateCanvasImage(applying: appliedFilterPreset)
@@ -116,7 +118,7 @@ private extension MainEditView {
         if selectedTool == .filter {
             MainEditFilterPanel(
                 previewFilterPreset: $previewFilterPreset,
-                thumbnailImage: image,
+                thumbnailImages: filterThumbnailImages,
                 cancelAction: cancelFilterPreview,
                 confirmAction: applyFilterPreview
             )
@@ -160,6 +162,25 @@ private extension MainEditView {
         canvasImage = MainEditFilterRenderer.shared.image(
             applying: preset,
             to: image
+        )
+    }
+
+    func prepareFilterThumbnailImagesIfNeeded() {
+        guard filterThumbnailImages.isEmpty,
+              let image else {
+            return
+        }
+
+        filterThumbnailImages = Dictionary(
+            uniqueKeysWithValues: MainEditFilterPreset.allCases.map { preset in
+                (
+                    preset,
+                    MainEditFilterRenderer.shared.image(
+                        applying: preset,
+                        to: image
+                    )
+                )
+            }
         )
     }
 }
