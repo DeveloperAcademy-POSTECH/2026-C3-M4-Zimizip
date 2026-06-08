@@ -1,18 +1,57 @@
 import SwiftUI
 
 struct ReactionRecordView: View {
-    @State private var isGeneratingReactionVideo = false
+    @StateObject private var viewModel: ReactionRecordViewModel
+
+    init(
+        screenRecorder: VideoRecording? = nil,
+        frontCameraRecorder: VideoRecording? = nil
+    ) {
+        _viewModel = StateObject(
+            wrappedValue: ReactionRecordViewModel(
+                screenRecorder: screenRecorder,
+                frontCameraRecorder: frontCameraRecorder
+            )
+        )
+    }
 
     var body: some View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            if isGeneratingReactionVideo {
+            if viewModel.isRecordingCompleted {
+                ReactionRecordCompleteView(
+                    surpriseProjectTitle: "서프라이즈 프로젝트",
+                    onPrimaryButtonTap: {},
+                    onHomeButtonTap: {}
+                )
+            } else if viewModel.isGeneratingReactionVideo {
                 ReactionVideoGeneratingView()
             } else {
-                ReactionRecordingContentView {
-                    isGeneratingReactionVideo = true
+                ZStack {
+                    ReactionRecordingContentView(recordingTimeText: viewModel.recordingTimeText) {
+                        Task {
+                            await viewModel.stopRecording()
+                        }
+                    }
+                    .onAppear {
+                        viewModel.startRecordingTimerIfNeeded()
+                    }
+                    .onDisappear {
+                        viewModel.stopRecordingTimer()
+                    }
+
+                    if viewModel.isBeforeReveal {
+                        RevealGuideView().onTapGesture {
+                            viewModel.hideRevealGuide()
+                        }
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 0).onChanged { value in
+                                viewModel.hideRevealGuide()
+                            }
+                        )
+                    }
                 }
             }
         }

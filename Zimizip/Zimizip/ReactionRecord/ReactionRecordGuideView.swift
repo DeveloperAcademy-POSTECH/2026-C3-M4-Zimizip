@@ -2,6 +2,10 @@ import SwiftUI
 
 struct ReactionRecordGuideView: View {
     @State private var isShowingReactionRecord = false
+    @State private var recordingErrorMessage: String?
+    @State private var isStartingRecording = false
+    @State private var screenRecorder = ReplayKitScreenRecorder()
+    @State private var frontCameraRecorder = AVFoundationFrontCameraRecorder()
 
     var body: some View {
         ZStack {
@@ -29,14 +33,52 @@ struct ReactionRecordGuideView: View {
                 Spacer()
 
                 ZimizipPrimaryButton(title: "시작하기") {
-                    isShowingReactionRecord = true
+                    Task {
+                        await startRecording()
+                    }
                 }
                     .padding(.bottom, 60)
                     .padding(.horizontal, 20)
             }
         }
         .navigationDestination(isPresented: $isShowingReactionRecord) {
-            ReactionRecordView()
+            ReactionRecordView(
+                screenRecorder: screenRecorder,
+                frontCameraRecorder: frontCameraRecorder
+            )
+        }
+        .alert(
+            "녹화에 실패했어요",
+            isPresented: Binding(
+                get: { recordingErrorMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        recordingErrorMessage = nil
+                    }
+                }
+            )
+        ) {
+            Button("확인") {
+                recordingErrorMessage = nil
+            }
+        } message: {
+            Text(recordingErrorMessage ?? "")
+        }
+    }
+
+    private func startRecording() async {
+        guard !isStartingRecording else { return }
+        isStartingRecording = true
+        defer { isStartingRecording = false }
+
+        do {
+            try await frontCameraRecorder.startRecording()
+            try await screenRecorder.startRecording()
+            isShowingReactionRecord = true
+        } catch {
+            _ = try? await frontCameraRecorder.stopRecording()
+            _ = try? await screenRecorder.stopRecording()
+            recordingErrorMessage = error.localizedDescription
         }
     }
 }

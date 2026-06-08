@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct ReactionRecordingContentView: View {
+    let recordingTimeText: String
     let onStopButtonTap: () -> Void
 
     var body: some View {
         VStack(alignment: .center) {
-            Text("00:00:02")
+            Text(recordingTimeText)
                 .font(.system(size: 18, design: .monospaced))
                 .foregroundStyle(.white)
                 .padding(5)
@@ -45,5 +46,5 @@ struct ReactionRecordingContentView: View {
 }
 
 #Preview {
-    ReactionRecordingContentView {}
+    ReactionRecordingContentView(recordingTimeText: "00:00:02") {}
 }
