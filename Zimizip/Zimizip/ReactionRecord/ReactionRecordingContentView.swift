@@ -16,22 +16,7 @@ struct ReactionRecordingContentView: View {
 
             Spacer()
 
-            SurpriseContentFrameView {
-                GeometryReader { proxy in
-                    ZStack {
-                        MainEditCanvas(
-                            framingResult: surpriseCardPayload.framingResult,
-                            image: surpriseCardPayload.image,
-                            frameSize: proxy.size
-                        )
-
-                        Image(surpriseCardPayload.coverImageName)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: proxy.size.width, height: proxy.size.height)
-                    }
-                }
-            }
+            ReactionRevealCardView(surpriseCardPayload: surpriseCardPayload)
 
             Spacer()
 
