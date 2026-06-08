@@ -5,25 +5,38 @@ struct TopBar: View {
     let nextButtonTitle: String
     let backButtonAction: () -> Void
     let nextButtonAction: () -> Void
-    
+
+    var titleFont: Font = .system(size: 17, weight: .bold)
+    var titleColor: Color = .black
+    var backButtonFont: Font = .system(size: 17, weight: .regular)
+    var backButtonColor: Color = .black
+    var nextButtonFont: Font = .system(size: 15, weight: .regular)
+    var nextButtonBackgroundColor: Color = .blue
+    var nextButtonForegroundColor: Color = .white
+    var nextButtonSize = CGSize(width: 56, height: 34)
+    var nextButtonCornerRadius: CGFloat = 17
+    var horizontalPadding: CGFloat = 10
+    var topPadding: CGFloat = 15
+    var bottomPadding: CGFloat = 15
+    var backgroundColor: Color = .clear
+
     var body: some View {
         HStack {
             Button {
                 backButtonAction()
             } label: {
                 Image(systemName: "chevron.left")
+                    .font(backButtonFont)
+                    .foregroundStyle(backButtonColor)
+                    .frame(width: 44, height: 44)
             }
-            .frame(width: 28, height: 28)
-            .padding(.vertical, 18)
-            .padding(.horizontal, 10)
-            .padding(.trailing, 18)
             .buttonStyle(.plain)
             
             Spacer()
             
             Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(.black)
+                .font(titleFont)
+                .foregroundStyle(titleColor)
             
             Spacer()
             
@@ -31,15 +44,18 @@ struct TopBar: View {
                 nextButtonAction()
             } label: {
                 Text(nextButtonTitle)
-                    .frame(width: 56, height: 34)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(.white)
-                    .background(.blue)
-                    .clipShape(Capsule())
+                    .font(nextButtonFont)
+                    .foregroundStyle(nextButtonForegroundColor)
+                    .frame(width: nextButtonSize.width, height: nextButtonSize.height)
+                    .background(nextButtonBackgroundColor)
+                    .clipShape(RoundedRectangle(cornerRadius: nextButtonCornerRadius, style: .continuous))
             }
-            .padding(.vertical, 15)
-            .padding(.horizontal, 10)
+            .buttonStyle(.plain)
         }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, topPadding)
+        .padding(.bottom, bottomPadding)
+        .background(backgroundColor)
     }
 }
 
