@@ -33,11 +33,26 @@ struct CoverSelectionView: View {
                     
                     Spacer()
 
-                    MainEditCanvas(
-                        framingResult: framingResult,
-                        image: image,
-                        frameSize: canvasSize
-                    )
+                    ZStack {
+                        MainEditCanvas(
+                            framingResult: framingResult,
+                            image: image,
+                            frameSize: canvasSize
+                        )
+
+                        if let selectedCoverOption {
+                            Image(selectedCoverOption.imageName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: canvasSize.width, height: canvasSize.height)
+                                .clipShape(
+                                    RoundedRectangle(
+                                        cornerRadius: PhotoFramingLayout.frameCornerRadius,
+                                        style: .continuous
+                                    )
+                                )
+                        }
+                    }
                     .frame(width: canvasSize.width, height: canvasSize.height)
 
                     Spacer()
@@ -58,6 +73,12 @@ struct CoverSelectionView: View {
             SurpriseCardInputView()
             .navigationBarBackButtonHidden(true)
         }
+    }
+}
+
+private extension CoverSelectionView {
+    var selectedCoverOption: CoverSelectionOption? {
+        coverOptions.first { $0.id == selectedCoverOptionID }
     }
 }
 
