@@ -13,7 +13,7 @@ struct ZimizipSecondaryButton: View {
             .background(.white)
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color(.primary), lineWidth: 1)
+                    .stroke(.brandPrimary, lineWidth: 1)
             }
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }

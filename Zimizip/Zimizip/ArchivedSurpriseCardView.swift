@@ -216,8 +216,8 @@ private extension Color {
     static let archiveGray100 = Color.gray100
     static let archiveGray200 = Color.gray200
     static let archiveGray400 = Color.gray400
-    static let archiveOrange = Color.primary
-    static let archiveOrangeSoft = Color.primary.opacity(0.18)
+    static let archiveOrange = Color.brandPrimary
+    static let archiveOrangeSoft = Color.brandPrimary.opacity(0.18)
     static let archiveCoverLine = Color.coverLine
     static let archiveBaseWhite = Color.baseWhite
     static let archiveTabInactive = Color.gray300

@@ -294,7 +294,7 @@ private extension Color {
     static let archiveDetailGray100 = Color.gray100
     static let archiveDetailGray400 = Color.gray400
     static let archiveDetailGray450 = Color.gray450
-    static let archiveDetailOrange = Color.primary
+    static let archiveDetailOrange = Color.brandPrimary
     static let archiveDetailBaseWhite = Color.baseWhite
     static let archiveDetailTabInactive = Color.gray300
     static let archiveDetailTabSelection = Color.gray100

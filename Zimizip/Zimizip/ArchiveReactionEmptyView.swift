@@ -177,8 +177,8 @@ private extension Color {
     static let archiveChipText = Color.gray450
     static let archiveGray50 = Color.gray50
     static let archiveGray200 = Color.gray200
-    static let archiveOrange = Color.primary
-    static let archiveOrangeSoft = Color.primary.opacity(0.18)
+    static let archiveOrange = Color.brandPrimary
+    static let archiveOrangeSoft = Color.brandPrimary.opacity(0.18)
     static let archiveTabInactive = Color.gray300
     static let archiveTabSelection = Color.gray100
 }
