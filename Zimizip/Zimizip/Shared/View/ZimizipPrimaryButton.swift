@@ -10,7 +10,7 @@ struct ZimizipPrimaryButton: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(.primary)
+            .background(.brandPrimary)
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }

@@ -69,7 +69,11 @@ struct CoverSelectionView: View {
         .background(Color.black)
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingSurpriseCardInput) {
-            SurpriseCardInputView()
+            SurpriseCardInputView(
+                framingResult: framingResult,
+                image: image,
+                coverImageName: selectedCoverOption?.imageName ?? coverOptions[0].imageName
+            )
             .navigationBarBackButtonHidden(true)
         }
     }
