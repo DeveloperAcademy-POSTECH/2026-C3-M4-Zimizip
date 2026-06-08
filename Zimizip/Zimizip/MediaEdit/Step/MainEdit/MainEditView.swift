@@ -65,6 +65,8 @@ struct MainEditView: View {
         .background(Color.black)
         .navigationDestination(isPresented: $isShowingCoverSelection) {
             CoverSelectionView(
+                framingResult: framingResult,
+                image: image,
                 backButtonAction: {
                     isShowingCoverSelection = false
                 }
