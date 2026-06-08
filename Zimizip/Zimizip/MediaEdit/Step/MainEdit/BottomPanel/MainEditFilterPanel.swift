@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct MainEditFilterPanel: View {
-    @Binding var selectedFilterPreset: MainEditFilterPreset
+    @Binding var previewFilterPreset: MainEditFilterPreset
 
     let thumbnailImage: UIImage?
     let cancelAction: () -> Void
@@ -11,7 +11,7 @@ struct MainEditFilterPanel: View {
     var body: some View {
         VStack(spacing: 0) {
             MainEditFilterThumbnailPanel(
-                selectedFilterPreset: $selectedFilterPreset,
+                previewFilterPreset: $previewFilterPreset,
                 thumbnailImage: thumbnailImage
             )
 
@@ -26,10 +26,10 @@ struct MainEditFilterPanel: View {
 }
 
 #Preview {
-    @Previewable @State var selectedFilterPreset: MainEditFilterPreset = .original
+    @Previewable @State var previewFilterPreset: MainEditFilterPreset = .original
 
     MainEditFilterPanel(
-        selectedFilterPreset: $selectedFilterPreset,
+        previewFilterPreset: $previewFilterPreset,
         thumbnailImage: nil,
         cancelAction: {},
         confirmAction: {}

@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct MainEditFilterThumbnailPanel: View {
-    @Binding var selectedFilterPreset: MainEditFilterPreset
+    @Binding var previewFilterPreset: MainEditFilterPreset
 
     let thumbnailImage: UIImage?
 
@@ -13,9 +13,9 @@ struct MainEditFilterThumbnailPanel: View {
                 MainEditFilterThumbnail(
                     preset: preset,
                     thumbnailImage: thumbnailImage,
-                    isSelected: selectedFilterPreset == preset
+                    isSelected: previewFilterPreset == preset
                 ) {
-                    selectedFilterPreset = preset
+                    previewFilterPreset = preset
                 }
 
                 if index < presets.count - 1 {
@@ -31,10 +31,10 @@ struct MainEditFilterThumbnailPanel: View {
 }
 
 #Preview {
-    @Previewable @State var selectedFilterPreset: MainEditFilterPreset = .original
+    @Previewable @State var previewFilterPreset: MainEditFilterPreset = .original
 
     MainEditFilterThumbnailPanel(
-        selectedFilterPreset: $selectedFilterPreset,
+        previewFilterPreset: $previewFilterPreset,
         thumbnailImage: nil
     )
     .background(Color.black)

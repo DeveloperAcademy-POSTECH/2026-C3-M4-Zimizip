@@ -3,7 +3,8 @@ import UIKit
 
 struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
-    @State private var selectedFilterPreset: MainEditFilterPreset = .original
+    @State private var previewFilterPreset: MainEditFilterPreset = .original
+    @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var isShowingCoverSelection = false
 
     let framingResult: PhotoFramingResult
@@ -63,6 +64,11 @@ struct MainEditView: View {
             }
         }
         .background(Color.black)
+        .onChange(of: selectedTool) { _, newValue in
+            if newValue == .filter {
+                previewFilterPreset = appliedFilterPreset
+            }
+        }
         .navigationDestination(isPresented: $isShowingCoverSelection) {
             CoverSelectionView(
                 framingResult: framingResult,
@@ -93,10 +99,10 @@ private extension MainEditView {
     var bottomPanel: some View {
         if selectedTool == .filter {
             MainEditFilterPanel(
-                selectedFilterPreset: $selectedFilterPreset,
+                previewFilterPreset: $previewFilterPreset,
                 thumbnailImage: image,
-                cancelAction: dismissFilterPanel,
-                confirmAction: dismissFilterPanel
+                cancelAction: cancelFilterPreview,
+                confirmAction: applyFilterPreview
             )
         } else {
             EditToolBar(selectedTool: $selectedTool)
@@ -117,7 +123,13 @@ private extension MainEditView {
         }
     }
 
-    func dismissFilterPanel() {
+    func cancelFilterPreview() {
+        previewFilterPreset = appliedFilterPreset
+        selectedTool = nil
+    }
+
+    func applyFilterPreview() {
+        appliedFilterPreset = previewFilterPreset
         selectedTool = nil
     }
 }
