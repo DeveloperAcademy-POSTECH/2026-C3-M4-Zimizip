@@ -18,9 +18,6 @@ struct TopBar: View {
         height: MainEditLayout.topBarButtonHeight
     )
     var nextButtonCornerRadius: CGFloat = MainEditLayout.completeButtonCornerRadius
-    var horizontalPadding: CGFloat = MainEditLayout.topBarHorizontalPadding
-    var topPadding: CGFloat = MainEditLayout.topBarTopPadding
-    var bottomPadding: CGFloat = MainEditLayout.topBarBottomPadding
     var backgroundColor: Color = .black
 
     var body: some View {
@@ -55,9 +52,6 @@ struct TopBar: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, horizontalPadding)
-        .padding(.top, topPadding)
-        .padding(.bottom, bottomPadding)
         .background(backgroundColor)
     }
 }

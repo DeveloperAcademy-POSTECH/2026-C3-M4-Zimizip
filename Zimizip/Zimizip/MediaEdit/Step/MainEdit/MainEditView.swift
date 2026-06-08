@@ -32,55 +32,49 @@ struct MainEditView: View {
                 canvasSize: canvasSize,
                 safeAreaInsets: proxy.safeAreaInsets
             )
-            let topBarHeight = MainEditLayout.topBarTotalHeight(
-                safeAreaInsets: proxy.safeAreaInsets
-            )
+            let topBarHeight = MainEditLayout.topBarContentHeight
             let bottomToolBarHeight = MainEditLayout.bottomToolBarTotalHeight(
                 safeAreaInsets: proxy.safeAreaInsets
             )
 
-            ZStack(alignment: .top) {
+            ZStack {
                 Color.black
                     .ignoresSafeArea()
 
-                TopBar(
-                    backButtonAction: backButtonAction,
-                    nextButtonAction: {
-                        isShowingCoverSelection = true
-                    },
-                    topPadding: proxy.safeAreaInsets.top + MainEditLayout.topBarTopPadding
-                )
-                .frame(height: topBarHeight)
-                .frame(maxWidth: .infinity)
+                VStack {
+                    TopBar(
+                        backButtonAction: backButtonAction,
+                        nextButtonAction: {
+                            isShowingCoverSelection = true
+                        }
+                    )
+                    
+                    Spacer()
 
-                MainEditCanvas(
-                    framingResult: framingResult,
-                    image: image,
-                    frameSize: canvasSize
-                )
-                .frame(width: canvasSize.width, height: canvasSize.height)
-                .position(x: proxy.size.width / 2, y: canvasCenterY)
-
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
+                    MainEditCanvas(
+                        framingResult: framingResult,
+                        image: image,
+                        frameSize: canvasSize
+                    )
+                    .frame(width: canvasSize.width, height: canvasSize.height)
+                    .position(x: proxy.size.width / 2, y: canvasCenterY)
+                    
+                    Spacer()
 
                     EditToolBar(selectedTool: $selectedTool)
                         .padding(.bottom, proxy.safeAreaInsets.bottom)
                         .frame(height: bottomToolBarHeight, alignment: .top)
                         .background(MainEditLayout.panelBackgroundColor)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(edges: .bottom)
             }
         }
         .background(Color.black)
-        .ignoresSafeArea()
         .navigationDestination(isPresented: $isShowingCoverSelection) {
             CoverSelectionView(
                 backButtonAction: {
                     isShowingCoverSelection = false
-                },
-                nextButtonAction: {}
+                }
             )
             .navigationBarBackButtonHidden(true)
         }
