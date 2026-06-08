@@ -24,18 +24,13 @@ struct MainEditView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let panelHeight = bottomPanelHeight(
+                safeAreaInsets: proxy.safeAreaInsets
+            )
             let canvasSize = MainEditLayout.canvasSize(
                 in: proxy.size,
-                safeAreaInsets: proxy.safeAreaInsets
-            )
-            let canvasCenterY = MainEditLayout.canvasCenterY(
-                in: proxy.size,
-                canvasSize: canvasSize,
-                safeAreaInsets: proxy.safeAreaInsets
-            )
-            let topBarHeight = MainEditLayout.topBarContentHeight
-            let bottomToolBarHeight = MainEditLayout.bottomToolBarTotalHeight(
-                safeAreaInsets: proxy.safeAreaInsets
+                safeAreaInsets: proxy.safeAreaInsets,
+                bottomPanelHeight: panelHeight
             )
 
             ZStack {
@@ -61,8 +56,8 @@ struct MainEditView: View {
                     
                     Spacer()
 
-                    EditToolBar(selectedTool: $selectedTool)
-                        .frame(height: bottomToolBarHeight, alignment: .top)
+                    bottomPanel
+                        .frame(height: panelHeight, alignment: .top)
                         .background(MainEditLayout.panelBackgroundColor)
                 }
                 .ignoresSafeArea(edges: .bottom)
@@ -77,6 +72,34 @@ struct MainEditView: View {
             )
             .navigationBarBackButtonHidden(true)
         }
+    }
+}
+
+private extension MainEditView {
+    @ViewBuilder
+    var bottomPanel: some View {
+        if selectedTool == .filter {
+            MainEditFilterPanel(
+                selectedFilterPreset: $selectedFilterPreset,
+                thumbnailImage: image,
+                cancelAction: dismissFilterPanel,
+                confirmAction: dismissFilterPanel
+            )
+        } else {
+            EditToolBar(selectedTool: $selectedTool)
+        }
+    }
+
+    func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        if selectedTool == .filter {
+            MainEditLayout.filterPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else {
+            MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
+        }
+    }
+
+    func dismissFilterPanel() {
+        selectedTool = nil
     }
 }
 

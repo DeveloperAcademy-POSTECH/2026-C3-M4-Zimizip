@@ -25,6 +25,7 @@ enum MainEditLayout {
     static let filterActionIconSize: CGFloat = 24
     static let filterActionBarHorizontalPadding: CGFloat = 20
     static let filterActionBarBottomPadding: CGFloat = 32
+    static let filterActionBarContentHeight: CGFloat = 24
 
     static var topBarContentHeight: CGFloat {
         topBarTopPadding + topBarButtonHeight + topBarBottomPadding
@@ -38,9 +39,17 @@ enum MainEditLayout {
         bottomToolBarHeight + safeAreaInsets.bottom
     }
 
+    static func filterPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        filterThumbnailPanelHeight +
+            filterActionBarContentHeight +
+            filterActionBarBottomPadding +
+            safeAreaInsets.bottom
+    }
+
     static func canvasSize(
         in containerSize: CGSize,
-        safeAreaInsets: EdgeInsets
+        safeAreaInsets: EdgeInsets,
+        bottomPanelHeight: CGFloat? = nil
     ) -> CGSize {
         guard containerSize.width > 0,
               containerSize.height > 0 else {
@@ -48,10 +57,12 @@ enum MainEditLayout {
         }
 
         let availableWidth = max(containerSize.width - canvasHorizontalInset * 2, 0)
+        let resolvedBottomPanelHeight = bottomPanelHeight ??
+            bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         let availableHeight = max(
             containerSize.height -
             topBarTotalHeight(safeAreaInsets: safeAreaInsets) -
-            bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets) -
+            resolvedBottomPanelHeight -
             canvasVerticalInset * 2,
             0
         )
