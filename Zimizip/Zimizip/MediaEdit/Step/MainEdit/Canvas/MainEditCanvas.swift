@@ -4,16 +4,13 @@ import UIKit
 struct MainEditCanvas: View {
     let framingResult: PhotoFramingResult
     let image: UIImage?
+    let frameSize: CGSize
 
     var body: some View {
-        GeometryReader { proxy in
-            let frameSize = PhotoFramingLayout.frameSize(in: proxy.size)
+        ZStack {
+            Color.black
 
-            ZStack {
-                Color.black
-
-                framedContent(frameSize: frameSize)
-            }
+            framedContent(frameSize: frameSize)
         }
     }
 }

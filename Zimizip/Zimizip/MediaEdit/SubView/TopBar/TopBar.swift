@@ -1,24 +1,27 @@
 import SwiftUI
 
 struct TopBar: View {
-    let title: String
-    let nextButtonTitle: String
+    var title: String = "사진 꾸미기"
+    var nextButtonTitle: String = "완료"
     let backButtonAction: () -> Void
     let nextButtonAction: () -> Void
 
-    var titleFont: Font = .system(size: 17, weight: .bold)
-    var titleColor: Color = .black
-    var backButtonFont: Font = .system(size: 17, weight: .regular)
-    var backButtonColor: Color = .black
-    var nextButtonFont: Font = .system(size: 15, weight: .regular)
-    var nextButtonBackgroundColor: Color = .blue
+    var titleFont: Font = .custom("Pretendard", size: 16).weight(.semibold)
+    var titleColor: Color = .white
+    var backButtonFont: Font = .system(size: MainEditLayout.backButtonIconSize, weight: .medium)
+    var backButtonColor: Color = .white
+    var nextButtonFont: Font = .custom("Pretendard", size: 16).weight(.bold)
+    var nextButtonBackgroundColor: Color = Color(.primary)
     var nextButtonForegroundColor: Color = .white
-    var nextButtonSize = CGSize(width: 56, height: 34)
-    var nextButtonCornerRadius: CGFloat = 17
-    var horizontalPadding: CGFloat = 10
-    var topPadding: CGFloat = 15
-    var bottomPadding: CGFloat = 15
-    var backgroundColor: Color = .clear
+    var nextButtonSize = CGSize(
+        width: MainEditLayout.completeButtonWidth,
+        height: MainEditLayout.topBarButtonHeight
+    )
+    var nextButtonCornerRadius: CGFloat = MainEditLayout.completeButtonCornerRadius
+    var horizontalPadding: CGFloat = MainEditLayout.topBarHorizontalPadding
+    var topPadding: CGFloat = MainEditLayout.topBarTopPadding
+    var bottomPadding: CGFloat = MainEditLayout.topBarBottomPadding
+    var backgroundColor: Color = .black
 
     var body: some View {
         HStack {
@@ -61,9 +64,8 @@ struct TopBar: View {
 
 #Preview {
     TopBar(
-        title: "사진 편집",
-        nextButtonTitle: "다음",
         backButtonAction: {},
         nextButtonAction: {}
     )
+    .background(Color.black)
 }

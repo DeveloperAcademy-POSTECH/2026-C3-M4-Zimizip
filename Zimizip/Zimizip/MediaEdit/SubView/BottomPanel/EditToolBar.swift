@@ -1,42 +1,52 @@
 import SwiftUI
 
 struct EditToolBar: View {
-
     var body: some View {
-        HStack(spacing: 22) {
-            ForEach(EditTool.allCases) { tool in
+        HStack(alignment: .top) {
+            ForEach(Array(EditTool.allCases.enumerated()), id: \.element.id) { index, tool in
                 EditToolButton(
                     title: tool.title,
-                    systemImageName: tool.systemImageName,
+                    imageName: tool.imageName,
                     action: {}
                 )
+
+                if index < EditTool.allCases.count - 1 {
+                    Spacer(minLength: 0)
+                }
             }
         }
-        .padding(.horizontal, 22)
+        .padding(MainEditLayout.bottomToolBarPadding)
+        .frame(maxWidth: .infinity)
+        .frame(height: MainEditLayout.bottomToolBarHeight, alignment: .top)
+        .background(Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5))
     }
 }
 
 private struct EditToolButton: View {
     let title: String
-    let systemImageName: String
+    let imageName: String
     let action: () -> Void
 
     var body: some View {
         Button {
             action()
         } label: {
-            VStack {
-                Image(systemName: systemImageName)
-                    .font(.system(size: 30, weight: .regular))
-                    .frame(width: 36, height: 36)
-
-                Spacer()
-                    .frame(height: 26)
+            VStack(spacing: 8) {
+                Image(imageName)
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .foregroundStyle(.white)
+                    .frame(
+                        width: MainEditLayout.toolIconSize,
+                        height: MainEditLayout.toolIconSize
+                    )
 
                 Text(title)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.black)
+                    .font(.custom("Pretendard", size: 16).weight(.bold))
+                    .foregroundStyle(.white)
             }
+            .frame(minWidth: 44)
         }
         .buttonStyle(.plain)
     }
@@ -44,11 +54,9 @@ private struct EditToolButton: View {
 
 private enum EditTool: CaseIterable, Identifiable {
     case filter
-    case crop
-    case detail
+    case adjustment
     case text
     case sticker
-    case ratio
 
     var id: Self { self }
 
@@ -56,33 +64,25 @@ private enum EditTool: CaseIterable, Identifiable {
         switch self {
         case .filter:
             return "필터"
-        case .crop:
-            return "자르기"
-        case .detail:
-            return "세밀 보정"
+        case .adjustment:
+            return "조정"
         case .text:
             return "텍스트"
         case .sticker:
             return "스티커"
-        case .ratio:
-            return "비율"
         }
     }
 
-    var systemImageName: String {
+    var imageName: String {
         switch self {
         case .filter:
-            return "circle.lefthalf.filled"
-        case .crop:
-            return "crop"
-        case .detail:
-            return "sparkles"
+            return "mingcute_color-filter-line"
+        case .adjustment:
+            return "exposure"
         case .text:
-            return "textformat"
+            return "format_size"
         case .sticker:
-            return "face.smiling"
-        case .ratio:
-            return "aspectratio"
+            return "sticker_add"
         }
     }
 }

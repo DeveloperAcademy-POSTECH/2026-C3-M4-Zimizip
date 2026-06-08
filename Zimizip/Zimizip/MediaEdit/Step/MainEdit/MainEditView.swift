@@ -19,44 +19,31 @@ struct MainEditView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            TopBar(
-                title: "사진 꾸미기",
-                nextButtonTitle: "완료",
-                backButtonAction: backButtonAction,
-                nextButtonAction: completeButtonAction,
-                titleFont: .custom("Pretendard", size: 16).weight(.semibold),
-                titleColor: .white,
-                backButtonFont: .system(size: 32, weight: .medium),
-                backButtonColor: .white,
-                nextButtonFont: .custom("Pretendard", size: 16).weight(.bold),
-                nextButtonBackgroundColor: Color(.primary),
-                nextButtonForegroundColor: .white,
-                nextButtonSize: CGSize(width: 56, height: 50),
-                nextButtonCornerRadius: 24,
-                horizontalPadding: 24,
-                topPadding: 50,
-                bottomPadding: 28,
-                backgroundColor: .black
+        GeometryReader { proxy in
+            let canvasSize = MainEditLayout.canvasSize(
+                in: proxy.size,
+                safeAreaInsets: proxy.safeAreaInsets
             )
 
-            MainEditCanvas(
-                framingResult: framingResult,
-                image: image
-            )
+            VStack(spacing: 0) {
+                TopBar(
+                    backButtonAction: backButtonAction,
+                    nextButtonAction: completeButtonAction
+                )
+                .frame(height: MainEditLayout.topBarHeight)
 
-            bottomToolArea
+                MainEditCanvas(
+                    framingResult: framingResult,
+                    image: image,
+                    frameSize: canvasSize
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                EditToolBar()
+            }
+            .background(Color.black)
         }
         .background(Color.black)
-    }
-}
-
-private extension MainEditView {
-    var bottomToolArea: some View {
-        Rectangle()
-            .fill(Color(red: 0.23, green: 0.21, blue: 0.2).opacity(0.5))
-            .frame(maxWidth: .infinity)
-            .frame(height: 108)
     }
 }
 
