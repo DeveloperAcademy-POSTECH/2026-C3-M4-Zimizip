@@ -5,8 +5,7 @@ struct CoverSelectionView: View {
     @State private var isShowingSurpriseCardInput = false
     @State private var selectedCoverOptionID = CoverSelectionOption.defaultOptions[0].id
 
-    let framingResult: PhotoFramingResult
-    let image: UIImage?
+    let mainEditResult: MainEditResult
     let backButtonAction: () -> Void
     private let coverOptions = CoverSelectionOption.defaultOptions
 
@@ -35,8 +34,8 @@ struct CoverSelectionView: View {
 
                     ZStack {
                         MainEditCanvas(
-                            framingResult: framingResult,
-                            image: image,
+                            framingResult: mainEditResult.framingResult,
+                            image: mainEditResult.image,
                             frameSize: canvasSize
                         )
 
@@ -84,14 +83,13 @@ private extension CoverSelectionView {
 
 #Preview {
     CoverSelectionView(
-        framingResult: .coverSelectionViewPreviewValue,
-        image: nil,
+        mainEditResult: .coverSelectionViewPreviewValue,
         backButtonAction: {}
     )
 }
 
-private extension PhotoFramingResult {
-    static var coverSelectionViewPreviewValue: PhotoFramingResult {
+private extension MainEditResult {
+    static var coverSelectionViewPreviewValue: MainEditResult {
         var transformState = PhotoFramingTransformState()
         transformState.frameSize = CGSize(width: 297, height: 446)
         transformState.basePhotoSize = CGSize(width: 534, height: 300)
@@ -100,12 +98,18 @@ private extension PhotoFramingResult {
         transformState.offset = .zero
         transformState.sourceAspectRatio = 402 / 226
 
-        return PhotoFramingResult(
+        let framingResult = PhotoFramingResult(
             source: Data(),
             backgroundColor: .white,
             transformState: transformState,
             sourcePreviewFrame: nil,
             isLandscapeCapture: true
+        )
+
+        return MainEditResult(
+            framingResult: framingResult,
+            appliedFilterPreset: .original,
+            image: nil
         )
     }
 }

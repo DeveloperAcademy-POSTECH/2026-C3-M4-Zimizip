@@ -3,8 +3,11 @@ import UIKit
 
 struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
-    @State private var selectedFilterPreset: MainEditFilterPreset = .original
-    @State private var isShowingCoverSelection = false
+    @State private var previewFilterPreset: MainEditFilterPreset = .original
+    @State private var appliedFilterPreset: MainEditFilterPreset = .original
+    @State private var canvasImage: UIImage?
+    @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
+    @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
     let backButtonAction: () -> Void
@@ -19,7 +22,9 @@ struct MainEditView: View {
         self.framingResult = framingResult
         self.backButtonAction = backButtonAction
         self.completeButtonAction = completeButtonAction
-        self.image = UIImage(data: framingResult.source)
+        let image = UIImage(data: framingResult.source)
+        self.image = image
+        self._canvasImage = State(initialValue: image)
     }
 
     var body: some View {
@@ -48,7 +53,7 @@ struct MainEditView: View {
 
                     MainEditCanvas(
                         framingResult: framingResult,
-                        image: image,
+                        image: canvasImage,
                         frameSize: canvasSize
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
@@ -63,27 +68,51 @@ struct MainEditView: View {
             }
         }
         .background(Color.black)
-        .navigationDestination(isPresented: $isShowingCoverSelection) {
-            CoverSelectionView(
-                framingResult: framingResult,
-                image: image,
-                backButtonAction: {
-                    isShowingCoverSelection = false
-                }
-            )
-            .navigationBarBackButtonHidden(true)
+        .onChange(of: selectedTool) { _, newValue in
+            handleSelectedToolChange(newValue)
+        }
+        .onChange(of: previewFilterPreset) { _, newValue in
+            if selectedTool == .filter {
+                updateCanvasImage(applying: newValue)
+            }
+        }
+        .onChange(of: appliedFilterPreset) { _, newValue in
+            if selectedTool != .filter {
+                updateCanvasImage(applying: newValue)
+            }
+        }
+        .navigationDestination(isPresented: isShowingCoverSelection) {
+            if let mainEditResult {
+                CoverSelectionView(
+                    mainEditResult: mainEditResult,
+                    backButtonAction: {
+                        self.mainEditResult = nil
+                    }
+                )
+                .navigationBarBackButtonHidden(true)
+            }
         }
     }
 }
 
 private extension MainEditView {
+    var isShowingCoverSelection: Binding<Bool> {
+        Binding {
+            mainEditResult != nil
+        } set: { isPresented in
+            if !isPresented {
+                mainEditResult = nil
+            }
+        }
+    }
+
     @ViewBuilder
     var topPanel: some View {
         if selectedTool != .filter {
             TopBar(
                 backButtonAction: backButtonAction,
                 nextButtonAction: {
-                    isShowingCoverSelection = true
+                    showCoverSelection()
                 }
             )
         }
@@ -93,10 +122,10 @@ private extension MainEditView {
     var bottomPanel: some View {
         if selectedTool == .filter {
             MainEditFilterPanel(
-                selectedFilterPreset: $selectedFilterPreset,
-                thumbnailImage: image,
-                cancelAction: dismissFilterPanel,
-                confirmAction: dismissFilterPanel
+                previewFilterPreset: $previewFilterPreset,
+                thumbnailImages: filterThumbnailImages,
+                cancelAction: cancelFilterPreview,
+                confirmAction: applyFilterPreview
             )
         } else {
             EditToolBar(selectedTool: $selectedTool)
@@ -117,8 +146,74 @@ private extension MainEditView {
         }
     }
 
-    func dismissFilterPanel() {
+    func handleSelectedToolChange(_ tool: MainEditTool?) {
+        if tool == .filter {
+            beginFilterPreview()
+        } else {
+            updateCanvasImage(applying: appliedFilterPreset)
+        }
+    }
+
+    func beginFilterPreview() {
+        previewFilterPreset = appliedFilterPreset
+        prepareFilterThumbnailImagesIfNeeded()
+        updateCanvasImage(applying: appliedFilterPreset)
+    }
+
+    func cancelFilterPreview() {
         selectedTool = nil
+        previewFilterPreset = appliedFilterPreset
+    }
+
+    func applyFilterPreview() {
+        appliedFilterPreset = previewFilterPreset
+        selectedTool = nil
+    }
+
+    func showCoverSelection() {
+        mainEditResult = makeMainEditResult()
+    }
+
+    func makeMainEditResult() -> MainEditResult {
+        MainEditResult(
+            framingResult: framingResult,
+            appliedFilterPreset: appliedFilterPreset,
+            image: renderedImage(applying: appliedFilterPreset)
+        )
+    }
+
+    func updateCanvasImage(applying preset: MainEditFilterPreset) {
+        canvasImage = renderedImage(applying: preset)
+    }
+
+    func renderedImage(applying preset: MainEditFilterPreset) -> UIImage? {
+        guard let image else {
+            return nil
+        }
+
+        return MainEditFilterRenderer.shared.image(
+            applying: preset,
+            to: image
+        )
+    }
+
+    func prepareFilterThumbnailImagesIfNeeded() {
+        guard filterThumbnailImages.isEmpty,
+              let image else {
+            return
+        }
+
+        filterThumbnailImages = Dictionary(
+            uniqueKeysWithValues: MainEditFilterPreset.allCases.map { preset in
+                (
+                    preset,
+                    MainEditFilterRenderer.shared.image(
+                        applying: preset,
+                        to: image
+                    )
+                )
+            }
+        )
     }
 }
 
