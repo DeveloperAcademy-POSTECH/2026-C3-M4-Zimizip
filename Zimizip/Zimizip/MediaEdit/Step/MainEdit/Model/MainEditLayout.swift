@@ -28,6 +28,7 @@ enum MainEditLayout {
     static let bottomPanelConfirmIconName = "check"
     static let panelBackgroundColor = bottomPanelBackgroundColor
     static let filterPanelTitle = "필터"
+    static let stickerPanelTitle = "스티커"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
     static let filterThumbnailSize = CGSize(width: 55, height: 65)
