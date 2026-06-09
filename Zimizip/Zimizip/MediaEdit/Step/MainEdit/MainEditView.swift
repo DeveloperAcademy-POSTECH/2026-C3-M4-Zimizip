@@ -6,6 +6,7 @@ struct MainEditView: View {
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var appliedStickerItems: [MainEditStickerItem] = []
+    @State private var selectedStickerItemID: MainEditStickerItem.ID?
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var undoStack: [MainEditEditState] = []
@@ -58,7 +59,8 @@ struct MainEditView: View {
                         framingResult: framingResult,
                         image: canvasImage,
                         frameSize: canvasSize,
-                        stickers: appliedStickerItems
+                        stickers: appliedStickerItems,
+                        selectedStickerID: selectedStickerItemID
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     
@@ -226,7 +228,13 @@ private extension MainEditView {
     }
 
     func selectStickerSource(_ source: MainEditStickerSource) {
-        // Sticker placement is connected in the functionality branch.
+        let sticker = MainEditStickerItem(
+            source: source,
+            zIndex: nextStickerZIndex
+        )
+
+        appliedStickerItems.append(sticker)
+        selectedStickerItemID = sticker.id
     }
 
     func cancelStickerPanel() {
@@ -271,6 +279,11 @@ private extension MainEditView {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
         appliedStickerItems = state.stickers
+
+        if let selectedStickerItemID,
+           !state.stickers.contains(where: { $0.id == selectedStickerItemID }) {
+            self.selectedStickerItemID = nil
+        }
     }
 
     func showCoverSelection() {
@@ -318,6 +331,10 @@ private extension MainEditView {
                 )
             }
         )
+    }
+
+    var nextStickerZIndex: Int {
+        (appliedStickerItems.map(\.zIndex).max() ?? -1) + 1
     }
 }
 

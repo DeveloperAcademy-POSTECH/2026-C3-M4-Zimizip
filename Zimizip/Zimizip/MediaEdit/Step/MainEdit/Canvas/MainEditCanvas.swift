@@ -6,6 +6,7 @@ struct MainEditCanvas: View {
     let image: UIImage?
     let frameSize: CGSize
     var stickers: [MainEditStickerItem] = []
+    var selectedStickerID: MainEditStickerItem.ID?
 
     var body: some View {
         ZStack {
@@ -43,15 +44,25 @@ private extension MainEditCanvas {
 
     func stickerLayer(frameSize: CGSize) -> some View {
         ForEach(orderedStickers) { sticker in
+            stickerView(sticker, frameSize: frameSize)
+        }
+    }
+
+    func stickerView(_ sticker: MainEditStickerItem, frameSize: CGSize) -> some View {
+        let stickerSize = restoredStickerSize(for: sticker, in: frameSize)
+
+        return ZStack {
             Image(sticker.source.imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(
-                    width: restoredStickerSize(for: sticker, in: frameSize).width,
-                    height: restoredStickerSize(for: sticker, in: frameSize).height
-                )
-                .position(restoredStickerCenter(for: sticker, in: frameSize))
+
+            if sticker.id == selectedStickerID {
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .stroke(Color.brandPrimary, lineWidth: 2)
+            }
         }
+        .frame(width: stickerSize.width, height: stickerSize.height)
+        .position(restoredStickerCenter(for: sticker, in: frameSize))
     }
 
     var orderedStickers: [MainEditStickerItem] {
