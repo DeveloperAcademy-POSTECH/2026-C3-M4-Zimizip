@@ -7,6 +7,8 @@ struct IntroductionPage {
 }
 
 struct IntroductionView: View {
+    let onStartButtonTap: () -> Void
+
     @State private var currentPage = 0
 
     private let pages = [
@@ -19,6 +21,10 @@ struct IntroductionView: View {
             buttonTitle: "서프라이즈 준비하기"
         )
     ]
+
+    init(onStartButtonTap: @escaping () -> Void = {}) {
+        self.onStartButtonTap = onStartButtonTap
+    }
 
     var body: some View {
         ZStack {
@@ -52,6 +58,8 @@ struct IntroductionView: View {
                         withTransaction(transaction) {
                             currentPage += 1
                         }
+                    } else {
+                        onStartButtonTap()
                     }
                 }
                 .font(Font.custom("Pretendard-Bold", size: 16))

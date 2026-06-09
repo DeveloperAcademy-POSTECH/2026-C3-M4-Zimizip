@@ -45,6 +45,26 @@ struct CoverRevealRenderer {
 
         return UIImage(cgImage: cgImage)
     }
+
+    func revealedRatio(
+        outputSize: CGSize,
+        revealPoints: [CGPoint],
+        brushRadius: CGFloat
+    ) -> Double {
+        guard outputSize.width > 0,
+              outputSize.height > 0,
+              !revealPoints.isEmpty else {
+            return 0
+        }
+
+        let maskImage = coverVisibleMask(
+            size: outputSize,
+            revealPoints: revealPoints,
+            brushRadius: brushRadius
+        )
+
+        return blackPixelRatio(in: maskImage)
+    }
 }
 
 private extension CoverRevealRenderer {
@@ -102,5 +122,47 @@ private extension CoverRevealRenderer {
 
             cgContext.strokePath()
         }
+    }
+
+    func blackPixelRatio(in image: UIImage) -> Double {
+        guard let cgImage = image.cgImage else {
+            return 0
+        }
+
+        let width = cgImage.width
+        let height = cgImage.height
+        let bytesPerPixel = 4
+        let bytesPerRow = width * bytesPerPixel
+        var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+
+        guard let context = CGContext(
+            data: &pixels,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: bytesPerRow,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else {
+            return 0
+        }
+
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        let pixelCount = width * height
+        var blackPixelCount = 0
+
+        for pixelIndex in 0..<pixelCount {
+            let offset = pixelIndex * bytesPerPixel
+            let red = pixels[offset]
+            let green = pixels[offset + 1]
+            let blue = pixels[offset + 2]
+
+            if red < 128, green < 128, blue < 128 {
+                blackPixelCount += 1
+            }
+        }
+
+        return Double(blackPixelCount) / Double(pixelCount)
     }
 }

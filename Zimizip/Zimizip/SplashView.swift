@@ -1,6 +1,17 @@
 import SwiftUI
 
 struct SplashView: View {
+    let onAnimationCompleted: () -> Void
+
+    @State private var hasCompletedAnimation = false
+
+    private let animationName = "SplashAnimation"
+    private let animationSpeed = 1.2
+
+    init(onAnimationCompleted: @escaping () -> Void = {}) {
+        self.onAnimationCompleted = onAnimationCompleted
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
@@ -30,13 +41,36 @@ struct SplashView: View {
                 }
                 .position(x: centerX, y: centerY - 261 * scale)
 
-                AnimatedImage(name: "SplashAnimation", speed: 1.2)
+                AnimatedImage(name: animationName, speed: animationSpeed)
                     .frame(width: 245 * 1.2 * scale, height: 316 * 1.2 * scale)
                     .clipped()
                     .foregroundStyle(Color("BackgroundPrimary"))
                     .position(x: centerX, y: centerY + 31 * scale)
             }
         }
+        .task {
+            await completeAnimationAfterDelay()
+        }
+    }
+
+    private func completeAnimationAfterDelay() async {
+        guard !hasCompletedAnimation else {
+            return
+        }
+
+        let animationDuration = AnimatedImage.animationDuration(
+            name: animationName,
+            speed: animationSpeed
+        ) ?? 2.5
+
+        try? await Task.sleep(for: .seconds(animationDuration))
+
+        guard !Task.isCancelled, !hasCompletedAnimation else {
+            return
+        }
+
+        hasCompletedAnimation = true
+        onAnimationCompleted()
     }
 }
 

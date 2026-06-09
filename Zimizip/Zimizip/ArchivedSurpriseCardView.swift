@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ArchivedSurpriseCardView: View {
     var onSelectReaction: () -> Void = {}
+    var onHomeTabTap: () -> Void = {}
 
     private let items = [
         ArchivedSurpriseCardItem(title: "지나 쇼미 1차 합격", count: "동영상 3개", imageName: "ArchivedSurpriseCard1"),
@@ -61,9 +62,9 @@ struct ArchivedSurpriseCardView: View {
                 }
                 .ignoresSafeArea(edges: .top)
 
-                ArchiveBottomTabBar()
+                ArchiveBottomTabBar(onHomeTap: onHomeTabTap)
                     .padding(.leading, contentLeading)
-                    .padding(.bottom, 38)
+                    .padding(.bottom, 1)
             }
         }
     }
@@ -163,9 +164,15 @@ private struct ArchiveModeChip: View {
 }
 
 private struct ArchiveBottomTabBar: View {
+    let onHomeTap: () -> Void
+
     var body: some View {
         HStack(spacing: -8) {
-            ArchiveBottomTabBarItem(icon: "house.fill", title: "홈", isSelected: false)
+            Button(action: onHomeTap) {
+                ArchiveBottomTabBarItem(icon: "house.fill", title: "홈", isSelected: false)
+            }
+            .buttonStyle(.plain)
+
             ArchiveBottomTabBarItem(icon: "archivebox.fill", title: "보관함", isSelected: true)
         }
         .padding(.horizontal, 2)
@@ -191,7 +198,7 @@ private struct ArchiveBottomTabBarItem: View {
     var body: some View {
         VStack(spacing: 1) {
             Image(systemName: icon)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .frame(height: 28)
 
             Text(title)

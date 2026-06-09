@@ -3,6 +3,8 @@ import SwiftUI
 struct ArchiveReactionView: View {
     @State private var selectedArchiveMode: ArchiveMode = .reaction
 
+    let onHomeTabTap: () -> Void
+
     private let items = [
         ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "아카데미 C6 시작 ...", count: "동영상 3개", overlayText: nil, opensDetail: true),
         ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], cardFrameName: "ReactionCardFrame2", title: "우주대폭발 광경 ...", count: "동영상 6개", overlayText: "+3"),
@@ -20,6 +22,8 @@ struct ArchiveReactionView: View {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         selectedArchiveMode = .reaction
                     }
+                } onHomeTabTap: {
+                    onHomeTabTap()
                 }
                 .transition(.opacity)
             } else {
@@ -100,9 +104,9 @@ struct ArchiveReactionView: View {
                 }
                 .ignoresSafeArea(edges: .top)
 
-                ArchiveTabBar()
+                ArchiveTabBar(onHomeTap: onHomeTabTap)
                     .padding(.leading, contentLeading)
-                    .padding(.bottom, 38)
+                    .padding(.bottom, 1)
             }
         }
     }
@@ -273,9 +277,15 @@ private struct ArchiveThumbnailView: View {
 }
 
 private struct ArchiveTabBar: View {
+    let onHomeTap: () -> Void
+
     var body: some View {
         HStack(spacing: -8) {
-            ArchiveTabBarItem(icon: "house.fill", title: "홈", isSelected: false)
+            Button(action: onHomeTap) {
+                ArchiveTabBarItem(icon: "house.fill", title: "홈", isSelected: false)
+            }
+            .buttonStyle(.plain)
+
             ArchiveTabBarItem(icon: "archivebox.fill", title: "보관함", isSelected: true)
         }
         .padding(.horizontal, 2)
@@ -301,7 +311,7 @@ private struct ArchiveTabBarItem: View {
     var body: some View {
         VStack(spacing: 1) {
             Image(systemName: icon)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .frame(height: 28)
 
             Text(title)
@@ -336,5 +346,5 @@ private extension Color {
 }
 
 #Preview {
-    ArchiveReactionView()
+    ArchiveReactionView {}
 }
