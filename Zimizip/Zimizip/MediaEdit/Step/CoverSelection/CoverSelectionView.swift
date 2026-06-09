@@ -114,6 +114,7 @@ private extension MainEditResult {
         return MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: .original,
+            appliedAdjustmentValues: [:],
             image: nil
         )
     }
