@@ -194,6 +194,7 @@ private extension MainEditView {
     var currentEditState: MainEditEditState {
         MainEditEditState(
             filterPreset: appliedFilterPreset,
+            adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
             stickers: appliedStickerItems
         )
     }
@@ -260,6 +261,7 @@ private extension MainEditView {
         commitEditState(
             MainEditEditState(
                 filterPreset: previewFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
                 stickers: appliedStickerItems
             )
         )
@@ -278,7 +280,13 @@ private extension MainEditView {
     }
 
     func confirmAdjustmentPanel() {
-        appliedAdjustmentValues = previewAdjustmentValues
+        commitEditState(
+            MainEditEditState(
+                filterPreset: appliedFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(previewAdjustmentValues),
+                stickers: appliedStickerItems
+            )
+        )
         selectedAdjustmentOption = nil
         selectedTool = nil
     }
@@ -388,6 +396,7 @@ private extension MainEditView {
         commitEditState(
             MainEditEditState(
                 filterPreset: appliedFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
                 stickers: previewStickerItems
             )
         )
@@ -430,6 +439,8 @@ private extension MainEditView {
     func applyEditState(_ state: MainEditEditState) {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
+        previewAdjustmentValues = state.adjustmentValues
+        appliedAdjustmentValues = state.adjustmentValues
         appliedStickerItems = state.stickers
         previewStickerItems = state.stickers
 
@@ -478,6 +489,22 @@ private extension MainEditView {
             framingResult: framingResult,
             image: filteredImage,
             stickers: appliedStickerItems
+        )
+    }
+
+    func sanitizedAdjustmentValues(
+        _ values: [MainEditAdjustmentOption: Int]
+    ) -> [MainEditAdjustmentOption: Int] {
+        Dictionary(
+            uniqueKeysWithValues: values.compactMap { option, value in
+                let clampedValue = min(max(value, -100), 100)
+
+                guard clampedValue != 0 else {
+                    return nil
+                }
+
+                return (option, clampedValue)
+            }
         )
     }
 
