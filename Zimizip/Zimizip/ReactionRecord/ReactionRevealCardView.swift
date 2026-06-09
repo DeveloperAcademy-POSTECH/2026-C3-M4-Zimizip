@@ -4,9 +4,12 @@ import UIKit
 struct ReactionRevealCardView: View {
     @State private var revealPoints: [CGPoint] = []
     @State private var revealedImage: UIImage?
+    @State private var isFullyRevealed = false
 
     let surpriseCardPayload: SurpriseCardPayload
     private let renderer = CoverRevealRenderer()
+    private let brushRadius: CGFloat = 20
+    private let autoRevealThreshold = 0.9
 
     var body: some View {
         SurpriseContentFrameView {
@@ -47,6 +50,10 @@ private extension ReactionRevealCardView {
     }
 
     func appendRevealPoint(_ point: CGPoint, in size: CGSize) {
+        guard !isFullyRevealed else {
+            return
+        }
+
         guard point.x >= 0,
               point.y >= 0,
               point.x <= size.width,
@@ -55,12 +62,21 @@ private extension ReactionRevealCardView {
         }
 
         revealPoints.append(point)
+        revealRemainingCoverIfNeeded(size: size)
         renderRevealedImage(size: size)
     }
 
     func renderRevealedImage(size: CGSize) {
-        guard let bottomImage = renderedBottomImage(size: size),
-              let coverImage = UIImage(named: surpriseCardPayload.coverImageName) else {
+        guard let bottomImage = renderedBottomImage(size: size) else {
+            return
+        }
+
+        guard !isFullyRevealed else {
+            revealedImage = bottomImage
+            return
+        }
+
+        guard let coverImage = UIImage(named: surpriseCardPayload.coverImageName) else {
             return
         }
 
@@ -69,8 +85,20 @@ private extension ReactionRevealCardView {
             coverImage: coverImage,
             revealPoints: revealPoints,
             outputSize: size,
-            brushRadius: 20
+            brushRadius: brushRadius
         )
+    }
+
+    func revealRemainingCoverIfNeeded(size: CGSize) {
+        let revealedRatio = renderer.revealedRatio(
+            outputSize: size,
+            revealPoints: revealPoints,
+            brushRadius: brushRadius
+        )
+
+        if revealedRatio >= autoRevealThreshold {
+            isFullyRevealed = true
+        }
     }
 
     @MainActor
