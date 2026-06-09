@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReactionRecordView: View {
     @StateObject private var viewModel: ReactionRecordViewModel
+    @State private var isShowingReactionVideoPlayback = false
     let surpriseCardPayload: SurpriseCardPayload
 
     init(
@@ -27,7 +28,13 @@ struct ReactionRecordView: View {
                 ReactionRecordCompleteView(
                     surpriseProjectTitle: "서프라이즈 프로젝트",
                     thumbnailImage: viewModel.reactionThumbnailImage,
-                    onPrimaryButtonTap: {},
+                    onPrimaryButtonTap: {
+                        guard viewModel.composedReactionVideoURL != nil else {
+                            return
+                        }
+
+                        isShowingReactionVideoPlayback = true
+                    },
                     onHomeButtonTap: {}
                 )
             } else if viewModel.isGeneratingReactionVideo {
@@ -63,6 +70,17 @@ struct ReactionRecordView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $isShowingReactionVideoPlayback) {
+            if let composedReactionVideoURL = viewModel.composedReactionVideoURL {
+                ReactionVideoPlaybackView(
+                    title: surpriseCardPayload.title,
+                    subtitle: "리액션 영상",
+                    videoURL: composedReactionVideoURL
+                ) {
+                    isShowingReactionVideoPlayback = false
+                }
+            }
+        }
     }
 }
 

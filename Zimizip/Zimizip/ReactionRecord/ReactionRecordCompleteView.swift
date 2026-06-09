@@ -37,7 +37,7 @@ struct ReactionRecordCompleteView: View {
                 }
             }
 
-            ZimizipPrimaryButton(title: "보관함 보기", action: onPrimaryButtonTap)
+            ZimizipPrimaryButton(title: "영상 보러가기", action: onPrimaryButtonTap)
 
             ZimizipSecondaryButton(title: "홈 가기", action: onHomeButtonTap)
             

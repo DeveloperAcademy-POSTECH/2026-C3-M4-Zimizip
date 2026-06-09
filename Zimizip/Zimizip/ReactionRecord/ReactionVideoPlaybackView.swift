@@ -9,6 +9,9 @@ struct ReactionVideoPlaybackView: View {
     let onBack: () -> Void
 
     @State private var player: AVPlayer
+    @State private var isPlaying = false
+    @State private var playbackProgress: CGFloat = 0
+    @State private var timeObserverToken: Any?
 
     init(
         title: String,
@@ -51,17 +54,88 @@ struct ReactionVideoPlaybackView: View {
 
                     Spacer()
 
-                    ReactionVideoPlaybackControlBar()
-                        .frame(width: contentWidth, height: 56)
+                    ReactionVideoPlaybackControlBar(
+                        isPlaying: isPlaying,
+                        progress: playbackProgress,
+                        onPlayToggle: togglePlayback
+                    )
+                    .frame(width: contentWidth, height: 56)
 
                     Spacer()
                 }
             }
         }
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            addTimeObserverIfNeeded()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: .AVPlayerItemDidPlayToEndTime,
+                object: player.currentItem
+            )
+        ) { _ in
+            handlePlaybackEnd()
+        }
         .onDisappear {
             player.pause()
+            removeTimeObserver()
         }
+    }
+
+    private func togglePlayback() {
+        if isPlaying {
+            player.pause()
+            isPlaying = false
+            return
+        }
+
+        if playbackProgress >= 1 {
+            player.seek(to: .zero)
+            playbackProgress = 0
+        }
+
+        player.play()
+        isPlaying = true
+    }
+
+    private func addTimeObserverIfNeeded() {
+        guard timeObserverToken == nil else {
+            return
+        }
+
+        let interval = CMTime(seconds: 0.1, preferredTimescale: 600)
+        timeObserverToken = player.addPeriodicTimeObserver(
+            forInterval: interval,
+            queue: .main
+        ) { time in
+            updatePlaybackProgress(currentTime: time)
+        }
+    }
+
+    private func removeTimeObserver() {
+        guard let timeObserverToken else {
+            return
+        }
+
+        player.removeTimeObserver(timeObserverToken)
+        self.timeObserverToken = nil
+    }
+
+    private func updatePlaybackProgress(currentTime: CMTime) {
+        guard let duration = player.currentItem?.duration.seconds,
+              duration.isFinite,
+              duration > 0 else {
+            playbackProgress = 0
+            return
+        }
+
+        playbackProgress = min(1, currentTime.seconds / duration)
+    }
+
+    private func handlePlaybackEnd() {
+        isPlaying = false
+        playbackProgress = 1
     }
 }
 
@@ -133,12 +207,19 @@ private struct ReactionVideoPlaybackCard: View {
 }
 
 private struct ReactionVideoPlaybackControlBar: View {
+    let isPlaying: Bool
+    let progress: CGFloat
+    let onPlayToggle: () -> Void
+
     var body: some View {
         HStack(spacing: 11) {
-            Image(systemName: "pause.fill")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(Color.baseBlack)
-                .frame(width: 28, height: 28)
+            Button(action: onPlayToggle) {
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(Color.baseBlack)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
 
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
@@ -147,7 +228,7 @@ private struct ReactionVideoPlaybackControlBar: View {
 
                     Capsule()
                         .fill(Color.gray250)
-                        .frame(width: proxy.size.width * 0.34)
+                        .frame(width: proxy.size.width * progress)
                 }
             }
             .frame(height: 8)
