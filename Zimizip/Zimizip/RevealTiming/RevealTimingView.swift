@@ -59,6 +59,7 @@ struct RevealTimingView: View {
             }
             .navigationDestination(isPresented: $isShowingReactionRecordGuide) {
                 ReactionRecordGuideView(surpriseCardPayload: surpriseCardPayload)
+                    .navigationBarBackButtonHidden(true)
             }
         }
     }
