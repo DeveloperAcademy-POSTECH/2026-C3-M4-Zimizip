@@ -7,6 +7,9 @@ struct MainEditCanvas: View {
     let frameSize: CGSize
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
+    var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
+    var dragStickerAction: (MainEditStickerItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
+    var endStickerDragAction: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -63,6 +66,17 @@ private extension MainEditCanvas {
         }
         .frame(width: stickerSize.width, height: stickerSize.height)
         .position(restoredStickerCenter(for: sticker, in: frameSize))
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    selectStickerAction(sticker.id)
+                    dragStickerAction(sticker.id, value.translation, frameSize)
+                }
+                .onEnded { _ in
+                    endStickerDragAction()
+                }
+        )
     }
 
     var orderedStickers: [MainEditStickerItem] {
