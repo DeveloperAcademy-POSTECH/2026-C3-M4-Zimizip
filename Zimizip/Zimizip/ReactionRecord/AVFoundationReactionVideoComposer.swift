@@ -209,13 +209,13 @@ final class AVFoundationReactionVideoComposer: ReactionVideoComposing {
         screenRecordingSize: CGSize
     ) -> CGRect {
         let horizontalPadding = renderSize.width * 0.06
-        let bottomPadding = renderSize.height * 0.06
+        let topPadding = renderSize.height * 0.06
         let overlayWidth = renderSize.width / 3
         let overlayHeight = overlayWidth * screenRecordingSize.height / screenRecordingSize.width
 
         return CGRect(
             x: renderSize.width - overlayWidth - horizontalPadding,
-            y: renderSize.height - overlayHeight - bottomPadding,
+            y: topPadding,
             width: overlayWidth,
             height: overlayHeight
         )
