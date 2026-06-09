@@ -293,22 +293,12 @@ private extension MainEditView {
             return
         }
 
-        let stickerSize = stickerDisplaySize(
-            for: previewStickerItems[index],
-            in: frameSize
-        )
-        let horizontalInset = stickerSize.width / 2 / frameSize.width
-        let verticalInset = stickerSize.height / 2 / frameSize.height
         let proposedCenter = CGPoint(
             x: draggingStickerStartCenter.x + translation.width / frameSize.width,
             y: draggingStickerStartCenter.y + translation.height / frameSize.height
         )
 
-        previewStickerItems[index].normalizedCenter = clampedStickerCenter(
-            proposedCenter,
-            horizontalInset: horizontalInset,
-            verticalInset: verticalInset
-        )
+        previewStickerItems[index].normalizedCenter = clampedStickerCenter(proposedCenter)
     }
 
     func endStickerDrag() {
@@ -341,9 +331,7 @@ private extension MainEditView {
             scalingStickerStartScale * magnification
         )
         previewStickerItems[index].normalizedCenter = clampedStickerCenter(
-            previewStickerItems[index].normalizedCenter,
-            for: previewStickerItems[index],
-            in: frameSize
+            previewStickerItems[index].normalizedCenter
         )
     }
 
@@ -480,46 +468,15 @@ private extension MainEditView {
         (previewStickerItems.map(\.zIndex).max() ?? -1) + 1
     }
 
-    func stickerDisplaySize(for sticker: MainEditStickerItem, in frameSize: CGSize) -> CGSize {
-        let baseScale = frameSize.width / MainEditLayout.designWidth
-
-        return CGSize(
-            width: MainEditLayout.stickerThumbnailSize.width * baseScale * sticker.scale,
-            height: MainEditLayout.stickerThumbnailSize.height * baseScale * sticker.scale
-        )
-    }
-
-    func clampedStickerCenter(
-        _ center: CGPoint,
-        for sticker: MainEditStickerItem,
-        in frameSize: CGSize
-    ) -> CGPoint {
-        let stickerSize = stickerDisplaySize(for: sticker, in: frameSize)
-
-        return clampedStickerCenter(
-            center,
-            horizontalInset: stickerSize.width / 2 / frameSize.width,
-            verticalInset: stickerSize.height / 2 / frameSize.height
-        )
-    }
-
-    func clampedStickerCenter(
-        _ center: CGPoint,
-        horizontalInset: CGFloat,
-        verticalInset: CGFloat
-    ) -> CGPoint {
+    func clampedStickerCenter(_ center: CGPoint) -> CGPoint {
         CGPoint(
-            x: clampedNormalizedValue(center.x, inset: horizontalInset),
-            y: clampedNormalizedValue(center.y, inset: verticalInset)
+            x: clampedNormalizedValue(center.x),
+            y: clampedNormalizedValue(center.y)
         )
     }
 
-    func clampedNormalizedValue(_ value: CGFloat, inset: CGFloat) -> CGFloat {
-        guard inset < 0.5 else {
-            return 0.5
-        }
-
-        return min(max(value, inset), 1 - inset)
+    func clampedNormalizedValue(_ value: CGFloat) -> CGFloat {
+        min(max(value, 0), 1)
     }
 
     func clampedStickerScale(_ scale: CGFloat) -> CGFloat {
