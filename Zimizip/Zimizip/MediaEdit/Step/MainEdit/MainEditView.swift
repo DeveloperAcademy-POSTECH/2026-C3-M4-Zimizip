@@ -6,7 +6,8 @@ struct MainEditView: View {
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var selectedAdjustmentOption: MainEditAdjustmentOption?
-    @State private var adjustmentValues: [MainEditAdjustmentOption: Int] = [:]
+    @State private var previewAdjustmentValues: [MainEditAdjustmentOption: Int] = [:]
+    @State private var appliedAdjustmentValues: [MainEditAdjustmentOption: Int] = [:]
     @State private var appliedStickerItems: [MainEditStickerItem] = []
     @State private var previewStickerItems: [MainEditStickerItem] = []
     @State private var selectedStickerItemID: MainEditStickerItem.ID?
@@ -88,7 +89,7 @@ struct MainEditView: View {
                     .padding(.leading, MainEditLayout.historyControlLeadingPadding)
                     .padding(
                         .bottom,
-                        panelHeight + MainEditLayout.historyControlBottomSpacing
+                        historyControlBottomPadding(panelHeight: panelHeight)
                     )
                     .frame(
                         maxWidth: .infinity,
@@ -109,6 +110,22 @@ struct MainEditView: View {
         .onChange(of: appliedFilterPreset) { _, newValue in
             if selectedTool != .filter {
                 updateCanvasImage(applying: newValue)
+            }
+        }
+        .onChange(of: previewAdjustmentValues) { _, newValue in
+            if selectedTool == .adjustment {
+                updateCanvasImage(
+                    applying: appliedFilterPreset,
+                    adjustmentValues: newValue
+                )
+            }
+        }
+        .onChange(of: appliedAdjustmentValues) { _, newValue in
+            if selectedTool != .adjustment {
+                updateCanvasImage(
+                    applying: appliedFilterPreset,
+                    adjustmentValues: newValue
+                )
             }
         }
         .navigationDestination(isPresented: isShowingCoverSelection) {
@@ -160,9 +177,9 @@ private extension MainEditView {
         } else if selectedTool == .adjustment {
             MainEditAdjustmentPanel(
                 selectedOption: $selectedAdjustmentOption,
-                adjustmentValues: $adjustmentValues,
-                cancelAction: closeAdjustmentPanel,
-                confirmAction: closeAdjustmentPanel
+                adjustmentValues: $previewAdjustmentValues,
+                cancelAction: cancelAdjustmentPanel,
+                confirmAction: confirmAdjustmentPanel
             )
         } else if selectedTool == .sticker {
             MainEditStickerPanel(
@@ -177,14 +194,11 @@ private extension MainEditView {
 
     @ViewBuilder
     var historyControls: some View {
-        let canUndo = !undoStack.isEmpty
-        let canRedo = !redoStack.isEmpty
-
-        if selectedTool == nil && (canUndo || canRedo) {
+        if isHistoryControlsPresented {
             MainEditHistoryControls(
-                canUndo: canUndo,
-                canRedo: canRedo,
-                undoAction: undoEdit,
+                canUndo: canUndoCurrentEdit,
+                canRedo: canRedoCurrentEdit,
+                undoAction: undoCurrentEdit,
                 redoAction: redoEdit
             )
         }
@@ -193,6 +207,7 @@ private extension MainEditView {
     var currentEditState: MainEditEditState {
         MainEditEditState(
             filterPreset: appliedFilterPreset,
+            adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
             stickers: appliedStickerItems
         )
     }
@@ -209,6 +224,44 @@ private extension MainEditView {
         selectedTool == .filter ||
             selectedTool == .adjustment ||
             selectedTool == .sticker
+    }
+
+    var hasPendingToolPreviewChanges: Bool {
+        if selectedTool == .filter {
+            return previewFilterPreset != appliedFilterPreset
+        } else if selectedTool == .adjustment {
+            return sanitizedAdjustmentValues(previewAdjustmentValues) !=
+                sanitizedAdjustmentValues(appliedAdjustmentValues)
+        } else if selectedTool == .sticker {
+            return previewStickerItems != appliedStickerItems
+        }
+
+        return false
+    }
+
+    var canUndoCurrentEdit: Bool {
+        hasPendingToolPreviewChanges || !undoStack.isEmpty
+    }
+
+    var canRedoCurrentEdit: Bool {
+        !hasPendingToolPreviewChanges && !redoStack.isEmpty
+    }
+
+    var isHistoryControlsPresented: Bool {
+        canUndoCurrentEdit || canRedoCurrentEdit
+    }
+
+    func historyControlBottomPadding(panelHeight: CGFloat) -> CGFloat {
+        guard isBottomEditingPanelPresented else {
+            return panelHeight + MainEditLayout.historyControlBottomSpacing
+        }
+
+        return max(
+            panelHeight -
+                MainEditLayout.historyControlIconSize -
+                MainEditLayout.historyControlEditingPanelBottomSpacing,
+            0
+        )
     }
 
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
@@ -240,14 +293,20 @@ private extension MainEditView {
         } else if tool == .sticker {
             beginStickerPreview()
         } else {
-            updateCanvasImage(applying: appliedFilterPreset)
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
         }
     }
 
     func beginFilterPreview() {
         previewFilterPreset = appliedFilterPreset
         prepareFilterThumbnailImagesIfNeeded()
-        updateCanvasImage(applying: appliedFilterPreset)
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
     }
 
     func cancelFilterPreview() {
@@ -259,6 +318,7 @@ private extension MainEditView {
         commitEditState(
             MainEditEditState(
                 filterPreset: previewFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
                 stickers: appliedStickerItems
             )
         )
@@ -267,9 +327,27 @@ private extension MainEditView {
 
     func beginAdjustmentPanel() {
         selectedAdjustmentOption = nil
+        previewAdjustmentValues = appliedAdjustmentValues
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
     }
 
-    func closeAdjustmentPanel() {
+    func cancelAdjustmentPanel() {
+        previewAdjustmentValues = appliedAdjustmentValues
+        selectedAdjustmentOption = nil
+        selectedTool = nil
+    }
+
+    func confirmAdjustmentPanel() {
+        commitEditState(
+            MainEditEditState(
+                filterPreset: appliedFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(previewAdjustmentValues),
+                stickers: appliedStickerItems
+            )
+        )
         selectedAdjustmentOption = nil
         selectedTool = nil
     }
@@ -379,6 +457,7 @@ private extension MainEditView {
         commitEditState(
             MainEditEditState(
                 filterPreset: appliedFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
                 stickers: previewStickerItems
             )
         )
@@ -418,9 +497,40 @@ private extension MainEditView {
         applyEditState(nextState)
     }
 
+    func undoCurrentEdit() {
+        if hasPendingToolPreviewChanges {
+            discardCurrentToolPreviewChanges()
+        } else {
+            undoEdit()
+        }
+    }
+
+    func discardCurrentToolPreviewChanges() {
+        if selectedTool == .filter {
+            previewFilterPreset = appliedFilterPreset
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
+        } else if selectedTool == .adjustment {
+            previewAdjustmentValues = appliedAdjustmentValues
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
+        } else if selectedTool == .sticker {
+            previewStickerItems = appliedStickerItems
+            selectedStickerItemID = nil
+            endStickerDrag()
+            endStickerScale()
+        }
+    }
+
     func applyEditState(_ state: MainEditEditState) {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
+        previewAdjustmentValues = state.adjustmentValues
+        appliedAdjustmentValues = state.adjustmentValues
         appliedStickerItems = state.stickers
         previewStickerItems = state.stickers
 
@@ -431,6 +541,10 @@ private extension MainEditView {
 
         endStickerDrag()
         endStickerScale()
+        updateCanvasImage(
+            applying: state.filterPreset,
+            adjustmentValues: state.adjustmentValues
+        )
     }
 
     func showCoverSelection() {
@@ -441,12 +555,26 @@ private extension MainEditView {
         MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: appliedFilterPreset,
+            appliedAdjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
             image: renderedCompositeImage()
         )
     }
 
     func updateCanvasImage(applying preset: MainEditFilterPreset) {
-        canvasImage = renderedImage(applying: preset)
+        updateCanvasImage(
+            applying: preset,
+            adjustmentValues: appliedAdjustmentValues
+        )
+    }
+
+    func updateCanvasImage(
+        applying preset: MainEditFilterPreset,
+        adjustmentValues: [MainEditAdjustmentOption: Int]
+    ) {
+        canvasImage = renderedCanvasImage(
+            applying: preset,
+            adjustmentValues: adjustmentValues
+        )
     }
 
     func renderedImage(applying preset: MainEditFilterPreset) -> UIImage? {
@@ -460,15 +588,48 @@ private extension MainEditView {
         )
     }
 
+    func renderedCanvasImage(
+        applying preset: MainEditFilterPreset,
+        adjustmentValues: [MainEditAdjustmentOption: Int]
+    ) -> UIImage? {
+        guard let filteredImage = renderedImage(applying: preset) else {
+            return nil
+        }
+
+        return MainEditAdjustmentRenderer.shared.image(
+            applying: adjustmentValues,
+            to: filteredImage
+        )
+    }
+
     func renderedCompositeImage() -> UIImage? {
-        guard let filteredImage = renderedImage(applying: appliedFilterPreset) else {
+        guard let renderedImage = renderedCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        ) else {
             return nil
         }
 
         return MainEditCompositeRenderer.shared.image(
             framingResult: framingResult,
-            image: filteredImage,
+            image: renderedImage,
             stickers: appliedStickerItems
+        )
+    }
+
+    func sanitizedAdjustmentValues(
+        _ values: [MainEditAdjustmentOption: Int]
+    ) -> [MainEditAdjustmentOption: Int] {
+        Dictionary(
+            uniqueKeysWithValues: values.compactMap { option, value in
+                let clampedValue = min(max(value, -100), 100)
+
+                guard clampedValue != 0 else {
+                    return nil
+                }
+
+                return (option, clampedValue)
+            }
         )
     }
 
