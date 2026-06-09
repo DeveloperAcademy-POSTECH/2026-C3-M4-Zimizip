@@ -37,11 +37,7 @@ struct ReactionRevealCardView: View {
 private extension ReactionRevealCardView {
     func cardContent(frameSize: CGSize) -> some View {
         ZStack {
-            MainEditCanvas(
-                framingResult: surpriseCardPayload.framingResult,
-                image: surpriseCardPayload.image,
-                frameSize: frameSize
-            )
+            completedImageView(frameSize: frameSize)
 
             Image(surpriseCardPayload.coverImageName)
                 .resizable()
@@ -79,16 +75,20 @@ private extension ReactionRevealCardView {
 
     @MainActor
     func renderedBottomImage(size: CGSize) -> UIImage? {
-        let content = MainEditCanvas(
-            framingResult: surpriseCardPayload.framingResult,
-            image: surpriseCardPayload.image,
-            frameSize: size
-        )
-        .frame(width: size.width, height: size.height)
+        let content = completedImageView(frameSize: size)
+            .frame(width: size.width, height: size.height)
 
         let imageRenderer = ImageRenderer(content: content)
         imageRenderer.scale = 1
         return imageRenderer.uiImage
+    }
+
+    func completedImageView(frameSize: CGSize) -> some View {
+        MainEditCompletedImageView(
+            framingResult: surpriseCardPayload.framingResult,
+            image: surpriseCardPayload.image,
+            frameSize: frameSize
+        )
     }
 }
 

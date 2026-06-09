@@ -426,8 +426,7 @@ private extension MainEditView {
         MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: appliedFilterPreset,
-            stickers: appliedStickerItems,
-            image: renderedImage(applying: appliedFilterPreset)
+            image: renderedCompositeImage()
         )
     }
 
@@ -443,6 +442,18 @@ private extension MainEditView {
         return MainEditFilterRenderer.shared.image(
             applying: preset,
             to: image
+        )
+    }
+
+    func renderedCompositeImage() -> UIImage? {
+        guard let filteredImage = renderedImage(applying: appliedFilterPreset) else {
+            return nil
+        }
+
+        return MainEditCompositeRenderer.shared.image(
+            framingResult: framingResult,
+            image: filteredImage,
+            stickers: appliedStickerItems
         )
     }
 

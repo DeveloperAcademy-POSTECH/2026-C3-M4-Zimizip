@@ -77,7 +77,7 @@ private extension SurpriseCardInputView {
             SurpriseContentFrameView {
                 GeometryReader { proxy in
                     ZStack {
-                        MainEditCanvas(
+                        MainEditCompletedImageView(
                             framingResult: framingResult,
                             image: image,
                             frameSize: proxy.size
