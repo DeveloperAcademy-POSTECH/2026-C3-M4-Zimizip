@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 @MainActor
 final class ReactionRecordViewModel: ObservableObject {
@@ -11,6 +12,8 @@ final class ReactionRecordViewModel: ObservableObject {
     @Published var recordingElapsedSeconds = 0
     @Published var screenRecordingURL: URL?
     @Published var frontCameraRecordingURL: URL?
+    @Published var composedReactionVideoURL: URL?
+    @Published var reactionThumbnailImage: UIImage?
 
     var recordingTimeText: String {
         let hours = recordingElapsedSeconds / 3600
@@ -22,15 +25,19 @@ final class ReactionRecordViewModel: ObservableObject {
 
     private let screenRecorder: VideoRecording
     private let frontCameraRecorder: VideoRecording
+    private let reactionVideoComposer: ReactionVideoComposing
+    private let thumbnailGenerator = ReactionVideoThumbnailGenerator()
     private var hasStartedRecording = false
     private var recordingTimerTask: Task<Void, Never>?
 
     init(
         screenRecorder: VideoRecording? = nil,
-        frontCameraRecorder: VideoRecording? = nil
+        frontCameraRecorder: VideoRecording? = nil,
+        reactionVideoComposer: ReactionVideoComposing? = nil
     ) {
         self.screenRecorder = screenRecorder ?? ReplayKitScreenRecorder()
         self.frontCameraRecorder = frontCameraRecorder ?? AVFoundationFrontCameraRecorder()
+        self.reactionVideoComposer = reactionVideoComposer ?? AVFoundationReactionVideoComposer()
     }
 
     deinit {
@@ -59,6 +66,8 @@ final class ReactionRecordViewModel: ObservableObject {
         do {
             screenRecordingURL = try await screenRecorder.stopRecording()
             frontCameraRecordingURL = try await frontCameraRecorder.stopRecording()
+            composedReactionVideoURL = try await composeReactionVideoIfNeeded()
+            try await generateReactionThumbnailIfNeeded()
             isGeneratingReactionVideo = false
             isRecordingCompleted = true
         } catch {
@@ -111,5 +120,25 @@ final class ReactionRecordViewModel: ObservableObject {
                 frontCameraRecordingURL = try? await frontCameraRecorder.stopRecording()
             }
         }
+    }
+
+    private func generateReactionThumbnailIfNeeded() async throws {
+        guard let composedReactionVideoURL else {
+            return
+        }
+
+        reactionThumbnailImage = try await thumbnailGenerator.thumbnail(from: composedReactionVideoURL)
+    }
+
+    private func composeReactionVideoIfNeeded() async throws -> URL? {
+        guard let frontCameraRecordingURL,
+              let screenRecordingURL else {
+            return nil
+        }
+
+        return try await reactionVideoComposer.compose(
+            frontCameraVideoURL: frontCameraRecordingURL,
+            screenRecordingURL: screenRecordingURL
+        )
     }
 }

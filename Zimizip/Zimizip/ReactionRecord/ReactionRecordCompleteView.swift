@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct ReactionRecordCompleteView: View {
     let surpriseProjectTitle: String
+    let thumbnailImage: UIImage?
     let onPrimaryButtonTap: () -> Void
     let onHomeButtonTap: () -> Void
 
@@ -24,9 +26,15 @@ struct ReactionRecordCompleteView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             SurpriseContentFrameView {
-                Image("Image")
-                    .resizable()
-                    .scaledToFit()
+                if let thumbnailImage {
+                    Image(uiImage: thumbnailImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image("Image")
+                        .resizable()
+                        .scaledToFit()
+                }
             }
 
             ZimizipPrimaryButton(title: "보관함 보기", action: onPrimaryButtonTap)
@@ -47,6 +55,7 @@ struct ReactionRecordCompleteView: View {
 
         ReactionRecordCompleteView(
             surpriseProjectTitle: "서프라이즈 프로젝트",
+            thumbnailImage: nil,
             onPrimaryButtonTap: {},
             onHomeButtonTap: {}
         )
