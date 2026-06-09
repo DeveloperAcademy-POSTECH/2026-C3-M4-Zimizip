@@ -5,6 +5,13 @@ struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
+    @State private var appliedStickerItems: [MainEditStickerItem] = []
+    @State private var previewStickerItems: [MainEditStickerItem] = []
+    @State private var selectedStickerItemID: MainEditStickerItem.ID?
+    @State private var draggingStickerItemID: MainEditStickerItem.ID?
+    @State private var draggingStickerStartCenter: CGPoint?
+    @State private var scalingStickerItemID: MainEditStickerItem.ID?
+    @State private var scalingStickerStartScale: CGFloat?
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var undoStack: [MainEditEditState] = []
@@ -56,7 +63,14 @@ struct MainEditView: View {
                     MainEditCanvas(
                         framingResult: framingResult,
                         image: canvasImage,
-                        frameSize: canvasSize
+                        frameSize: canvasSize,
+                        stickers: canvasStickerItems,
+                        selectedStickerID: canvasSelectedStickerID,
+                        selectStickerAction: selectStickerItem,
+                        dragStickerAction: dragStickerItem,
+                        endStickerDragAction: endStickerDrag,
+                        scaleStickerAction: scaleStickerItem,
+                        endStickerScaleAction: endStickerScale
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     
@@ -168,7 +182,18 @@ private extension MainEditView {
     }
 
     var currentEditState: MainEditEditState {
-        MainEditEditState(filterPreset: appliedFilterPreset)
+        MainEditEditState(
+            filterPreset: appliedFilterPreset,
+            stickers: appliedStickerItems
+        )
+    }
+
+    var canvasStickerItems: [MainEditStickerItem] {
+        selectedTool == .sticker ? previewStickerItems : appliedStickerItems
+    }
+
+    var canvasSelectedStickerID: MainEditStickerItem.ID? {
+        selectedTool == .sticker ? selectedStickerItemID : nil
     }
 
     var isBottomEditingPanelPresented: Bool {
@@ -194,6 +219,8 @@ private extension MainEditView {
     func handleSelectedToolChange(_ tool: MainEditTool?) {
         if tool == .filter {
             beginFilterPreview()
+        } else if tool == .sticker {
+            beginStickerPreview()
         } else {
             updateCanvasImage(applying: appliedFilterPreset)
         }
@@ -212,20 +239,125 @@ private extension MainEditView {
 
     func applyFilterPreview() {
         commitEditState(
-            MainEditEditState(filterPreset: previewFilterPreset)
+            MainEditEditState(
+                filterPreset: previewFilterPreset,
+                stickers: appliedStickerItems
+            )
         )
         selectedTool = nil
     }
 
+    func beginStickerPreview() {
+        previewStickerItems = appliedStickerItems
+        selectedStickerItemID = nil
+        endStickerDrag()
+        endStickerScale()
+    }
+
     func selectStickerSource(_ source: MainEditStickerSource) {
-        // Sticker placement is connected in the functionality branch.
+        let sticker = MainEditStickerItem(
+            source: source,
+            zIndex: nextStickerZIndex
+        )
+
+        previewStickerItems.append(sticker)
+        selectedStickerItemID = sticker.id
+    }
+
+    func selectStickerItem(_ id: MainEditStickerItem.ID) {
+        guard selectedTool == .sticker else {
+            return
+        }
+
+        selectedStickerItemID = id
+    }
+
+    func dragStickerItem(
+        _ id: MainEditStickerItem.ID,
+        translation: CGSize,
+        frameSize: CGSize
+    ) {
+        guard frameSize.width > 0,
+              frameSize.height > 0,
+              selectedTool == .sticker,
+              let index = previewStickerItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        if draggingStickerItemID != id {
+            draggingStickerItemID = id
+            draggingStickerStartCenter = previewStickerItems[index].normalizedCenter
+        }
+
+        guard let draggingStickerStartCenter else {
+            return
+        }
+
+        let proposedCenter = CGPoint(
+            x: draggingStickerStartCenter.x + translation.width / frameSize.width,
+            y: draggingStickerStartCenter.y + translation.height / frameSize.height
+        )
+
+        previewStickerItems[index].normalizedCenter = clampedStickerCenter(proposedCenter)
+    }
+
+    func endStickerDrag() {
+        draggingStickerItemID = nil
+        draggingStickerStartCenter = nil
+    }
+
+    func scaleStickerItem(
+        _ id: MainEditStickerItem.ID,
+        magnification: CGFloat,
+        frameSize: CGSize
+    ) {
+        guard frameSize.width > 0,
+              frameSize.height > 0,
+              selectedTool == .sticker,
+              let index = previewStickerItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        if scalingStickerItemID != id {
+            scalingStickerItemID = id
+            scalingStickerStartScale = previewStickerItems[index].scale
+        }
+
+        guard let scalingStickerStartScale else {
+            return
+        }
+
+        previewStickerItems[index].scale = clampedStickerScale(
+            scalingStickerStartScale * magnification
+        )
+        previewStickerItems[index].normalizedCenter = clampedStickerCenter(
+            previewStickerItems[index].normalizedCenter
+        )
+    }
+
+    func endStickerScale() {
+        scalingStickerItemID = nil
+        scalingStickerStartScale = nil
     }
 
     func cancelStickerPanel() {
+        previewStickerItems = appliedStickerItems
+        selectedStickerItemID = nil
+        endStickerDrag()
+        endStickerScale()
         selectedTool = nil
     }
 
     func confirmStickerPanel() {
+        commitEditState(
+            MainEditEditState(
+                filterPreset: appliedFilterPreset,
+                stickers: previewStickerItems
+            )
+        )
+        selectedStickerItemID = nil
+        endStickerDrag()
+        endStickerScale()
         selectedTool = nil
     }
 
@@ -262,6 +394,16 @@ private extension MainEditView {
     func applyEditState(_ state: MainEditEditState) {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
+        appliedStickerItems = state.stickers
+        previewStickerItems = state.stickers
+
+        if let selectedStickerItemID,
+           !state.stickers.contains(where: { $0.id == selectedStickerItemID }) {
+            self.selectedStickerItemID = nil
+        }
+
+        endStickerDrag()
+        endStickerScale()
     }
 
     func showCoverSelection() {
@@ -272,7 +414,7 @@ private extension MainEditView {
         MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: appliedFilterPreset,
-            image: renderedImage(applying: appliedFilterPreset)
+            image: renderedCompositeImage()
         )
     }
 
@@ -288,6 +430,18 @@ private extension MainEditView {
         return MainEditFilterRenderer.shared.image(
             applying: preset,
             to: image
+        )
+    }
+
+    func renderedCompositeImage() -> UIImage? {
+        guard let filteredImage = renderedImage(applying: appliedFilterPreset) else {
+            return nil
+        }
+
+        return MainEditCompositeRenderer.shared.image(
+            framingResult: framingResult,
+            image: filteredImage,
+            stickers: appliedStickerItems
         )
     }
 
@@ -307,6 +461,28 @@ private extension MainEditView {
                     )
                 )
             }
+        )
+    }
+
+    var nextStickerZIndex: Int {
+        (previewStickerItems.map(\.zIndex).max() ?? -1) + 1
+    }
+
+    func clampedStickerCenter(_ center: CGPoint) -> CGPoint {
+        CGPoint(
+            x: clampedNormalizedValue(center.x),
+            y: clampedNormalizedValue(center.y)
+        )
+    }
+
+    func clampedNormalizedValue(_ value: CGFloat) -> CGFloat {
+        min(max(value, 0), 1)
+    }
+
+    func clampedStickerScale(_ scale: CGFloat) -> CGFloat {
+        min(
+            max(scale, MainEditLayout.stickerMinimumScale),
+            MainEditLayout.stickerMaximumScale
         )
     }
 }

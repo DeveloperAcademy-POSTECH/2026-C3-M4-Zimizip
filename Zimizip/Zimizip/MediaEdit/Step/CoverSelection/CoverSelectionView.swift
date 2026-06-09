@@ -33,10 +33,11 @@ struct CoverSelectionView: View {
                     Spacer()
 
                     ZStack {
-                        MainEditCanvas(
+                        MainEditCompletedImageView(
                             framingResult: mainEditResult.framingResult,
                             image: mainEditResult.image,
-                            frameSize: canvasSize
+                            frameSize: canvasSize,
+                            clipsToPhotoFrame: true
                         )
 
                         if let selectedCoverOption {
