@@ -26,6 +26,7 @@ struct ReactionRecordView: View {
             if viewModel.isRecordingCompleted {
                 ReactionRecordCompleteView(
                     surpriseProjectTitle: "서프라이즈 프로젝트",
+                    thumbnailImage: viewModel.reactionThumbnailImage,
                     onPrimaryButtonTap: {},
                     onHomeButtonTap: {}
                 )
