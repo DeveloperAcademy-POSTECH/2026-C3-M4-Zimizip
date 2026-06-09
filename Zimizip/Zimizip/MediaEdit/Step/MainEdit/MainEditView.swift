@@ -5,6 +5,7 @@ struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
+    @State private var appliedStickerItems: [MainEditStickerItem] = []
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var undoStack: [MainEditEditState] = []
@@ -168,7 +169,10 @@ private extension MainEditView {
     }
 
     var currentEditState: MainEditEditState {
-        MainEditEditState(filterPreset: appliedFilterPreset)
+        MainEditEditState(
+            filterPreset: appliedFilterPreset,
+            stickers: appliedStickerItems
+        )
     }
 
     var isBottomEditingPanelPresented: Bool {
@@ -212,7 +216,10 @@ private extension MainEditView {
 
     func applyFilterPreview() {
         commitEditState(
-            MainEditEditState(filterPreset: previewFilterPreset)
+            MainEditEditState(
+                filterPreset: previewFilterPreset,
+                stickers: appliedStickerItems
+            )
         )
         selectedTool = nil
     }
@@ -262,6 +269,7 @@ private extension MainEditView {
     func applyEditState(_ state: MainEditEditState) {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
+        appliedStickerItems = state.stickers
     }
 
     func showCoverSelection() {
@@ -272,6 +280,7 @@ private extension MainEditView {
         MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: appliedFilterPreset,
+            stickers: appliedStickerItems,
             image: renderedImage(applying: appliedFilterPreset)
         )
     }

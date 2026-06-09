@@ -113,6 +113,7 @@ private extension MainEditResult {
         return MainEditResult(
             framingResult: framingResult,
             appliedFilterPreset: .original,
+            stickers: [],
             image: nil
         )
     }
