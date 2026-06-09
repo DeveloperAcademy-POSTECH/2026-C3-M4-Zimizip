@@ -122,7 +122,7 @@ private extension MainEditView {
 
     @ViewBuilder
     var topPanel: some View {
-        if selectedTool != .filter {
+        if !isBottomEditingPanelPresented {
             TopBar(
                 backButtonAction: backButtonAction,
                 nextButtonAction: {
@@ -140,6 +140,12 @@ private extension MainEditView {
                 thumbnailImages: filterThumbnailImages,
                 cancelAction: cancelFilterPreview,
                 confirmAction: applyFilterPreview
+            )
+        } else if selectedTool == .sticker {
+            MainEditStickerPanel(
+                selectAction: selectStickerSource,
+                cancelAction: cancelStickerPanel,
+                confirmAction: confirmStickerPanel
             )
         } else {
             EditToolBar(selectedTool: $selectedTool)
@@ -165,8 +171,12 @@ private extension MainEditView {
         MainEditEditState(filterPreset: appliedFilterPreset)
     }
 
+    var isBottomEditingPanelPresented: Bool {
+        selectedTool == .filter || selectedTool == .sticker
+    }
+
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
-        selectedTool == .filter
+        isBottomEditingPanelPresented
             ? 0
             : MainEditLayout.topBarTotalHeight(safeAreaInsets: safeAreaInsets)
     }
@@ -174,6 +184,8 @@ private extension MainEditView {
     func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         if selectedTool == .filter {
             MainEditLayout.filterPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else if selectedTool == .sticker {
+            MainEditLayout.stickerPanelTotalHeight(safeAreaInsets: safeAreaInsets)
         } else {
             MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         }
@@ -202,6 +214,18 @@ private extension MainEditView {
         commitEditState(
             MainEditEditState(filterPreset: previewFilterPreset)
         )
+        selectedTool = nil
+    }
+
+    func selectStickerSource(_ source: MainEditStickerSource) {
+        // Sticker placement is connected in the functionality branch.
+    }
+
+    func cancelStickerPanel() {
+        selectedTool = nil
+    }
+
+    func confirmStickerPanel() {
         selectedTool = nil
     }
 

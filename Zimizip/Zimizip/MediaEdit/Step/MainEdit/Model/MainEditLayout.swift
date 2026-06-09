@@ -28,10 +28,15 @@ enum MainEditLayout {
     static let bottomPanelConfirmIconName = "check"
     static let panelBackgroundColor = bottomPanelBackgroundColor
     static let filterPanelTitle = "필터"
+    static let stickerPanelTitle = "스티커"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
     static let filterThumbnailSize = CGSize(width: 55, height: 65)
     static let filterThumbnailLabelFontSize: CGFloat = 14
+    static let stickerThumbnailPanelHeight: CGFloat = 108
+    static let stickerThumbnailPanelPadding: CGFloat = 20
+    static let stickerThumbnailSpacing: CGFloat = 21.75
+    static let stickerThumbnailSize = CGSize(width: 55, height: 50)
     static let historyControlIconSize: CGFloat = 24
     static let historyControlSpacing: CGFloat = 23
     static let historyControlLeadingPadding: CGFloat = 20
@@ -53,6 +58,13 @@ enum MainEditLayout {
 
     static func filterPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         filterThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
+    static func stickerPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        stickerThumbnailPanelHeight +
             bottomPanelActionContentHeight +
             bottomPanelActionBottomPadding +
             safeAreaInsets.bottom
