@@ -44,6 +44,14 @@ enum MainEditLayout {
     static let adjustmentOptionIconSize: CGFloat = 24
     static let adjustmentOptionIconTextSpacing: CGFloat = 18
     static let adjustmentOptionLabelFontSize: CGFloat = 16
+    static let adjustmentSliderHeight: CGFloat = 48
+    static let adjustmentSliderHorizontalPadding: CGFloat = 20
+    static let adjustmentSliderVerticalPadding: CGFloat = 8
+    static let adjustmentSliderContentSpacing: CGFloat = 20
+    static let adjustmentSliderValueWidth: CGFloat = 39
+    static let adjustmentSliderValueFontSize: CGFloat = 16
+    static let adjustmentSliderTrackHeight: CGFloat = 2
+    static let adjustmentSliderThumbSize: CGFloat = 20
     static let stickerMinimumScale: CGFloat = 0.5
     static let stickerMaximumScale: CGFloat = 3
     static let historyControlIconSize: CGFloat = 24
