@@ -81,6 +81,17 @@ enum MainEditLayout {
             safeAreaInsets.bottom
     }
 
+    static func adjustmentPanelTotalHeight(
+        safeAreaInsets: EdgeInsets,
+        isSliderPresented: Bool
+    ) -> CGFloat {
+        (isSliderPresented ? adjustmentSliderHeight : 0) +
+            adjustmentOptionPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
     static func stickerPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         stickerThumbnailPanelHeight +
             bottomPanelActionContentHeight +
