@@ -40,5 +40,6 @@ struct MainEditStickerPanel: View {
         cancelAction: {},
         confirmAction: {}
     )
+    .frame(width: MainEditLayout.designWidth)
     .background(Color.black)
 }

@@ -31,5 +31,6 @@ struct MainEditStickerThumbnailPanel: View {
 
 #Preview {
     MainEditStickerThumbnailPanel()
+        .frame(width: MainEditLayout.designWidth)
         .background(Color.black)
 }
