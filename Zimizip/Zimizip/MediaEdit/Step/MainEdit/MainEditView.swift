@@ -6,7 +6,8 @@ struct MainEditView: View {
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var selectedAdjustmentOption: MainEditAdjustmentOption?
-    @State private var adjustmentValues: [MainEditAdjustmentOption: Int] = [:]
+    @State private var previewAdjustmentValues: [MainEditAdjustmentOption: Int] = [:]
+    @State private var appliedAdjustmentValues: [MainEditAdjustmentOption: Int] = [:]
     @State private var appliedStickerItems: [MainEditStickerItem] = []
     @State private var previewStickerItems: [MainEditStickerItem] = []
     @State private var selectedStickerItemID: MainEditStickerItem.ID?
@@ -160,9 +161,9 @@ private extension MainEditView {
         } else if selectedTool == .adjustment {
             MainEditAdjustmentPanel(
                 selectedOption: $selectedAdjustmentOption,
-                adjustmentValues: $adjustmentValues,
-                cancelAction: closeAdjustmentPanel,
-                confirmAction: closeAdjustmentPanel
+                adjustmentValues: $previewAdjustmentValues,
+                cancelAction: cancelAdjustmentPanel,
+                confirmAction: confirmAdjustmentPanel
             )
         } else if selectedTool == .sticker {
             MainEditStickerPanel(
@@ -267,9 +268,17 @@ private extension MainEditView {
 
     func beginAdjustmentPanel() {
         selectedAdjustmentOption = nil
+        previewAdjustmentValues = appliedAdjustmentValues
     }
 
-    func closeAdjustmentPanel() {
+    func cancelAdjustmentPanel() {
+        previewAdjustmentValues = appliedAdjustmentValues
+        selectedAdjustmentOption = nil
+        selectedTool = nil
+    }
+
+    func confirmAdjustmentPanel() {
+        appliedAdjustmentValues = previewAdjustmentValues
         selectedAdjustmentOption = nil
         selectedTool = nil
     }
