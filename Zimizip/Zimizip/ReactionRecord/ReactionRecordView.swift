@@ -42,7 +42,6 @@ struct ReactionRecordView: View {
             } else {
                 ZStack {
                     ReactionRecordingContentView(
-                        recordingTimeText: viewModel.recordingTimeText,
                         surpriseCardPayload: surpriseCardPayload
                     ) {
                         Task {
