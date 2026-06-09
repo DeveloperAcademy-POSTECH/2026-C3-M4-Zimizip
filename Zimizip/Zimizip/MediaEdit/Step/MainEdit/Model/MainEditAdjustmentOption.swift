@@ -46,7 +46,7 @@ enum MainEditAdjustmentOption: CaseIterable, Hashable, Identifiable {
         case .highlight:
             return "highlightPanel"
         case .shadow:
-            return nil
+            return "exposure"
         case .sharpness:
             return "wheelPanel"
         case .vignette:
