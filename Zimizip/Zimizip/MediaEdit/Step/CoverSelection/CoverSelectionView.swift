@@ -36,7 +36,8 @@ struct CoverSelectionView: View {
                         MainEditCanvas(
                             framingResult: mainEditResult.framingResult,
                             image: mainEditResult.image,
-                            frameSize: canvasSize
+                            frameSize: canvasSize,
+                            stickers: mainEditResult.stickers
                         )
 
                         if let selectedCoverOption {

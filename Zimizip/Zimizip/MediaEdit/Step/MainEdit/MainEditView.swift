@@ -57,7 +57,8 @@ struct MainEditView: View {
                     MainEditCanvas(
                         framingResult: framingResult,
                         image: canvasImage,
-                        frameSize: canvasSize
+                        frameSize: canvasSize,
+                        stickers: appliedStickerItems
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     

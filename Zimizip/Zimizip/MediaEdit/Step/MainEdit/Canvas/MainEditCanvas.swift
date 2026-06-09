@@ -5,6 +5,7 @@ struct MainEditCanvas: View {
     let framingResult: PhotoFramingResult
     let image: UIImage?
     let frameSize: CGSize
+    var stickers: [MainEditStickerItem] = []
 
     var body: some View {
         ZStack {
@@ -33,9 +34,34 @@ private extension MainEditCanvas {
                 )
                 .offset(restoredOffset(in: frameSize))
             }
+
+            stickerLayer(frameSize: frameSize)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
+    }
+
+    func stickerLayer(frameSize: CGSize) -> some View {
+        ForEach(orderedStickers) { sticker in
+            Image(sticker.source.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(
+                    width: restoredStickerSize(for: sticker, in: frameSize).width,
+                    height: restoredStickerSize(for: sticker, in: frameSize).height
+                )
+                .position(restoredStickerCenter(for: sticker, in: frameSize))
+        }
+    }
+
+    var orderedStickers: [MainEditStickerItem] {
+        stickers.sorted { lhs, rhs in
+            if lhs.zIndex == rhs.zIndex {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+
+            return lhs.zIndex < rhs.zIndex
+        }
     }
 
     func restoredPhotoSize(in frameSize: CGSize) -> CGSize {
@@ -49,6 +75,22 @@ private extension MainEditCanvas {
         CGSize(
             width: frameSize.width * framingResult.normalizedOffset.width,
             height: frameSize.height * framingResult.normalizedOffset.height
+        )
+    }
+
+    func restoredStickerCenter(for sticker: MainEditStickerItem, in frameSize: CGSize) -> CGPoint {
+        CGPoint(
+            x: frameSize.width * sticker.normalizedCenter.x,
+            y: frameSize.height * sticker.normalizedCenter.y
+        )
+    }
+
+    func restoredStickerSize(for sticker: MainEditStickerItem, in frameSize: CGSize) -> CGSize {
+        let baseScale = frameSize.width / MainEditLayout.designWidth
+
+        return CGSize(
+            width: MainEditLayout.stickerThumbnailSize.width * baseScale * sticker.scale,
+            height: MainEditLayout.stickerThumbnailSize.height * baseScale * sticker.scale
         )
     }
 }
