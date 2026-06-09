@@ -37,6 +37,8 @@ enum MainEditLayout {
     static let stickerThumbnailPanelPadding: CGFloat = 20
     static let stickerThumbnailSpacing: CGFloat = 21.75
     static let stickerThumbnailSize = CGSize(width: 55, height: 50)
+    static let stickerMinimumScale: CGFloat = 0.5
+    static let stickerMaximumScale: CGFloat = 3
     static let historyControlIconSize: CGFloat = 24
     static let historyControlSpacing: CGFloat = 23
     static let historyControlLeadingPadding: CGFloat = 20

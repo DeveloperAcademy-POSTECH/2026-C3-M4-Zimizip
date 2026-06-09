@@ -10,6 +10,8 @@ struct MainEditCanvas: View {
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
     var dragStickerAction: (MainEditStickerItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
     var endStickerDragAction: () -> Void = {}
+    var scaleStickerAction: (MainEditStickerItem.ID, CGFloat, CGSize) -> Void = { _, _, _ in }
+    var endStickerScaleAction: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -75,6 +77,16 @@ private extension MainEditCanvas {
                 }
                 .onEnded { _ in
                     endStickerDragAction()
+                }
+        )
+        .simultaneousGesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    selectStickerAction(sticker.id)
+                    scaleStickerAction(sticker.id, value, frameSize)
+                }
+                .onEnded { _ in
+                    endStickerScaleAction()
                 }
         )
     }
