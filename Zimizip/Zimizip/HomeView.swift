@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var selectedCardIndex = 1
     @State private var isShowingMediaSourceOption = false
+    @State private var selectedTab: HomeTab = .home
 
     private let surpriseCards = [
         HomeSurpriseCard(imageName: "HomeSurpriseCardLeft", imageMode: .leftCrop, title: "토바에의 깜짝 소식"),
@@ -12,6 +13,18 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
+            switch selectedTab {
+            case .home:
+                homeContent
+            case .archive:
+                ArchiveReactionView {
+                    selectedTab = .home
+                }
+            }
+        }
+    }
+
+    private var homeContent: some View {
             GeometryReader { geometry in
                 let screenWidth = geometry.size.width
                 let screenHeight = geometry.size.height
@@ -58,7 +71,15 @@ struct HomeView: View {
                         .frame(width: 240)
                         .position(x: screenWidth / 2, y: titleY)
 
-                    BottomTabBar()
+                    BottomTabBar(
+                        selectedTab: selectedTab,
+                        onHomeTap: {
+                            selectedTab = .home
+                        },
+                        onArchiveTap: {
+                            selectedTab = .archive
+                        }
+                    )
                         .padding(.leading, contentLeading)
                         .padding(.bottom, 1)
 
@@ -81,8 +102,12 @@ struct HomeView: View {
                 MediaSourceOptionView()
                     .navigationBarBackButtonHidden(true)
             }
-        }
     }
+}
+
+private enum HomeTab {
+    case home
+    case archive
 }
 
 private struct HomeSurpriseCard: Identifiable {
@@ -272,10 +297,21 @@ private struct SurpriseCard: View {
 }
 
 private struct BottomTabBar: View {
+    let selectedTab: HomeTab
+    let onHomeTap: () -> Void
+    let onArchiveTap: () -> Void
+
     var body: some View {
         HStack(spacing: -8) {
-            TabBarItem(systemName: "house.fill", title: "홈", isSelected: true)
-            TabBarItem(systemName: "archivebox.fill", title: "보관함", isSelected: false)
+            Button(action: onHomeTap) {
+                TabBarItem(systemName: "house.fill", title: "홈", isSelected: selectedTab == .home)
+            }
+            .buttonStyle(.plain)
+
+            Button(action: onArchiveTap) {
+                TabBarItem(systemName: "archivebox.fill", title: "보관함", isSelected: selectedTab == .archive)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 2)
         .padding(.vertical, 4)
