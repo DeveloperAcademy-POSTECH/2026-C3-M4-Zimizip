@@ -184,6 +184,8 @@ private extension MainEditView {
     func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         if selectedTool == .filter {
             MainEditLayout.filterPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else if selectedTool == .sticker {
+            MainEditLayout.stickerPanelTotalHeight(safeAreaInsets: safeAreaInsets)
         } else {
             MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         }

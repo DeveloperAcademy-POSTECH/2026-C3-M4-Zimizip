@@ -63,6 +63,13 @@ enum MainEditLayout {
             safeAreaInsets.bottom
     }
 
+    static func stickerPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        stickerThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
     static func canvasSize(
         in containerSize: CGSize,
         safeAreaInsets: EdgeInsets,
