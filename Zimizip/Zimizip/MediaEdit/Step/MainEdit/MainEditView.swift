@@ -89,7 +89,7 @@ struct MainEditView: View {
                     .padding(.leading, MainEditLayout.historyControlLeadingPadding)
                     .padding(
                         .bottom,
-                        panelHeight + MainEditLayout.historyControlBottomSpacing
+                        historyControlBottomPadding(panelHeight: panelHeight)
                     )
                     .frame(
                         maxWidth: .infinity,
@@ -194,14 +194,11 @@ private extension MainEditView {
 
     @ViewBuilder
     var historyControls: some View {
-        let canUndo = !undoStack.isEmpty
-        let canRedo = !redoStack.isEmpty
-
-        if selectedTool == nil && (canUndo || canRedo) {
+        if isHistoryControlsPresented {
             MainEditHistoryControls(
-                canUndo: canUndo,
-                canRedo: canRedo,
-                undoAction: undoEdit,
+                canUndo: canUndoCurrentEdit,
+                canRedo: canRedoCurrentEdit,
+                undoAction: undoCurrentEdit,
                 redoAction: redoEdit
             )
         }
@@ -227,6 +224,44 @@ private extension MainEditView {
         selectedTool == .filter ||
             selectedTool == .adjustment ||
             selectedTool == .sticker
+    }
+
+    var hasPendingToolPreviewChanges: Bool {
+        if selectedTool == .filter {
+            return previewFilterPreset != appliedFilterPreset
+        } else if selectedTool == .adjustment {
+            return sanitizedAdjustmentValues(previewAdjustmentValues) !=
+                sanitizedAdjustmentValues(appliedAdjustmentValues)
+        } else if selectedTool == .sticker {
+            return previewStickerItems != appliedStickerItems
+        }
+
+        return false
+    }
+
+    var canUndoCurrentEdit: Bool {
+        hasPendingToolPreviewChanges || !undoStack.isEmpty
+    }
+
+    var canRedoCurrentEdit: Bool {
+        !hasPendingToolPreviewChanges && !redoStack.isEmpty
+    }
+
+    var isHistoryControlsPresented: Bool {
+        canUndoCurrentEdit || canRedoCurrentEdit
+    }
+
+    func historyControlBottomPadding(panelHeight: CGFloat) -> CGFloat {
+        guard isBottomEditingPanelPresented else {
+            return panelHeight + MainEditLayout.historyControlBottomSpacing
+        }
+
+        return max(
+            panelHeight -
+                MainEditLayout.historyControlIconSize -
+                MainEditLayout.historyControlEditingPanelBottomSpacing,
+            0
+        )
     }
 
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
@@ -322,10 +357,6 @@ private extension MainEditView {
         selectedStickerItemID = nil
         endStickerDrag()
         endStickerScale()
-        updateCanvasImage(
-            applying: state.filterPreset,
-            adjustmentValues: state.adjustmentValues
-        )
     }
 
     func selectStickerSource(_ source: MainEditStickerSource) {
@@ -466,6 +497,35 @@ private extension MainEditView {
         applyEditState(nextState)
     }
 
+    func undoCurrentEdit() {
+        if hasPendingToolPreviewChanges {
+            discardCurrentToolPreviewChanges()
+        } else {
+            undoEdit()
+        }
+    }
+
+    func discardCurrentToolPreviewChanges() {
+        if selectedTool == .filter {
+            previewFilterPreset = appliedFilterPreset
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
+        } else if selectedTool == .adjustment {
+            previewAdjustmentValues = appliedAdjustmentValues
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
+        } else if selectedTool == .sticker {
+            previewStickerItems = appliedStickerItems
+            selectedStickerItemID = nil
+            endStickerDrag()
+            endStickerScale()
+        }
+    }
+
     func applyEditState(_ state: MainEditEditState) {
         previewFilterPreset = state.filterPreset
         appliedFilterPreset = state.filterPreset
@@ -481,6 +541,10 @@ private extension MainEditView {
 
         endStickerDrag()
         endStickerScale()
+        updateCanvasImage(
+            applying: state.filterPreset,
+            adjustmentValues: state.adjustmentValues
+        )
     }
 
     func showCoverSelection() {

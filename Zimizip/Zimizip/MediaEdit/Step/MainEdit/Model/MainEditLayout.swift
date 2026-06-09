@@ -59,6 +59,7 @@ enum MainEditLayout {
     static let historyControlSpacing: CGFloat = 23
     static let historyControlLeadingPadding: CGFloat = 20
     static let historyControlBottomSpacing: CGFloat = 23
+    static let historyControlEditingPanelBottomSpacing: CGFloat = 6
     static let historyUndoIconName = "ri_arrow-go-back-line"
     static let historyRedoIconName = "ri_arrow-go-front-line"
 
