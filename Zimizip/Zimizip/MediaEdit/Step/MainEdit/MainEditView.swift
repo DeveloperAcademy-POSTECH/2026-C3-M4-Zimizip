@@ -5,6 +5,8 @@ struct MainEditView: View {
     @State private var selectedTool: MainEditTool?
     @State private var previewFilterPreset: MainEditFilterPreset = .original
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
+    @State private var selectedAdjustmentOption: MainEditAdjustmentOption?
+    @State private var adjustmentValues: [MainEditAdjustmentOption: Int] = [:]
     @State private var appliedStickerItems: [MainEditStickerItem] = []
     @State private var previewStickerItems: [MainEditStickerItem] = []
     @State private var selectedStickerItemID: MainEditStickerItem.ID?
@@ -155,6 +157,13 @@ private extension MainEditView {
                 cancelAction: cancelFilterPreview,
                 confirmAction: applyFilterPreview
             )
+        } else if selectedTool == .adjustment {
+            MainEditAdjustmentPanel(
+                selectedOption: $selectedAdjustmentOption,
+                adjustmentValues: $adjustmentValues,
+                cancelAction: closeAdjustmentPanel,
+                confirmAction: closeAdjustmentPanel
+            )
         } else if selectedTool == .sticker {
             MainEditStickerPanel(
                 selectAction: selectStickerSource,
@@ -197,7 +206,9 @@ private extension MainEditView {
     }
 
     var isBottomEditingPanelPresented: Bool {
-        selectedTool == .filter || selectedTool == .sticker
+        selectedTool == .filter ||
+            selectedTool == .adjustment ||
+            selectedTool == .sticker
     }
 
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
@@ -209,6 +220,11 @@ private extension MainEditView {
     func bottomPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         if selectedTool == .filter {
             MainEditLayout.filterPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else if selectedTool == .adjustment {
+            MainEditLayout.adjustmentPanelTotalHeight(
+                safeAreaInsets: safeAreaInsets,
+                isSliderPresented: selectedAdjustmentOption != nil
+            )
         } else if selectedTool == .sticker {
             MainEditLayout.stickerPanelTotalHeight(safeAreaInsets: safeAreaInsets)
         } else {
@@ -219,6 +235,8 @@ private extension MainEditView {
     func handleSelectedToolChange(_ tool: MainEditTool?) {
         if tool == .filter {
             beginFilterPreview()
+        } else if tool == .adjustment {
+            beginAdjustmentPanel()
         } else if tool == .sticker {
             beginStickerPreview()
         } else {
@@ -244,6 +262,15 @@ private extension MainEditView {
                 stickers: appliedStickerItems
             )
         )
+        selectedTool = nil
+    }
+
+    func beginAdjustmentPanel() {
+        selectedAdjustmentOption = nil
+    }
+
+    func closeAdjustmentPanel() {
+        selectedAdjustmentOption = nil
         selectedTool = nil
     }
 

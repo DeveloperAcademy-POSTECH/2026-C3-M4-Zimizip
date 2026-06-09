@@ -28,6 +28,7 @@ enum MainEditLayout {
     static let bottomPanelConfirmIconName = "check"
     static let panelBackgroundColor = bottomPanelBackgroundColor
     static let filterPanelTitle = "필터"
+    static let adjustmentPanelTitle = "조정"
     static let stickerPanelTitle = "스티커"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
@@ -37,6 +38,21 @@ enum MainEditLayout {
     static let stickerThumbnailPanelPadding: CGFloat = 20
     static let stickerThumbnailSpacing: CGFloat = 21.75
     static let stickerThumbnailSize = CGSize(width: 55, height: 50)
+    static let adjustmentOptionPanelHeight: CGFloat = 132
+    static let adjustmentOptionPanelPadding: CGFloat = 20
+    static let adjustmentOptionButtonWidth: CGFloat = 76
+    static let adjustmentOptionButtonSpacing: CGFloat = 22
+    static let adjustmentOptionIconSize: CGFloat = 24
+    static let adjustmentOptionIconTextSpacing: CGFloat = 18
+    static let adjustmentOptionLabelFontSize: CGFloat = 16
+    static let adjustmentSliderHeight: CGFloat = 48
+    static let adjustmentSliderHorizontalPadding: CGFloat = 20
+    static let adjustmentSliderVerticalPadding: CGFloat = 8
+    static let adjustmentSliderContentSpacing: CGFloat = 20
+    static let adjustmentSliderValueWidth: CGFloat = 39
+    static let adjustmentSliderValueFontSize: CGFloat = 16
+    static let adjustmentSliderTrackHeight: CGFloat = 2
+    static let adjustmentSliderThumbSize: CGFloat = 20
     static let stickerMinimumScale: CGFloat = 0.5
     static let stickerMaximumScale: CGFloat = 3
     static let historyControlIconSize: CGFloat = 24
@@ -60,6 +76,17 @@ enum MainEditLayout {
 
     static func filterPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         filterThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
+    static func adjustmentPanelTotalHeight(
+        safeAreaInsets: EdgeInsets,
+        isSliderPresented: Bool
+    ) -> CGFloat {
+        (isSliderPresented ? adjustmentSliderHeight : 0) +
+            adjustmentOptionPanelHeight +
             bottomPanelActionContentHeight +
             bottomPanelActionBottomPadding +
             safeAreaInsets.bottom
