@@ -7,6 +7,8 @@ struct MainEditView: View {
     @State private var appliedFilterPreset: MainEditFilterPreset = .original
     @State private var canvasImage: UIImage?
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
+    @State private var undoStack: [MainEditEditState] = []
+    @State private var redoStack: [MainEditEditState] = []
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -65,6 +67,18 @@ struct MainEditView: View {
                         .background(MainEditLayout.bottomPanelBackgroundColor)
                 }
                 .ignoresSafeArea(edges: .bottom)
+
+                historyControls
+                    .padding(.leading, MainEditLayout.historyControlLeadingPadding)
+                    .padding(
+                        .bottom,
+                        panelHeight + MainEditLayout.historyControlBottomSpacing
+                    )
+                    .frame(
+                        maxWidth: .infinity,
+                        maxHeight: .infinity,
+                        alignment: .bottomLeading
+                    )
             }
         }
         .background(Color.black)
@@ -132,6 +146,25 @@ private extension MainEditView {
         }
     }
 
+    @ViewBuilder
+    var historyControls: some View {
+        let canUndo = !undoStack.isEmpty
+        let canRedo = !redoStack.isEmpty
+
+        if selectedTool == nil && (canUndo || canRedo) {
+            MainEditHistoryControls(
+                canUndo: canUndo,
+                canRedo: canRedo,
+                undoAction: undoEdit,
+                redoAction: redoEdit
+            )
+        }
+    }
+
+    var currentEditState: MainEditEditState {
+        MainEditEditState(filterPreset: appliedFilterPreset)
+    }
+
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         selectedTool == .filter
             ? 0
@@ -166,8 +199,45 @@ private extension MainEditView {
     }
 
     func applyFilterPreview() {
-        appliedFilterPreset = previewFilterPreset
+        commitEditState(
+            MainEditEditState(filterPreset: previewFilterPreset)
+        )
         selectedTool = nil
+    }
+
+    func commitEditState(_ newState: MainEditEditState) {
+        let previousState = currentEditState
+
+        guard newState != previousState else {
+            return
+        }
+
+        undoStack.append(previousState)
+        redoStack.removeAll()
+        applyEditState(newState)
+    }
+
+    func undoEdit() {
+        guard let previousState = undoStack.popLast() else {
+            return
+        }
+
+        redoStack.append(currentEditState)
+        applyEditState(previousState)
+    }
+
+    func redoEdit() {
+        guard let nextState = redoStack.popLast() else {
+            return
+        }
+
+        undoStack.append(currentEditState)
+        applyEditState(nextState)
+    }
+
+    func applyEditState(_ state: MainEditEditState) {
+        previewFilterPreset = state.filterPreset
+        appliedFilterPreset = state.filterPreset
     }
 
     func showCoverSelection() {
