@@ -5,7 +5,12 @@ import ImageIO
 struct AnimatedImage: UIViewRepresentable {
     let name: String
     var speed: Double = 1
+    var repeatCount: Int = 0
     var contentMode: UIView.ContentMode = .scaleAspectFit
+
+    static func animationDuration(name: String, speed: Double = 1) -> TimeInterval? {
+        UIImage.animationAsset(named: "\(name)Data", speed: speed)?.duration
+    }
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -43,7 +48,7 @@ struct AnimatedImage: UIViewRepresentable {
             imageView.image = animation.frames.first
             imageView.animationImages = animation.frames
             imageView.animationDuration = animation.duration
-            imageView.animationRepeatCount = 0
+            imageView.animationRepeatCount = repeatCount
             imageView.startAnimating()
         } else {
             imageView.image = UIImage(named: name)
