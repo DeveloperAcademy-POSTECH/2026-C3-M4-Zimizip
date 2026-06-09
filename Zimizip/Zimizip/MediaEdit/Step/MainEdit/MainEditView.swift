@@ -112,6 +112,22 @@ struct MainEditView: View {
                 updateCanvasImage(applying: newValue)
             }
         }
+        .onChange(of: previewAdjustmentValues) { _, newValue in
+            if selectedTool == .adjustment {
+                updateCanvasImage(
+                    applying: appliedFilterPreset,
+                    adjustmentValues: newValue
+                )
+            }
+        }
+        .onChange(of: appliedAdjustmentValues) { _, newValue in
+            if selectedTool != .adjustment {
+                updateCanvasImage(
+                    applying: appliedFilterPreset,
+                    adjustmentValues: newValue
+                )
+            }
+        }
         .navigationDestination(isPresented: isShowingCoverSelection) {
             if let mainEditResult {
                 CoverSelectionView(
@@ -242,14 +258,20 @@ private extension MainEditView {
         } else if tool == .sticker {
             beginStickerPreview()
         } else {
-            updateCanvasImage(applying: appliedFilterPreset)
+            updateCanvasImage(
+                applying: appliedFilterPreset,
+                adjustmentValues: appliedAdjustmentValues
+            )
         }
     }
 
     func beginFilterPreview() {
         previewFilterPreset = appliedFilterPreset
         prepareFilterThumbnailImagesIfNeeded()
-        updateCanvasImage(applying: appliedFilterPreset)
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
     }
 
     func cancelFilterPreview() {
@@ -271,6 +293,10 @@ private extension MainEditView {
     func beginAdjustmentPanel() {
         selectedAdjustmentOption = nil
         previewAdjustmentValues = appliedAdjustmentValues
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
     }
 
     func cancelAdjustmentPanel() {
@@ -296,6 +322,10 @@ private extension MainEditView {
         selectedStickerItemID = nil
         endStickerDrag()
         endStickerScale()
+        updateCanvasImage(
+            applying: state.filterPreset,
+            adjustmentValues: state.adjustmentValues
+        )
     }
 
     func selectStickerSource(_ source: MainEditStickerSource) {
@@ -466,7 +496,20 @@ private extension MainEditView {
     }
 
     func updateCanvasImage(applying preset: MainEditFilterPreset) {
-        canvasImage = renderedImage(applying: preset)
+        updateCanvasImage(
+            applying: preset,
+            adjustmentValues: appliedAdjustmentValues
+        )
+    }
+
+    func updateCanvasImage(
+        applying preset: MainEditFilterPreset,
+        adjustmentValues: [MainEditAdjustmentOption: Int]
+    ) {
+        canvasImage = renderedCanvasImage(
+            applying: preset,
+            adjustmentValues: adjustmentValues
+        )
     }
 
     func renderedImage(applying preset: MainEditFilterPreset) -> UIImage? {
@@ -477,6 +520,20 @@ private extension MainEditView {
         return MainEditFilterRenderer.shared.image(
             applying: preset,
             to: image
+        )
+    }
+
+    func renderedCanvasImage(
+        applying preset: MainEditFilterPreset,
+        adjustmentValues: [MainEditAdjustmentOption: Int]
+    ) -> UIImage? {
+        guard let filteredImage = renderedImage(applying: preset) else {
+            return nil
+        }
+
+        return MainEditAdjustmentRenderer.shared.image(
+            applying: adjustmentValues,
+            to: filteredImage
         )
     }
 
