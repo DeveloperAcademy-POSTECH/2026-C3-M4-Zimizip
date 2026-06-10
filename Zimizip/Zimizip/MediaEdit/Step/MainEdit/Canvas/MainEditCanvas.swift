@@ -6,6 +6,7 @@ struct MainEditCanvas: View {
     let image: UIImage?
     let frameSize: CGSize
     var isTextPreviewPresented: Bool = false
+    var textPreviewTapAction: () -> Void = {}
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
@@ -78,6 +79,8 @@ private extension MainEditCanvas {
         }
         .frame(width: previewSize.width, height: previewSize.height)
         .position(x: frameSize.width / 2, y: frameSize.height / 2)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: textPreviewTapAction)
     }
 
     func textPreviewControlButton(systemName: String) -> some View {

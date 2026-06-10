@@ -19,6 +19,7 @@ struct MainEditView: View {
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var undoStack: [MainEditEditState] = []
     @State private var redoStack: [MainEditEditState] = []
+    @State private var isTextInputPresented = false
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -66,6 +67,7 @@ struct MainEditView: View {
                         image: canvasImage,
                         frameSize: canvasSize,
                         isTextPreviewPresented: selectedTool == .text,
+                        textPreviewTapAction: showTextInputOverlay,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
                         selectStickerAction: selectStickerItem,
@@ -100,6 +102,12 @@ struct MainEditView: View {
                     .frame(height: MainEditLayout.topBarContentHeight, alignment: .top)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .zIndex(1)
+                if isTextInputPresented {
+                    MainEditTextInputOverlay(
+                        cancelAction: dismissTextInputOverlay,
+                        confirmAction: dismissTextInputOverlay
+                    )
+                }
             }
         }
         .background(Color.black)
@@ -495,7 +503,20 @@ private extension MainEditView {
     }
 
     func confirmTextPanel() {
+        isTextInputPresented = false
         selectedTool = nil
+    }
+
+    func showTextInputOverlay() {
+        guard selectedTool == .text else {
+            return
+        }
+
+        isTextInputPresented = true
+    }
+
+    func dismissTextInputOverlay() {
+        isTextInputPresented = false
     }
 
     func commitEditState(_ newState: MainEditEditState) {
