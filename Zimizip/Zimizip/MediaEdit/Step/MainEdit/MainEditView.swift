@@ -123,6 +123,7 @@ struct MainEditView: View {
                 if isTextInputPresented {
                     MainEditTextInputOverlay(
                         text: $textInputDraft,
+                        font: selectedTextFont,
                         cancelAction: cancelTextInputOverlay,
                         confirmAction: confirmTextInputOverlay
                     )
@@ -563,6 +564,12 @@ private extension MainEditView {
             return
         }
 
+        if let selectedTextItemID,
+           previewTextItems.contains(where: { $0.id == selectedTextItemID }) {
+            applyTextFont(font, to: selectedTextItemID)
+            return
+        }
+
         let textItem = MainEditTextItem(
             font: font,
             color: selectedTextColor,
@@ -571,6 +578,18 @@ private extension MainEditView {
 
         previewTextItems.append(textItem)
         selectedTextItemID = textItem.id
+    }
+
+    func applyTextFont(_ font: MainEditTextFont, to id: MainEditTextItem.ID) {
+        guard let index = previewTextItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        previewTextItems[index].styleRuns = fontAppliedStyleRuns(
+            previewTextItems[index].styleRuns,
+            textLength: previewTextItems[index].text.count,
+            font: font
+        )
     }
 
     func selectTextItem(_ id: MainEditTextItem.ID) {
@@ -970,6 +989,29 @@ private extension MainEditView {
         normalizedRun.start = 0
         normalizedRun.length = textLength
         return [normalizedRun]
+    }
+
+    func fontAppliedStyleRuns(
+        _ styleRuns: [MainEditTextStyleRun],
+        textLength: Int,
+        font: MainEditTextFont
+    ) -> [MainEditTextStyleRun] {
+        guard !styleRuns.isEmpty else {
+            return [
+                MainEditTextStyleRun(
+                    start: 0,
+                    length: textLength,
+                    font: font,
+                    color: selectedTextColor
+                )
+            ]
+        }
+
+        return styleRuns.map { styleRun in
+            var updatedRun = styleRun
+            updatedRun.font = font
+            return updatedRun
+        }
     }
 
     func clampedTextCenter(_ center: CGPoint) -> CGPoint {
