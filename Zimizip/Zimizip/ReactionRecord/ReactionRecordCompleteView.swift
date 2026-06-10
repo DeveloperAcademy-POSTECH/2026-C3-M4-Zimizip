@@ -24,6 +24,7 @@ struct ReactionRecordCompleteView: View {
                     .font(Font.custom("Pretendard-Regular", size: 18))
                     .foregroundStyle(Color.gray250)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 28)
 
                 SurpriseContentFrameView {
                     if let thumbnailImage {
@@ -37,8 +38,10 @@ struct ReactionRecordCompleteView: View {
                     }
                 }
                 .frame(maxHeight: cardMaxHeight(for: proxy.size))
+                .padding(.bottom, 24)
 
                 ZimizipPrimaryButton(title: "영상 보러가기", action: onPrimaryButtonTap)
+                    .padding(.bottom, 12)
 
                 ZimizipSecondaryButton(title: "홈 가기", action: onHomeButtonTap)
 
@@ -52,7 +55,10 @@ struct ReactionRecordCompleteView: View {
 
 private extension ReactionRecordCompleteView {
     func cardMaxHeight(for containerSize: CGSize) -> CGFloat {
-        min(containerSize.height * 0.6, 600)
+        let fixedContentHeight: CGFloat = 40 + 72 + 16 + 48 + 28 + 24 + 56 + 12 + 56 + 72
+        let availableHeight = containerSize.height - fixedContentHeight
+
+        return min(max(availableHeight, 180), 420)
     }
 }
 
