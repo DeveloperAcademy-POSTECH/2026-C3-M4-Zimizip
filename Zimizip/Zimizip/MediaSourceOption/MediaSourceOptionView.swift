@@ -48,7 +48,7 @@ struct MediaSourceOptionView: View {
                             subtitle: "서프라이즈를 할 순간을\n바로 담아보세요"
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(OptionItemButtonStyle())
 
                     Spacer()
                         .frame(height: 20)
@@ -64,7 +64,7 @@ struct MediaSourceOptionView: View {
                             subtitle: "이미 저장된 사진으로\n시작해보세요"
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(OptionItemButtonStyle())
 
                     Spacer()
                 }

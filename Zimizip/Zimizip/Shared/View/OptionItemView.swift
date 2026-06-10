@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct OptionItemView: View {
+    @Environment(\.isOptionItemPressed) private var isPressed
+
     let icon: String
     let title: String
     let subtitle: String
-    var isSelected = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -39,17 +40,40 @@ struct OptionItemView: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 128)
-        .background(backgroundColor)
+        .background(Color.backgroundPrimary)
         .overlay {
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(borderColor, lineWidth: 1)
+            ZStack {
+                if isPressed {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.primary100.opacity(0.65))
+                }
+
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(borderColor, lineWidth: 1)
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var borderColor: Color { isSelected ? .gray150 : .primary250 }
+    private var borderColor: Color { isPressed ? .primary250 : .gray150 }
+}
 
-    private var backgroundColor: Color { isSelected ? .backgroundPrimary : .primary100 }
+struct OptionItemButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .environment(\.isOptionItemPressed, configuration.isPressed)
+    }
+}
+
+private struct OptionItemPressedEnvironmentKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+private extension EnvironmentValues {
+    var isOptionItemPressed: Bool {
+        get { self[OptionItemPressedEnvironmentKey.self] }
+        set { self[OptionItemPressedEnvironmentKey.self] = newValue }
+    }
 }
 
 #Preview {
