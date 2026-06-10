@@ -5,8 +5,9 @@ struct MainEditCanvas: View {
     let framingResult: PhotoFramingResult
     let image: UIImage?
     let frameSize: CGSize
-    var isTextPreviewPresented: Bool = false
-    var textPreviewTapAction: () -> Void = {}
+    var texts: [MainEditTextItem] = []
+    var selectedTextID: MainEditTextItem.ID?
+    var textTapAction: (MainEditTextItem.ID) -> Void = { _ in }
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
@@ -43,9 +44,7 @@ private extension MainEditCanvas {
                 .offset(restoredOffset(in: frameSize))
             }
 
-            if isTextPreviewPresented {
-                textPreviewLayer(frameSize: frameSize)
-            }
+            textLayer(frameSize: frameSize)
 
             stickerLayer(frameSize: frameSize)
         }
@@ -53,34 +52,45 @@ private extension MainEditCanvas {
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
     }
 
-    func textPreviewLayer(frameSize: CGSize) -> some View {
-        let previewSize = textPreviewSize(in: frameSize)
+    func textLayer(frameSize: CGSize) -> some View {
+        ForEach(orderedTexts) { text in
+            textPreviewLayer(text, frameSize: frameSize)
+        }
+    }
+
+    func textPreviewLayer(_ textItem: MainEditTextItem, frameSize: CGSize) -> some View {
+        let previewSize = textPreviewSize(for: textItem, in: frameSize)
+        let style = textItem.styleRuns.first
 
         return ZStack {
             RoundedRectangle(cornerRadius: 0)
                 .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
 
-            Text(MainEditLayout.textPreviewPlaceholder)
-                .font(.custom("Pretendard", size: textPreviewFontSize(in: frameSize)).weight(.bold))
-                .foregroundStyle(Color.baseWhite)
+            Text(textItem.text)
+                .font(.custom(style?.font.fontName ?? MainEditTextFont.default.fontName, size: textPreviewFontSize(for: textItem, in: frameSize)))
+                .foregroundStyle(style?.color.color ?? MainEditTextColor.white.color)
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
                 .padding(.horizontal, MainEditLayout.textPreviewControlSize)
 
-            textPreviewControlButton(systemName: MainEditLayout.textPreviewCloseIconName)
-                .position(x: 0, y: 0)
+            if selectedTextID == textItem.id {
+                textPreviewControlButton(systemName: MainEditLayout.textPreviewCloseIconName)
+                    .position(x: 0, y: 0)
 
-            textPreviewControlButton(systemName: MainEditLayout.textPreviewDuplicateIconName)
-                .position(x: 0, y: previewSize.height)
+                textPreviewControlButton(systemName: MainEditLayout.textPreviewDuplicateIconName)
+                    .position(x: 0, y: previewSize.height)
 
-            textPreviewControlButton(systemName: MainEditLayout.textPreviewResizeIconName)
-                .position(x: previewSize.width, y: previewSize.height)
+                textPreviewControlButton(systemName: MainEditLayout.textPreviewResizeIconName)
+                    .position(x: previewSize.width, y: previewSize.height)
+            }
         }
         .frame(width: previewSize.width, height: previewSize.height)
-        .position(x: frameSize.width / 2, y: frameSize.height / 2)
+        .position(restoredTextCenter(for: textItem, in: frameSize))
         .contentShape(Rectangle())
-        .onTapGesture(perform: textPreviewTapAction)
+        .onTapGesture {
+            textTapAction(textItem.id)
+        }
     }
 
     func textPreviewControlButton(systemName: String) -> some View {
@@ -151,6 +161,16 @@ private extension MainEditCanvas {
         }
     }
 
+    var orderedTexts: [MainEditTextItem] {
+        texts.sorted { lhs, rhs in
+            if lhs.zIndex == rhs.zIndex {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+
+            return lhs.zIndex < rhs.zIndex
+        }
+    }
+
     func restoredPhotoSize(in frameSize: CGSize) -> CGSize {
         CGSize(
             width: frameSize.width * framingResult.normalizedBasePhotoSize.width * framingResult.scale,
@@ -172,6 +192,13 @@ private extension MainEditCanvas {
         )
     }
 
+    func restoredTextCenter(for text: MainEditTextItem, in frameSize: CGSize) -> CGPoint {
+        CGPoint(
+            x: frameSize.width * text.normalizedCenter.x,
+            y: frameSize.height * text.normalizedCenter.y
+        )
+    }
+
     func restoredStickerSize(for sticker: MainEditStickerItem, in frameSize: CGSize) -> CGSize {
         let baseScale = frameSize.width / MainEditLayout.designWidth
 
@@ -181,18 +208,18 @@ private extension MainEditCanvas {
         )
     }
 
-    func textPreviewSize(in frameSize: CGSize) -> CGSize {
+    func textPreviewSize(for text: MainEditTextItem, in frameSize: CGSize) -> CGSize {
         let baseScale = frameSize.width / MainEditLayout.designWidth
 
         return CGSize(
-            width: frameSize.width * MainEditLayout.textPreviewBoxWidthRatio,
-            height: MainEditLayout.textPreviewBoxHeight * baseScale
+            width: frameSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale,
+            height: MainEditLayout.textPreviewBoxHeight * baseScale * text.scale
         )
     }
 
-    func textPreviewFontSize(in frameSize: CGSize) -> CGFloat {
+    func textPreviewFontSize(for text: MainEditTextItem, in frameSize: CGSize) -> CGFloat {
         let baseScale = frameSize.width / MainEditLayout.designWidth
 
-        return MainEditLayout.textPreviewTextFontSize * baseScale
+        return MainEditLayout.textPreviewTextFontSize * baseScale * text.scale
     }
 }

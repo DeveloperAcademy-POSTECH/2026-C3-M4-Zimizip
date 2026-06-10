@@ -13,6 +13,8 @@ struct MainEditTextItem: Codable, Identifiable, Equatable {
         id: UUID = UUID(),
         text: String = MainEditLayout.textPreviewPlaceholder,
         styleRuns: [MainEditTextStyleRun]? = nil,
+        font: MainEditTextFont = .default,
+        color: MainEditTextColor = .white,
         normalizedCenter: CGPoint = CGPoint(x: 0.5, y: 0.5),
         scale: CGFloat = 1,
         zIndex: Int
@@ -23,8 +25,8 @@ struct MainEditTextItem: Codable, Identifiable, Equatable {
             MainEditTextStyleRun(
                 start: 0,
                 length: text.count,
-                font: .default,
-                color: .white
+                font: font,
+                color: color
             )
         ]
         self.normalizedCenter = normalizedCenter

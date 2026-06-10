@@ -11,6 +11,11 @@ struct MainEditView: View {
     @State private var appliedStickerItems: [MainEditStickerItem] = []
     @State private var previewStickerItems: [MainEditStickerItem] = []
     @State private var selectedStickerItemID: MainEditStickerItem.ID?
+    @State private var appliedTextItems: [MainEditTextItem] = []
+    @State private var previewTextItems: [MainEditTextItem] = []
+    @State private var selectedTextItemID: MainEditTextItem.ID?
+    @State private var selectedTextFont: MainEditTextFont = .default
+    @State private var selectedTextColor: MainEditTextColor = .white
     @State private var draggingStickerItemID: MainEditStickerItem.ID?
     @State private var draggingStickerStartCenter: CGPoint?
     @State private var scalingStickerItemID: MainEditStickerItem.ID?
@@ -66,8 +71,9 @@ struct MainEditView: View {
                         framingResult: framingResult,
                         image: canvasImage,
                         frameSize: canvasSize,
-                        isTextPreviewPresented: selectedTool == .text,
-                        textPreviewTapAction: showTextInputOverlay,
+                        texts: canvasTextItems,
+                        selectedTextID: canvasSelectedTextID,
+                        textTapAction: selectTextItemForInput,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
                         selectStickerAction: selectStickerItem,
@@ -201,6 +207,9 @@ private extension MainEditView {
             )
         } else if selectedTool == .text {
             MainEditTextPanel(
+                selectedFont: $selectedTextFont,
+                selectedColor: $selectedTextColor,
+                selectFontAction: selectTextFont,
                 cancelAction: cancelTextPanel,
                 confirmAction: confirmTextPanel
             )
@@ -233,8 +242,16 @@ private extension MainEditView {
         selectedTool == .sticker ? previewStickerItems : appliedStickerItems
     }
 
+    var canvasTextItems: [MainEditTextItem] {
+        selectedTool == .text ? previewTextItems : appliedTextItems
+    }
+
     var canvasSelectedStickerID: MainEditStickerItem.ID? {
         selectedTool == .sticker ? selectedStickerItemID : nil
+    }
+
+    var canvasSelectedTextID: MainEditTextItem.ID? {
+        selectedTool == .text ? selectedTextItemID : nil
     }
 
     var isBottomEditingPanelPresented: Bool {
@@ -253,7 +270,7 @@ private extension MainEditView {
         } else if selectedTool == .sticker {
             return previewStickerItems != appliedStickerItems
         } else if selectedTool == .text {
-            return false
+            return previewTextItems != appliedTextItems
         }
 
         return false
@@ -492,6 +509,11 @@ private extension MainEditView {
     }
 
     func beginTextPanel() {
+        previewTextItems = appliedTextItems
+        selectedTextItemID = previewTextItems.last?.id
+        selectedTextFont = selectedTextItemID.flatMap(textFont(for:)) ?? .default
+        selectedTextColor = selectedTextItemID.flatMap(textColor(for:)) ?? .white
+        isTextInputPresented = false
         updateCanvasImage(
             applying: appliedFilterPreset,
             adjustmentValues: appliedAdjustmentValues
@@ -499,19 +521,44 @@ private extension MainEditView {
     }
 
     func cancelTextPanel() {
-        selectedTool = nil
-    }
-
-    func confirmTextPanel() {
+        previewTextItems = appliedTextItems
+        selectedTextItemID = nil
         isTextInputPresented = false
         selectedTool = nil
     }
 
-    func showTextInputOverlay() {
+    func confirmTextPanel() {
+        appliedTextItems = previewTextItems
+        selectedTextItemID = nil
+        isTextInputPresented = false
+        selectedTool = nil
+    }
+
+    func selectTextFont(_ font: MainEditTextFont) {
+        selectedTextFont = font
+
         guard selectedTool == .text else {
             return
         }
 
+        let textItem = MainEditTextItem(
+            font: font,
+            color: selectedTextColor,
+            zIndex: nextTextZIndex
+        )
+
+        previewTextItems.append(textItem)
+        selectedTextItemID = textItem.id
+    }
+
+    func selectTextItemForInput(_ id: MainEditTextItem.ID) {
+        guard selectedTool == .text else {
+            return
+        }
+
+        selectedTextItemID = id
+        selectedTextFont = textFont(for: id) ?? selectedTextFont
+        selectedTextColor = textColor(for: id) ?? selectedTextColor
         isTextInputPresented = true
     }
 
@@ -575,6 +622,10 @@ private extension MainEditView {
             selectedStickerItemID = nil
             endStickerDrag()
             endStickerScale()
+        } else if selectedTool == .text {
+            previewTextItems = appliedTextItems
+            selectedTextItemID = previewTextItems.last?.id
+            isTextInputPresented = false
         }
     }
 
@@ -706,6 +757,26 @@ private extension MainEditView {
 
     var nextStickerZIndex: Int {
         (previewStickerItems.map(\.zIndex).max() ?? -1) + 1
+    }
+
+    var nextTextZIndex: Int {
+        (previewTextItems.map(\.zIndex).max() ?? -1) + 1
+    }
+
+    func textFont(for id: MainEditTextItem.ID) -> MainEditTextFont? {
+        previewTextItems
+            .first(where: { $0.id == id })?
+            .styleRuns
+            .first?
+            .font
+    }
+
+    func textColor(for id: MainEditTextItem.ID) -> MainEditTextColor? {
+        previewTextItems
+            .first(where: { $0.id == id })?
+            .styleRuns
+            .first?
+            .color
     }
 
     func clampedStickerCenter(_ center: CGPoint) -> CGPoint {
