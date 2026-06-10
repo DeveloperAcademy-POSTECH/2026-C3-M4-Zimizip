@@ -3,6 +3,7 @@ import SwiftUI
 struct ReactionRecordView: View {
     @StateObject private var viewModel: ReactionRecordViewModel
     @State private var isShowingReactionVideoPlayback = false
+    @State private var isShowingHome = false
     let surpriseCardPayload: SurpriseCardPayload
 
     init(
@@ -35,7 +36,9 @@ struct ReactionRecordView: View {
 
                         isShowingReactionVideoPlayback = true
                     },
-                    onHomeButtonTap: {}
+                    onHomeButtonTap: {
+                        isShowingHome = true
+                    }
                 )
             } else if viewModel.isGeneratingReactionVideo {
                 ReactionVideoGeneratingView()
@@ -79,6 +82,9 @@ struct ReactionRecordView: View {
                     isShowingReactionVideoPlayback = false
                 }
             }
+        }
+        .fullScreenCover(isPresented: $isShowingHome) {
+            HomeView()
         }
     }
 }

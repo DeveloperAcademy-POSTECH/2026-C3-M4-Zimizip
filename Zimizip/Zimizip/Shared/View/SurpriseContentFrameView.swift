@@ -17,7 +17,6 @@ struct SurpriseContentFrameView<ImageContent: View>: View {
                 .padding(8)
         }
         .aspectRatio(2.0 / 3.0, contentMode: .fit)
-        .padding(20)
     }
 }
 
