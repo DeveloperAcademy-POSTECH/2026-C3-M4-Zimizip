@@ -23,14 +23,23 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     private var videoDeviceInput: AVCaptureDeviceInput?
     private var pendingCaptureCompletion: ((Data?) -> Void)?
 
-    func prepareCameraPreviewIfAuthorized() {
+    func requestCameraPreviewAccess() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             configureSessionIfNeeded()
-        case .notDetermined, .denied, .restricted:
-            break
+            return true
+        case .notDetermined:
+            let granted = await requestCameraAccess()
+
+            if granted {
+                configureSessionIfNeeded()
+            }
+
+            return granted
+        case .denied, .restricted:
+            return false
         @unknown default:
-            break
+            return false
         }
     }
 

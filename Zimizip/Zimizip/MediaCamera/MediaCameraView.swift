@@ -21,6 +21,7 @@ struct MediaCameraView: View {
     @State private var isCapturedLandscape = false
     @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
     @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
+    @State private var isShowingCameraPermissionSettingsPrompt = false
 
     let onPhotoCaptured: (Data, CGRect, Bool) -> Void
 
@@ -86,7 +87,7 @@ struct MediaCameraView: View {
         .statusBarHidden(capturedPhotoData == nil)
         .task {
             startMonitoringDeviceOrientation()
-            camera.prepareCameraPreviewIfAuthorized()
+            await requestCameraAccessFromPreview()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             updateCaptureOrientation()
@@ -138,6 +139,13 @@ struct MediaCameraView: View {
             isCapturedLandscape = physicalDeviceOrientation.isLandscape
             capturedPhotoData = photoData
         }
+    }
+
+    private func requestCameraAccessFromPreview() async {
+        await Task.yield()
+
+        let isGranted = await camera.requestCameraPreviewAccess()
+        isShowingCameraPermissionSettingsPrompt = !isGranted
     }
 
     private func retakePhoto() {
