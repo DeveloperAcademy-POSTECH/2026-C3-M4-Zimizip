@@ -3,6 +3,7 @@ import SwiftUI
 struct MainEditTextPanel: View {
     @State private var selectedTab: MainEditTextPanelTab = .font
     @State private var selectedFontOption: MainEditTextFontOption = .default
+    @State private var selectedColorOption: MainEditTextColorOption = .white
 
     let cancelAction: () -> Void
     let confirmAction: () -> Void
@@ -50,6 +51,8 @@ private extension MainEditTextPanel {
         HStack(alignment: .top, spacing: 0) {
             if selectedTab == .font {
                 fontOptionPanel
+            } else if selectedTab == .color {
+                colorOptionPanel
             } else {
                 Spacer(minLength: 0)
             }
@@ -108,6 +111,65 @@ private extension MainEditTextPanel {
         }
         .buttonStyle(.plain)
     }
+
+    var colorOptionPanel: some View {
+        HStack(alignment: .center, spacing: 0) {
+            ForEach(Array(MainEditTextColorOption.allCases.enumerated()), id: \.element.id) { index, option in
+                colorOptionButton(option)
+
+                if index < MainEditTextColorOption.allCases.count - 1 {
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    func colorOptionButton(_ option: MainEditTextColorOption) -> some View {
+        Button {
+            selectedColorOption = option
+        } label: {
+            ZStack {
+                if selectedColorOption == option {
+                    RoundedRectangle(cornerRadius: MainEditLayout.textColorSelectedRingCornerRadius)
+                        .fill(.clear)
+                        .frame(
+                            width: MainEditLayout.textColorSelectedRingSize,
+                            height: MainEditLayout.textColorSelectedRingSize
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: MainEditLayout.textColorSelectedRingCornerRadius)
+                                .inset(by: -2)
+                                .stroke(
+                                    Color.brandPrimary,
+                                    lineWidth: MainEditLayout.textColorSelectedRingWidth
+                                )
+                        }
+
+                    RoundedRectangle(cornerRadius: MainEditLayout.textColorSelectedFillCornerRadius)
+                        .fill(option.color)
+                        .frame(
+                            width: MainEditLayout.textColorSelectedFillSize,
+                            height: MainEditLayout.textColorSelectedFillSize
+                        )
+                } else {
+                    Circle()
+                        .fill(option.color)
+                        .frame(
+                            width: MainEditLayout.textColorSwatchSize,
+                            height: MainEditLayout.textColorSwatchSize
+                        )
+                }
+            }
+            .frame(
+                width: MainEditLayout.textColorSwatchSize,
+                height: MainEditLayout.textColorSwatchSize
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.accessibilityLabel)
+        .accessibilityAddTraits(selectedColorOption == option ? .isSelected : [])
+    }
 }
 
 private enum MainEditTextPanelTab: CaseIterable, Identifiable {
@@ -145,6 +207,48 @@ private enum MainEditTextFontOption: CaseIterable, Identifiable {
             return "글씨체 1"
         case .second:
             return "글씨체 2"
+        }
+    }
+}
+
+private enum MainEditTextColorOption: CaseIterable, Identifiable {
+    case white
+    case red
+    case orange
+    case yellow
+    case green
+
+    var id: Self {
+        self
+    }
+
+    var color: Color {
+        switch self {
+        case .white:
+            return .white
+        case .red:
+            return Color(red: 1.0, green: 0.08, blue: 0.08)
+        case .orange:
+            return Color(red: 1.0, green: 0.49, blue: 0.04)
+        case .yellow:
+            return Color(red: 1.0, green: 0.90, blue: 0.0)
+        case .green:
+            return Color(red: 0.13, green: 1.0, blue: 0.34)
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .white:
+            return "흰색"
+        case .red:
+            return "빨간색"
+        case .orange:
+            return "주황색"
+        case .yellow:
+            return "노란색"
+        case .green:
+            return "초록색"
         }
     }
 }

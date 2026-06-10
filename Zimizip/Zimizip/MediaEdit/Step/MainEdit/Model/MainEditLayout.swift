@@ -50,6 +50,12 @@ enum MainEditLayout {
     static let textFontOptionCornerRadius: CGFloat = 4
     static let textFontOptionSelectedBorderWidth: CGFloat = 4
     static let textFontOptionLabelFontSize: CGFloat = 16
+    static let textColorSwatchSize: CGFloat = 48
+    static let textColorSelectedRingSize: CGFloat = 40
+    static let textColorSelectedRingCornerRadius: CGFloat = 40
+    static let textColorSelectedRingWidth: CGFloat = 4
+    static let textColorSelectedFillSize: CGFloat = 33.33334
+    static let textColorSelectedFillCornerRadius: CGFloat = 33.33334
     static let adjustmentOptionPanelHeight: CGFloat = 132
     static let adjustmentOptionPanelPadding: CGFloat = 20
     static let adjustmentOptionButtonWidth: CGFloat = 76
