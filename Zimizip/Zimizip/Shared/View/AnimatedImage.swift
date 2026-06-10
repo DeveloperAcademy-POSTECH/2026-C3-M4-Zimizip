@@ -64,7 +64,7 @@ private extension UIImage {
         let duration: TimeInterval
     }
 
-    static func animationAsset(named name: String, speed: Double) -> AnimationAsset? {
+    static func animationAsset(named name: String, speed: Double = 1) -> AnimationAsset? {
         guard
             let dataAsset = NSDataAsset(name: name),
             let source = CGImageSourceCreateWithData(dataAsset.data as CFData, nil)
@@ -93,8 +93,10 @@ private extension UIImage {
             return nil
         }
 
-        let playbackSpeed = max(speed, 0.01)
-        return AnimationAsset(frames: frames, duration: max(duration / playbackSpeed, 0.1))
+        return AnimationAsset(
+            frames: frames,
+            duration: max(duration / max(speed, 0.01), 0.1)
+        )
     }
 
     static func frameDuration(at index: Int, source: CGImageSource) -> TimeInterval {
