@@ -122,20 +122,26 @@ struct MainEditView: View {
                     .frame(height: MainEditLayout.topBarContentHeight, alignment: .top)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .zIndex(1)
-                if isTextInputPresented {
-                    MainEditTextInputOverlay(
-                        text: $textInputDraft,
-                        styleRuns: $textInputStyleRuns,
-                        selectedRange: $textInputSelectedRange,
-                        font: selectedTextFont,
-                        color: selectedTextColor,
-                        cancelAction: cancelTextInputOverlay,
-                        confirmAction: confirmTextInputOverlay
-                    )
-                }
             }
         }
         .background(Color.black)
+        .fullScreenCover(isPresented: $isTextInputPresented) {
+            MainEditTextInputOverlay(
+                text: $textInputDraft,
+                styleRuns: $textInputStyleRuns,
+                selectedRange: $textInputSelectedRange,
+                framingResult: framingResult,
+                image: canvasImage,
+                texts: textInputCanvasTextItems,
+                stickers: canvasStickerItems,
+                font: selectedTextFont,
+                color: selectedTextColor,
+                cancelAction: cancelTextInputOverlay,
+                confirmAction: confirmTextInputOverlay
+            )
+            .presentationBackground(.clear)
+            .interactiveDismissDisabled()
+        }
         .onChange(of: selectedTool) { _, newValue in
             handleSelectedToolChange(newValue)
         }
@@ -273,6 +279,12 @@ private extension MainEditView {
 
     var canvasSelectedTextID: MainEditTextItem.ID? {
         selectedTool == .text ? selectedTextItemID : nil
+    }
+
+    var textInputCanvasTextItems: [MainEditTextItem] {
+        canvasTextItems.filter { textItem in
+            textItem.id != selectedTextItemID
+        }
     }
 
     var isBottomEditingPanelPresented: Bool {

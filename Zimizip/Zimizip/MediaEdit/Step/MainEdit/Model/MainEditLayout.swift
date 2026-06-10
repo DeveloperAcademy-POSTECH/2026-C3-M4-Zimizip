@@ -70,13 +70,16 @@ enum MainEditLayout {
     static let textPreviewCloseIconName = "xmark"
     static let textPreviewDuplicateIconName = "doc.on.doc"
     static let textPreviewResizeIconName = "arrow.up.left.and.arrow.down.right"
-    static let textInputOverlayOpacity: CGFloat = 0.55
     static let textInputTopAdditionalPadding: CGFloat = 20
     static let textInputTopHorizontalPadding: CGFloat = 24
     static let textInputTopButtonHeight: CGFloat = 44
     static let textInputTopButtonFontSize: CGFloat = 16
     static let textInputPreviewFontSize: CGFloat = 28
     static let textInputPreviewHorizontalPadding: CGFloat = 32
+    static let textInputCanvasHorizontalInset: CGFloat = 37
+    static let textInputCanvasVerticalSpacing: CGFloat = 36
+    static let textInputMinimumCanvasHeight: CGFloat = 180
+    static let textInputCanvasDimOpacity: CGFloat = 0.35
     static let textInputSmallPreviewHeight: CGFloat = 76
     static let textInputSmallPreviewHorizontalPadding: CGFloat = 20
     static let textInputSmallPreviewVerticalPadding: CGFloat = 16

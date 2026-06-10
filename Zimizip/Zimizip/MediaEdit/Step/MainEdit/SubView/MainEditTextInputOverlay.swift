@@ -6,6 +6,10 @@ struct MainEditTextInputOverlay: View {
     @Binding var styleRuns: [MainEditTextStyleRun]
     @Binding var selectedRange: NSRange
 
+    let framingResult: PhotoFramingResult
+    let image: UIImage?
+    let texts: [MainEditTextItem]
+    let stickers: [MainEditStickerItem]
     let font: MainEditTextFont
     let color: MainEditTextColor
     let cancelAction: () -> Void
@@ -18,19 +22,21 @@ struct MainEditTextInputOverlay: View {
 
                 Spacer(minLength: 0)
 
-                Text(previewAttributedText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.7)
-                    .padding(.horizontal, MainEditLayout.textInputPreviewHorizontalPadding)
+                canvasPreview(
+                    frameSize: modalCanvasSize(
+                        in: proxy.size,
+                        safeAreaInsets: proxy.safeAreaInsets
+                    )
+                )
 
                 Spacer(minLength: 0)
-
-                bottomInputArea(width: min(proxy.size.width, MainEditLayout.designWidth))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black.opacity(MainEditLayout.textInputOverlayOpacity))
-            .ignoresSafeArea()
+            .background(Color.black)
+            .ignoresSafeArea(.container)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                bottomInputArea(width: min(proxy.size.width, MainEditLayout.designWidth))
+            }
         }
     }
 }
@@ -48,6 +54,54 @@ private extension MainEditTextInputOverlay {
             fallbackColor: color,
             fontSize: MainEditLayout.textInputPreviewFontSize
         )
+    }
+
+    func canvasPreview(frameSize: CGSize) -> some View {
+        ZStack {
+            MainEditCanvas(
+                framingResult: framingResult,
+                image: image,
+                frameSize: frameSize,
+                texts: texts,
+                selectedTextID: nil,
+                stickers: stickers,
+                selectedStickerID: nil
+            )
+            .allowsHitTesting(false)
+
+            RoundedRectangle(
+                cornerRadius: PhotoFramingLayout.frameCornerRadius,
+                style: .continuous
+            )
+            .fill(Color.black.opacity(MainEditLayout.textInputCanvasDimOpacity))
+
+            Text(previewAttributedText)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+                .padding(.horizontal, MainEditLayout.textInputPreviewHorizontalPadding)
+        }
+        .frame(width: frameSize.width, height: frameSize.height)
+    }
+
+    func modalCanvasSize(in size: CGSize, safeAreaInsets: EdgeInsets) -> CGSize {
+        let availableWidth = min(size.width, MainEditLayout.designWidth)
+        let maximumWidth = min(
+            MainEditLayout.maximumCanvasWidth,
+            availableWidth - MainEditLayout.textInputCanvasHorizontalInset * 2
+        )
+        let reservedHeight = safeAreaInsets.top +
+            MainEditLayout.textInputTopAdditionalPadding +
+            MainEditLayout.textInputTopButtonHeight +
+            MainEditLayout.textInputSmallPreviewHeight +
+            MainEditLayout.textInputCanvasVerticalSpacing
+        let maximumHeight = max(
+            MainEditLayout.textInputMinimumCanvasHeight,
+            size.height - reservedHeight
+        )
+        let width = min(maximumWidth, maximumHeight * MainEditLayout.canvasAspectRatio)
+
+        return CGSize(width: width, height: width / MainEditLayout.canvasAspectRatio)
     }
 
     func topBar(safeAreaTop: CGFloat) -> some View {
@@ -116,7 +170,15 @@ private struct MainEditTextInputTextView: UIViewRepresentable {
         textView.textContainer.lineFragmentPadding = 0
         textView.returnKeyType = .done
         textView.keyboardAppearance = .dark
+        textView.autocorrectionType = .no
+        textView.autocapitalizationType = .none
+        textView.spellCheckingType = .no
+        textView.smartDashesType = .no
+        textView.smartQuotesType = .no
+        textView.smartInsertDeleteType = .no
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.inputAssistantItem.leadingBarButtonGroups = []
+        textView.inputAssistantItem.trailingBarButtonGroups = []
 
         DispatchQueue.main.async {
             textView.becomeFirstResponder()
@@ -333,6 +395,16 @@ private extension UIColor {
         text: $text,
         styleRuns: $styleRuns,
         selectedRange: $selectedRange,
+        framingResult: PhotoFramingResult(
+            source: Data(),
+            backgroundColor: .white,
+            transformState: PhotoFramingTransformState(),
+            sourcePreviewFrame: nil,
+            isLandscapeCapture: false
+        ),
+        image: nil,
+        texts: [],
+        stickers: [],
         font: .default,
         color: .white,
         cancelAction: {},
