@@ -17,14 +17,14 @@ struct MainEditTextInputOverlay: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, MainEditLayout.textInputPreviewHorizontalPadding)
 
                 Spacer(minLength: 0)
 
                 bottomInputArea(width: min(proxy.size.width, MainEditLayout.designWidth))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black.opacity(0.55))
+            .background(Color.black.opacity(MainEditLayout.textInputOverlayOpacity))
             .ignoresSafeArea()
         }
     }
@@ -33,20 +33,20 @@ struct MainEditTextInputOverlay: View {
 private extension MainEditTextInputOverlay {
     func topBar(safeAreaTop: CGFloat) -> some View {
         HStack {
-            Button("취소", action: cancelAction)
-                .font(.custom("Pretendard", size: 16).weight(.bold))
+            Button(MainEditLayout.textInputCancelTitle, action: cancelAction)
+                .font(.custom("Pretendard", size: MainEditLayout.textInputTopButtonFontSize).weight(.bold))
                 .foregroundStyle(Color.baseWhite)
                 .frame(height: MainEditLayout.textInputTopButtonHeight)
 
             Spacer(minLength: 0)
 
-            Button("완료", action: confirmAction)
-                .font(.custom("Pretendard", size: 16).weight(.bold))
+            Button(MainEditLayout.textInputConfirmTitle, action: confirmAction)
+                .font(.custom("Pretendard", size: MainEditLayout.textInputTopButtonFontSize).weight(.bold))
                 .foregroundStyle(Color.baseWhite)
                 .frame(height: MainEditLayout.textInputTopButtonHeight)
         }
         .buttonStyle(.plain)
-        .padding(.top, safeAreaTop + 20)
+        .padding(.top, safeAreaTop + MainEditLayout.textInputTopAdditionalPadding)
         .padding(.horizontal, MainEditLayout.textInputTopHorizontalPadding)
     }
 
@@ -62,7 +62,7 @@ private extension MainEditTextInputOverlay {
     }
 
     var smallPreview: some View {
-        HStack(alignment: .top, spacing: 4) {
+        HStack(alignment: .top, spacing: MainEditLayout.textInputSmallPreviewSpacing) {
             Text(MainEditLayout.textPreviewPlaceholder)
                 .font(.custom("Pretendard", size: MainEditLayout.textInputSmallPreviewFontSize).weight(.bold))
                 .foregroundStyle(Color.baseWhite)
@@ -79,27 +79,30 @@ private extension MainEditTextInputOverlay {
     var keyboardMock: some View {
         VStack(spacing: MainEditLayout.textInputKeyboardRowSpacing) {
             keyboardRow(["ㅂ", "ㅈ", "ㄷ", "ㄱ", "ㅅ", "ㅛ", "ㅕ", "ㅑ", "ㅐ", "ㅔ"])
-            keyboardRow(["ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ"], horizontalInset: 16)
+            keyboardRow(
+                ["ㅁ", "ㄴ", "ㅇ", "ㄹ", "ㅎ", "ㅗ", "ㅓ", "ㅏ", "ㅣ"],
+                horizontalInset: MainEditLayout.textInputKeyboardSecondRowInset
+            )
             keyboardRow(["⇧", "ㅋ", "ㅌ", "ㅊ", "ㅍ", "ㅠ", "ㅜ", "ㅡ", "⌫"])
             keyboardBottomRow
 
             HStack {
-                Image(systemName: "globe")
-                    .font(.system(size: 30, weight: .regular))
+                Image(systemName: MainEditLayout.textInputGlobeIconName)
+                    .font(.system(size: MainEditLayout.textInputKeyboardUtilityIconSize, weight: .regular))
                     .foregroundStyle(Color.baseWhite)
 
                 Spacer(minLength: 0)
 
-                Image(systemName: "mic")
-                    .font(.system(size: 30, weight: .regular))
+                Image(systemName: MainEditLayout.textInputMicrophoneIconName)
+                    .font(.system(size: MainEditLayout.textInputKeyboardUtilityIconSize, weight: .regular))
                     .foregroundStyle(Color.baseWhite)
             }
-            .padding(.horizontal, 30)
-            .padding(.top, 2)
+            .padding(.horizontal, MainEditLayout.textInputKeyboardUtilityHorizontalPadding)
+            .padding(.top, MainEditLayout.textInputKeyboardUtilityTopPadding)
         }
         .padding(.horizontal, MainEditLayout.textInputKeyboardHorizontalPadding)
         .padding(.vertical, MainEditLayout.textInputKeyboardVerticalPadding)
-        .background(Color.black.opacity(0.82))
+        .background(Color.black.opacity(MainEditLayout.textInputKeyboardBackgroundOpacity))
         .clipShape(
             RoundedRectangle(
                 cornerRadius: MainEditLayout.textInputKeyboardCornerRadius,
@@ -119,20 +122,23 @@ private extension MainEditTextInputOverlay {
 
     var keyboardBottomRow: some View {
         HStack(spacing: MainEditLayout.textInputKeyboardKeySpacing) {
-            keyboardKey("123", width: 54)
-            keyboardKey("☻", width: 46)
+            keyboardKey("123", width: MainEditLayout.textInputKeyboardNumberKeyWidth)
+            keyboardKey("☻", width: MainEditLayout.textInputKeyboardEmojiKeyWidth)
             keyboardKey("한", width: nil)
-            keyboardKey("↩", width: 90)
+            keyboardKey("↩", width: MainEditLayout.textInputKeyboardReturnKeyWidth)
         }
     }
 
-    func keyboardKey(_ text: String, width: CGFloat? = 31) -> some View {
+    func keyboardKey(
+        _ text: String,
+        width: CGFloat? = MainEditLayout.textInputKeyboardKeyWidth
+    ) -> some View {
         Text(text)
             .font(.custom("Pretendard", size: MainEditLayout.textInputKeyboardKeyFontSize).weight(.medium))
             .foregroundStyle(Color.baseWhite)
             .frame(maxWidth: width == nil ? .infinity : nil)
             .frame(width: width, height: MainEditLayout.textInputKeyboardKeyHeight)
-            .background(Color.gray400.opacity(0.75))
+            .background(Color.gray400.opacity(MainEditLayout.textInputKeyboardKeyOpacity))
             .clipShape(
                 RoundedRectangle(
                     cornerRadius: MainEditLayout.textInputKeyboardKeyCornerRadius,
