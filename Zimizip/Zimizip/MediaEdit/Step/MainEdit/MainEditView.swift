@@ -19,6 +19,7 @@ struct MainEditView: View {
     @State private var filterThumbnailImages: [MainEditFilterPreset: UIImage] = [:]
     @State private var undoStack: [MainEditEditState] = []
     @State private var redoStack: [MainEditEditState] = []
+    @State private var isTextInputPresented = false
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -65,6 +66,8 @@ struct MainEditView: View {
                         framingResult: framingResult,
                         image: canvasImage,
                         frameSize: canvasSize,
+                        isTextPreviewPresented: selectedTool == .text,
+                        textPreviewTapAction: showTextInputOverlay,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
                         selectStickerAction: selectStickerItem,
@@ -99,6 +102,12 @@ struct MainEditView: View {
                     .frame(height: MainEditLayout.topBarContentHeight, alignment: .top)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                     .zIndex(1)
+                if isTextInputPresented {
+                    MainEditTextInputOverlay(
+                        cancelAction: dismissTextInputOverlay,
+                        confirmAction: dismissTextInputOverlay
+                    )
+                }
             }
         }
         .background(Color.black)
@@ -190,6 +199,11 @@ private extension MainEditView {
                 cancelAction: cancelStickerPanel,
                 confirmAction: confirmStickerPanel
             )
+        } else if selectedTool == .text {
+            MainEditTextPanel(
+                cancelAction: cancelTextPanel,
+                confirmAction: confirmTextPanel
+            )
         } else {
             EditToolBar(selectedTool: $selectedTool)
         }
@@ -226,7 +240,8 @@ private extension MainEditView {
     var isBottomEditingPanelPresented: Bool {
         selectedTool == .filter ||
             selectedTool == .adjustment ||
-            selectedTool == .sticker
+            selectedTool == .sticker ||
+            selectedTool == .text
     }
 
     var hasPendingToolPreviewChanges: Bool {
@@ -237,6 +252,8 @@ private extension MainEditView {
                 sanitizedAdjustmentValues(appliedAdjustmentValues)
         } else if selectedTool == .sticker {
             return previewStickerItems != appliedStickerItems
+        } else if selectedTool == .text {
+            return false
         }
 
         return false
@@ -283,6 +300,8 @@ private extension MainEditView {
             )
         } else if selectedTool == .sticker {
             MainEditLayout.stickerPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else if selectedTool == .text {
+            MainEditLayout.textPanelTotalHeight(safeAreaInsets: safeAreaInsets)
         } else {
             MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         }
@@ -295,6 +314,8 @@ private extension MainEditView {
             beginAdjustmentPanel()
         } else if tool == .sticker {
             beginStickerPreview()
+        } else if tool == .text {
+            beginTextPanel()
         } else {
             updateCanvasImage(
                 applying: appliedFilterPreset,
@@ -468,6 +489,34 @@ private extension MainEditView {
         endStickerDrag()
         endStickerScale()
         selectedTool = nil
+    }
+
+    func beginTextPanel() {
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
+    }
+
+    func cancelTextPanel() {
+        selectedTool = nil
+    }
+
+    func confirmTextPanel() {
+        isTextInputPresented = false
+        selectedTool = nil
+    }
+
+    func showTextInputOverlay() {
+        guard selectedTool == .text else {
+            return
+        }
+
+        isTextInputPresented = true
+    }
+
+    func dismissTextInputOverlay() {
+        isTextInputPresented = false
     }
 
     func commitEditState(_ newState: MainEditEditState) {

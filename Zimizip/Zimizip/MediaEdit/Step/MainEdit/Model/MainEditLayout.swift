@@ -30,6 +30,7 @@ enum MainEditLayout {
     static let filterPanelTitle = "필터"
     static let adjustmentPanelTitle = "조정"
     static let stickerPanelTitle = "스티커"
+    static let textPanelTitle = "텍스트"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
     static let filterThumbnailSize = CGSize(width: 55, height: 65)
@@ -38,6 +39,68 @@ enum MainEditLayout {
     static let stickerThumbnailPanelPadding: CGFloat = 20
     static let stickerThumbnailSpacing: CGFloat = 21.75
     static let stickerThumbnailSize = CGSize(width: 55, height: 50)
+    static let textMenuBarHeight: CGFloat = 48
+    static let textMenuHorizontalPadding: CGFloat = 20
+    static let textMenuVerticalPadding: CGFloat = 8
+    static let textMenuItemSpacing: CGFloat = 20
+    static let textMenuFontSize: CGFloat = 16
+    static let textContentPanelHeight: CGFloat = 108
+    static let textContentPanelPadding: CGFloat = 20
+    static let textFontOptionSize = CGSize(width: 100, height: 66)
+    static let textFontOptionCornerRadius: CGFloat = 4
+    static let textFontOptionSelectedBorderWidth: CGFloat = 4
+    static let textFontOptionLabelFontSize: CGFloat = 16
+    static let textColorSwatchSize: CGFloat = 48
+    static let textColorSelectedRingSize: CGFloat = 40
+    static let textColorSelectedRingCornerRadius: CGFloat = 40
+    static let textColorSelectedRingWidth: CGFloat = 4
+    static let textColorSelectedFillSize: CGFloat = 33.33334
+    static let textColorSelectedFillCornerRadius: CGFloat = 33.33334
+    static let textPreviewBoxWidthRatio: CGFloat = 0.78
+    static let textPreviewBoxHeight: CGFloat = 56
+    static let textPreviewBoxBorderWidth: CGFloat = 2
+    static let textPreviewControlSize: CGFloat = 20
+    static let textPreviewControlIconSize: CGFloat = 10
+    static let textPreviewTextFontSize: CGFloat = 20
+    static let textPreviewPlaceholder = "텍스트를 입력하세요"
+    static let textPreviewCloseIconName = "xmark"
+    static let textPreviewDuplicateIconName = "doc.on.doc"
+    static let textPreviewResizeIconName = "arrow.up.left.and.arrow.down.right"
+    static let textInputOverlayOpacity: CGFloat = 0.55
+    static let textInputTopAdditionalPadding: CGFloat = 20
+    static let textInputTopHorizontalPadding: CGFloat = 24
+    static let textInputTopButtonHeight: CGFloat = 44
+    static let textInputTopButtonFontSize: CGFloat = 16
+    static let textInputPreviewFontSize: CGFloat = 28
+    static let textInputPreviewHorizontalPadding: CGFloat = 32
+    static let textInputSmallPreviewHeight: CGFloat = 76
+    static let textInputSmallPreviewHorizontalPadding: CGFloat = 20
+    static let textInputSmallPreviewVerticalPadding: CGFloat = 16
+    static let textInputSmallPreviewSpacing: CGFloat = 4
+    static let textInputSmallPreviewFontSize: CGFloat = 14
+    static let textInputKeyboardHeight: CGFloat = 308
+    static let textInputKeyboardCornerRadius: CGFloat = 28
+    static let textInputKeyboardHorizontalPadding: CGFloat = 10
+    static let textInputKeyboardVerticalPadding: CGFloat = 32
+    static let textInputKeyboardRowSpacing: CGFloat = 14
+    static let textInputKeyboardSecondRowInset: CGFloat = 16
+    static let textInputKeyboardKeySpacing: CGFloat = 8
+    static let textInputKeyboardKeyHeight: CGFloat = 40
+    static let textInputKeyboardKeyCornerRadius: CGFloat = 8
+    static let textInputKeyboardKeyFontSize: CGFloat = 22
+    static let textInputKeyboardKeyWidth: CGFloat = 31
+    static let textInputKeyboardNumberKeyWidth: CGFloat = 54
+    static let textInputKeyboardEmojiKeyWidth: CGFloat = 46
+    static let textInputKeyboardReturnKeyWidth: CGFloat = 90
+    static let textInputKeyboardUtilityIconSize: CGFloat = 30
+    static let textInputKeyboardUtilityHorizontalPadding: CGFloat = 30
+    static let textInputKeyboardUtilityTopPadding: CGFloat = 2
+    static let textInputKeyboardBackgroundOpacity: CGFloat = 0.82
+    static let textInputKeyboardKeyOpacity: CGFloat = 0.75
+    static let textInputCancelTitle = "취소"
+    static let textInputConfirmTitle = "완료"
+    static let textInputGlobeIconName = "globe"
+    static let textInputMicrophoneIconName = "mic"
     static let adjustmentOptionPanelHeight: CGFloat = 132
     static let adjustmentOptionPanelPadding: CGFloat = 20
     static let adjustmentOptionButtonWidth: CGFloat = 76
@@ -95,6 +158,14 @@ enum MainEditLayout {
 
     static func stickerPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         stickerThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
+    static func textPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        textMenuBarHeight +
+            textContentPanelHeight +
             bottomPanelActionContentHeight +
             bottomPanelActionBottomPadding +
             safeAreaInsets.bottom
