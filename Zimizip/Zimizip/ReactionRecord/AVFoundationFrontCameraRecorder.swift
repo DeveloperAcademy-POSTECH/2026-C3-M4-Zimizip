@@ -97,9 +97,7 @@ final class AVFoundationFrontCameraRecorder: NSObject, VideoRecording {
     }
 
     private func addFrontCameraInput() throws {
-        guard
-            let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
-        else {
+        guard let camera = preferredFrontCamera() else {
             throw FrontCameraRecorderError.frontCameraUnavailable
         }
 
@@ -110,6 +108,29 @@ final class AVFoundationFrontCameraRecorder: NSObject, VideoRecording {
         }
 
         session.addInput(input)
+    }
+
+    private func preferredFrontCamera() -> AVCaptureDevice? {
+        if let ultraWideCamera = AVCaptureDevice.default(
+            .builtInUltraWideCamera,
+            for: .video,
+            position: .front
+        ) {
+            print("[ReactionRecord] front ultra wide camera selected for 0.5x recording")
+            return ultraWideCamera
+        }
+
+        if let wideCamera = AVCaptureDevice.default(
+            .builtInWideAngleCamera,
+            for: .video,
+            position: .front
+        ) {
+            print("[ReactionRecord] front ultra wide camera unavailable. fallback to front wide camera")
+            return wideCamera
+        }
+
+        print("[ReactionRecord] no front camera available")
+        return nil
     }
 
     private func addMovieOutput() throws {
