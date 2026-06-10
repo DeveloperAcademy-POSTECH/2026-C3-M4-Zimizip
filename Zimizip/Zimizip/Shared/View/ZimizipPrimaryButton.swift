@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ZimizipPrimaryButton: View {
     let title: String
+    var backgroundColor: Color = .brandPrimary
     let action: () -> Void
 
     var body: some View {
@@ -10,7 +11,7 @@ struct ZimizipPrimaryButton: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
-            .background(.brandPrimary)
+            .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }

@@ -7,9 +7,11 @@ struct ReactionRevealCardView: View {
     @State private var isFullyRevealed = false
 
     let surpriseCardPayload: SurpriseCardPayload
+    let onRevealRatioChange: (Double) -> Void
+
     private let renderer = CoverRevealRenderer()
     private let brushRadius: CGFloat = 20
-    private let autoRevealThreshold = 0.9
+    private let autoRevealThreshold = 0.8
 
     var body: some View {
         SurpriseContentFrameView {
@@ -96,8 +98,11 @@ private extension ReactionRevealCardView {
             brushRadius: brushRadius
         )
 
+        onRevealRatioChange(revealedRatio)
+
         if revealedRatio >= autoRevealThreshold {
             isFullyRevealed = true
+            onRevealRatioChange(1)
         }
     }
 
@@ -121,5 +126,5 @@ private extension ReactionRevealCardView {
 }
 
 #Preview {
-    ReactionRevealCardView(surpriseCardPayload: .previewValue)
+    ReactionRevealCardView(surpriseCardPayload: .previewValue) { _ in }
 }
