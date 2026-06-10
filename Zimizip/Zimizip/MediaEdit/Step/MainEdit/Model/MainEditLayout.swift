@@ -30,6 +30,7 @@ enum MainEditLayout {
     static let filterPanelTitle = "필터"
     static let adjustmentPanelTitle = "조정"
     static let stickerPanelTitle = "스티커"
+    static let textPanelTitle = "텍스트"
     static let filterThumbnailPanelHeight: CGFloat = 132
     static let filterThumbnailPanelPadding: CGFloat = 20
     static let filterThumbnailSize = CGSize(width: 55, height: 65)
@@ -38,6 +39,13 @@ enum MainEditLayout {
     static let stickerThumbnailPanelPadding: CGFloat = 20
     static let stickerThumbnailSpacing: CGFloat = 21.75
     static let stickerThumbnailSize = CGSize(width: 55, height: 50)
+    static let textMenuBarHeight: CGFloat = 48
+    static let textMenuHorizontalPadding: CGFloat = 20
+    static let textMenuVerticalPadding: CGFloat = 8
+    static let textMenuItemSpacing: CGFloat = 20
+    static let textMenuFontSize: CGFloat = 16
+    static let textContentPanelHeight: CGFloat = 108
+    static let textContentPanelPadding: CGFloat = 20
     static let adjustmentOptionPanelHeight: CGFloat = 132
     static let adjustmentOptionPanelPadding: CGFloat = 20
     static let adjustmentOptionButtonWidth: CGFloat = 76
@@ -95,6 +103,14 @@ enum MainEditLayout {
 
     static func stickerPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
         stickerThumbnailPanelHeight +
+            bottomPanelActionContentHeight +
+            bottomPanelActionBottomPadding +
+            safeAreaInsets.bottom
+    }
+
+    static func textPanelTotalHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
+        textMenuBarHeight +
+            textContentPanelHeight +
             bottomPanelActionContentHeight +
             bottomPanelActionBottomPadding +
             safeAreaInsets.bottom
