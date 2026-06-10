@@ -15,17 +15,7 @@ struct MediaSourceOptionView: View {
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
-                            .frame(width: 38, height: 38)
-                            .background(.white.opacity(0.75))
-                            .clipShape(Circle())
-                    }
-                    .padding(.vertical, 13)
+                    ZimizipBackButton()
 
                     VStack(alignment: .leading, spacing: 16) {
                         Text("어떤 방식으로\n시작해볼까요?")

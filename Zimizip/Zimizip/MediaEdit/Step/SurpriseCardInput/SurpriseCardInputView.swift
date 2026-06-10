@@ -1,8 +1,6 @@
 import SwiftUI
-import UIKit
 
 struct SurpriseCardInputView: View {
-    @Environment(\.dismiss) private var dismiss
     @State private var isShowingRevealTiming = false
     @State private var surpriseTitle = ""
     @FocusState private var isSurpriseTitleFocused: Bool
@@ -16,28 +14,10 @@ struct SurpriseCardInputView: View {
             Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
-                backButton
-
-                ScrollViewReader { scrollProxy in
-                    ScrollView(showsIndicators: false) {
-                        inputContent
-                    }
-                    .scrollDismissesKeyboard(.interactively)
-                    .onChange(of: isSurpriseTitleFocused) { _, isFocused in
-                        guard isFocused else {
-                            return
-                        }
-
-                        DispatchQueue.main.async {
-                            withAnimation(.easeInOut) {
-                                scrollProxy.scrollTo(Self.contentBottomID, anchor: .bottom)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, Self.horizontalPadding)
+            mainContent
+        }
+        .safeAreaInset(edge: .bottom) {
+            bottomInputArea
         }
         .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $isShowingRevealTiming) {
@@ -48,22 +28,10 @@ struct SurpriseCardInputView: View {
 }
 
 private extension SurpriseCardInputView {
-    var backButton: some View {
-        Button {
-            dismiss()
-        } label: {
-            Image(systemName: "chevron.left")
-                .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
-                .frame(width: 38, height: 38)
-                .background(.gray100)
-                .clipShape(Circle())
-        }
-        .padding(.vertical, 13)
-    }
-
-    var inputContent: some View {
+    var mainContent: some View {
         VStack(alignment: .leading, spacing: 0) {
+            ZimizipBackButton()
+
             Spacer()
                 .frame(height: 40)
 
@@ -74,24 +42,60 @@ private extension SurpriseCardInputView {
             Spacer()
                 .frame(height: 32)
 
-            SurpriseContentFrameView {
-                GeometryReader { proxy in
-                    ZStack {
-                        MainEditCompletedImageView(
-                            framingResult: framingResult,
-                            image: image,
-                            frameSize: proxy.size
-                        )
+            cardArea
+                .frame(maxWidth: .infinity)
+                .frame(maxHeight: .infinity)
 
-                        Image(coverImageName)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: proxy.size.width, height: proxy.size.height)
+            Spacer()
+                .frame(height: 12)
+        }
+        .padding(.horizontal, Self.horizontalPadding)
+    }
+
+    var cardArea: some View {
+        GeometryReader { proxy in
+            let cardWidth = cardWidthThatFits(in: proxy.size)
+
+            VStack {
+                Spacer(minLength: 0)
+
+                SurpriseContentFrameView {
+                    GeometryReader { proxy in
+                        ZStack {
+                            MainEditCompletedImageView(
+                                framingResult: framingResult,
+                                image: image,
+                                frameSize: proxy.size
+                            )
+
+                            Image(coverImageName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: proxy.size.width, height: proxy.size.height)
+                        }
                     }
                 }
+                .frame(width: cardWidth)
+                
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
+            .frame(width: proxy.size.width, height: proxy.size.height)
+            .padding(0)
+        }
+        .frame(minHeight: Self.minimumCardAreaHeight)
+    }
 
+    var surpriseCardPayload: SurpriseCardPayload {
+        SurpriseCardPayload(
+            title: surpriseTitle,
+            framingResult: framingResult,
+            image: image,
+            coverImageName: coverImageName
+        )
+    }
+
+    var bottomInputArea: some View {
+        VStack(spacing: 20) {
             TextField("이름을 입력해주세요", text: $surpriseTitle)
                 .font(.custom("Pretendard", size: 16).weight(.bold))
                 .foregroundStyle(.textPrimary)
@@ -107,32 +111,32 @@ private extension SurpriseCardInputView {
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(Self.textFieldBorderColor, lineWidth: 1)
                 }
-                .id(Self.surpriseTitleFieldID)
 
             ZimizipPrimaryButton(title: "서프라이즈 저장하기") {
                 isShowingRevealTiming = true
             }
-            .padding(.top, 20)
-
-            Spacer()
-                .frame(height: 24)
-                .id(Self.contentBottomID)
         }
+        .padding(.horizontal, Self.horizontalPadding)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .background(Color.backgroundPrimary)
     }
 
-    var surpriseCardPayload: SurpriseCardPayload {
-        SurpriseCardPayload(
-            title: surpriseTitle,
-            framingResult: framingResult,
-            image: image,
-            coverImageName: coverImageName
-        )
+    func cardWidthThatFits(in size: CGSize) -> CGFloat {
+        let widthThatFitsHeight = max(
+            size.height - Self.cardFramePadding * 2,
+            0
+        ) * Self.cardAspectRatio + Self.cardFramePadding * 2
+
+        return min(size.width, Self.maximumCardWidth, widthThatFitsHeight)
     }
 
-    static let surpriseTitleFieldID = "surpriseTitleField"
-    static let contentBottomID = "contentBottom"
     static let horizontalPadding: CGFloat = 20
     static let textFieldBorderColor = Color(red: 232 / 255, green: 224 / 255, blue: 218 / 255)
+    static let maximumCardWidth: CGFloat = 320
+    static let minimumCardAreaHeight: CGFloat = 0
+    static let cardFramePadding: CGFloat = 20
+    static let cardAspectRatio: CGFloat = 2.0 / 3.0
 }
 
 #Preview {
