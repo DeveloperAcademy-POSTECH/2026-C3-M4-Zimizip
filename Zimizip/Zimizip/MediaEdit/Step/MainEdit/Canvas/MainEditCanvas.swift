@@ -68,13 +68,13 @@ private extension MainEditCanvas {
                 .minimumScaleFactor(0.7)
                 .padding(.horizontal, MainEditLayout.textPreviewControlSize)
 
-            textPreviewControlButton(systemName: "xmark")
+            textPreviewControlButton(systemName: MainEditLayout.textPreviewCloseIconName)
                 .position(x: 0, y: 0)
 
-            textPreviewControlButton(systemName: "doc.on.doc")
+            textPreviewControlButton(systemName: MainEditLayout.textPreviewDuplicateIconName)
                 .position(x: 0, y: previewSize.height)
 
-            textPreviewControlButton(systemName: "arrow.up.left.and.arrow.down.right")
+            textPreviewControlButton(systemName: MainEditLayout.textPreviewResizeIconName)
                 .position(x: previewSize.width, y: previewSize.height)
         }
         .frame(width: previewSize.width, height: previewSize.height)
