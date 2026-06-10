@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct IntroductionNextView: View {
+    let onStartButtonTap: () -> Void
+
+    init(onStartButtonTap: @escaping () -> Void = {}) {
+        self.onStartButtonTap = onStartButtonTap
+    }
+
     var body: some View {
         ZStack {
             Color("BackgroundPrimary")
@@ -39,6 +45,7 @@ struct IntroductionNextView: View {
                 Spacer()
 
                 Button {
+                    onStartButtonTap()
                 } label: {
                     Text("서프라이즈 준비하기")
                         .font(Font.custom("Pretendard-Bold", size: 16))

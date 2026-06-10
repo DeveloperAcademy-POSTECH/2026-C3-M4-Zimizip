@@ -18,6 +18,7 @@ struct AnimatedImage: UIViewRepresentable {
 
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = contentMode
         imageView.clipsToBounds = true
         imageView.tag = 1
 
@@ -43,9 +44,11 @@ struct AnimatedImage: UIViewRepresentable {
     }
 
     private func configure(_ imageView: UIImageView) {
+        if let animation = UIImage.animationAsset(named: "\(name)Data", speed: speed) {
             imageView.image = animation.frames.first
             imageView.animationImages = animation.frames
             imageView.animationDuration = animation.duration
+            imageView.animationRepeatCount = repeatCount
             imageView.startAnimating()
         } else {
             imageView.image = UIImage(named: name)
@@ -61,6 +64,7 @@ private extension UIImage {
         let duration: TimeInterval
     }
 
+    static func animationAsset(named name: String, speed: Double = 1) -> AnimationAsset? {
         guard
             let dataAsset = NSDataAsset(name: name),
             let source = CGImageSourceCreateWithData(dataAsset.data as CFData, nil)
@@ -89,6 +93,10 @@ private extension UIImage {
             return nil
         }
 
+        return AnimationAsset(
+            frames: frames,
+            duration: max(duration / max(speed, 0.01), 0.1)
+        )
     }
 
     static func frameDuration(at index: Int, source: CGImageSource) -> TimeInterval {
