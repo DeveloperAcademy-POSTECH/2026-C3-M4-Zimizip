@@ -53,6 +53,7 @@ struct OptionItemView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .contentShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var borderColor: Color { isPressed ? .primary250 : .gray150 }
