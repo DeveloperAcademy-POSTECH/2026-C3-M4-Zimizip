@@ -59,8 +59,6 @@ struct MainEditView: View {
                     .ignoresSafeArea()
 
                 VStack {
-                    topPanel
-                    
                     Spacer()
 
                     MainEditCanvas(
@@ -96,6 +94,11 @@ struct MainEditView: View {
                         maxHeight: .infinity,
                         alignment: .bottomLeading
                     )
+
+                topPanel
+                    .frame(height: MainEditLayout.topBarContentHeight, alignment: .top)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .zIndex(1)
             }
         }
         .background(Color.black)

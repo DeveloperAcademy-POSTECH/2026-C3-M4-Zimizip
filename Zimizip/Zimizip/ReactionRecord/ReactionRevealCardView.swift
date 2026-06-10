@@ -10,7 +10,7 @@ struct ReactionRevealCardView: View {
     let onRevealRatioChange: (Double) -> Void
 
     private let renderer = CoverRevealRenderer()
-    private let brushRadius: CGFloat = 20
+    private let brushRadius: CGFloat = 24
     private let autoRevealThreshold = 0.8
 
     var body: some View {
