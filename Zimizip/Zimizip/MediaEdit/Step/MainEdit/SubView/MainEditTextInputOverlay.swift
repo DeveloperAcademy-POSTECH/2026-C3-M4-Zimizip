@@ -5,6 +5,7 @@ struct MainEditTextInputOverlay: View {
     @FocusState private var isTextFieldFocused: Bool
 
     let font: MainEditTextFont
+    let color: MainEditTextColor
     let cancelAction: () -> Void
     let confirmAction: () -> Void
 
@@ -17,7 +18,7 @@ struct MainEditTextInputOverlay: View {
 
                 Text(previewText)
                     .font(.custom(font.fontName, size: MainEditLayout.textInputPreviewFontSize))
-                    .foregroundStyle(Color.baseWhite)
+                    .foregroundStyle(color.color)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
@@ -76,7 +77,7 @@ private extension MainEditTextInputOverlay {
         HStack(alignment: .top, spacing: MainEditLayout.textInputSmallPreviewSpacing) {
             TextField(MainEditLayout.textPreviewPlaceholder, text: $text)
                 .font(.custom(font.fontName, size: MainEditLayout.textInputSmallPreviewFontSize))
-                .foregroundStyle(Color.baseWhite)
+                .foregroundStyle(color.color)
                 .tint(Color.brandPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -169,6 +170,7 @@ private extension MainEditTextInputOverlay {
     MainEditTextInputOverlay(
         text: $text,
         font: .default,
+        color: .white,
         cancelAction: {},
         confirmAction: {}
     )

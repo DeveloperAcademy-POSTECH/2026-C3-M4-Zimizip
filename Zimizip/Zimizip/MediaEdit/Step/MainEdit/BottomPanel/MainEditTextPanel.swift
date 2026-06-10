@@ -7,6 +7,7 @@ struct MainEditTextPanel: View {
     @Binding var selectedColor: MainEditTextColor
 
     let selectFontAction: (MainEditTextFont) -> Void
+    let selectColorAction: (MainEditTextColor) -> Void
     let cancelAction: () -> Void
     let confirmAction: () -> Void
 
@@ -14,12 +15,14 @@ struct MainEditTextPanel: View {
         selectedFont: Binding<MainEditTextFont>,
         selectedColor: Binding<MainEditTextColor>,
         selectFontAction: @escaping (MainEditTextFont) -> Void,
+        selectColorAction: @escaping (MainEditTextColor) -> Void,
         cancelAction: @escaping () -> Void,
         confirmAction: @escaping () -> Void
     ) {
         self._selectedFont = selectedFont
         self._selectedColor = selectedColor
         self.selectFontAction = selectFontAction
+        self.selectColorAction = selectColorAction
         self.cancelAction = cancelAction
         self.confirmAction = confirmAction
     }
@@ -143,6 +146,7 @@ private extension MainEditTextPanel {
     func colorOptionButton(_ option: MainEditTextColor) -> some View {
         Button {
             selectedColor = option
+            selectColorAction(option)
         } label: {
             ZStack {
                 if selectedColor == option {
@@ -213,6 +217,7 @@ private enum MainEditTextPanelTab: CaseIterable, Identifiable {
         selectedFont: $selectedFont,
         selectedColor: $selectedColor,
         selectFontAction: { _ in },
+        selectColorAction: { _ in },
         cancelAction: {},
         confirmAction: {}
     )

@@ -124,6 +124,7 @@ struct MainEditView: View {
                     MainEditTextInputOverlay(
                         text: $textInputDraft,
                         font: selectedTextFont,
+                        color: selectedTextColor,
                         cancelAction: cancelTextInputOverlay,
                         confirmAction: confirmTextInputOverlay
                     )
@@ -224,6 +225,7 @@ private extension MainEditView {
                 selectedFont: $selectedTextFont,
                 selectedColor: $selectedTextColor,
                 selectFontAction: selectTextFont,
+                selectColorAction: selectTextColor,
                 cancelAction: cancelTextPanel,
                 confirmAction: confirmTextPanel
             )
@@ -589,6 +591,30 @@ private extension MainEditView {
             previewTextItems[index].styleRuns,
             textLength: previewTextItems[index].text.count,
             font: font
+        )
+    }
+
+    func selectTextColor(_ color: MainEditTextColor) {
+        selectedTextColor = color
+
+        guard selectedTool == .text,
+              let selectedTextItemID,
+              previewTextItems.contains(where: { $0.id == selectedTextItemID }) else {
+            return
+        }
+
+        applyTextColor(color, to: selectedTextItemID)
+    }
+
+    func applyTextColor(_ color: MainEditTextColor, to id: MainEditTextItem.ID) {
+        guard let index = previewTextItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        previewTextItems[index].styleRuns = colorAppliedStyleRuns(
+            previewTextItems[index].styleRuns,
+            textLength: previewTextItems[index].text.count,
+            color: color
         )
     }
 
@@ -1010,6 +1036,29 @@ private extension MainEditView {
         return styleRuns.map { styleRun in
             var updatedRun = styleRun
             updatedRun.font = font
+            return updatedRun
+        }
+    }
+
+    func colorAppliedStyleRuns(
+        _ styleRuns: [MainEditTextStyleRun],
+        textLength: Int,
+        color: MainEditTextColor
+    ) -> [MainEditTextStyleRun] {
+        guard !styleRuns.isEmpty else {
+            return [
+                MainEditTextStyleRun(
+                    start: 0,
+                    length: textLength,
+                    font: selectedTextFont,
+                    color: color
+                )
+            ]
+        }
+
+        return styleRuns.map { styleRun in
+            var updatedRun = styleRun
+            updatedRun.color = color
             return updatedRun
         }
     }
