@@ -2,7 +2,6 @@ import SwiftUI
 import UIKit
 
 struct SurpriseCardInputView: View {
-    @Environment(\.dismiss) private var dismiss
     @State private var isShowingRevealTiming = false
     @State private var surpriseTitle = ""
     @FocusState private var isSurpriseTitleFocused: Bool
@@ -48,22 +47,10 @@ struct SurpriseCardInputView: View {
 }
 
 private extension SurpriseCardInputView {
-    var backButton: some View {
-        Button {
-            dismiss()
-        } label: {
-            Image(systemName: "chevron.left")
-                .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(Color(red: 36 / 255, green: 33 / 255, blue: 31 / 255))
-                .frame(width: 38, height: 38)
-                .background(.gray100)
-                .clipShape(Circle())
-        }
-        .padding(.vertical, 13)
-    }
-
     var inputContent: some View {
         VStack(alignment: .leading, spacing: 0) {
+            ZimizipBackButton()
+
             Spacer()
                 .frame(height: 40)
 
