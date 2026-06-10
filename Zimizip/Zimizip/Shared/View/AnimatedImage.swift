@@ -16,7 +16,7 @@ struct AnimatedImage: UIViewRepresentable {
         let containerView = UIView()
         containerView.clipsToBounds = true
 
-        let imageView = UIImageView()
+        let imageView = RestartingAnimatedImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = contentMode
         imageView.clipsToBounds = true
@@ -49,11 +49,23 @@ struct AnimatedImage: UIViewRepresentable {
             imageView.animationImages = animation.frames
             imageView.animationDuration = animation.duration
             imageView.animationRepeatCount = repeatCount
-            imageView.startAnimating()
+            DispatchQueue.main.async {
+                imageView.startAnimating()
+            }
         } else {
             imageView.image = UIImage(named: name)
             imageView.animationImages = nil
             imageView.stopAnimating()
+        }
+    }
+}
+
+private final class RestartingAnimatedImageView: UIImageView {
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+
+        if window != nil, animationImages?.isEmpty == false {
+            startAnimating()
         }
     }
 }
