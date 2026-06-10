@@ -14,6 +14,7 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
     @Published private(set) var whiteBalancePreset: CameraWhiteBalancePreset = .auto
     @Published private(set) var selectedColorPreset: CameraColorPreset = .original
+    @Published private(set) var isPreviewSessionActive = false
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
     private let photoOutput = AVCapturePhotoOutput()
@@ -22,17 +23,11 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     private var videoDeviceInput: AVCaptureDeviceInput?
     private var pendingCaptureCompletion: ((Data?) -> Void)?
 
-    func prepareCameraPreview() async {
+    func prepareCameraPreviewIfAuthorized() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
             configureSessionIfNeeded()
-        case .notDetermined:
-            let granted = await requestCameraAccess()
-
-            if granted {
-                configureSessionIfNeeded()
-            }
-        case .denied, .restricted:
+        case .notDetermined, .denied, .restricted:
             break
         @unknown default:
             break
@@ -46,6 +41,10 @@ final class CameraPreviewModel: NSObject, ObservableObject {
             }
 
             self.session.stopRunning()
+
+            Task { @MainActor in
+                self.isPreviewSessionActive = false
+            }
         }
     }
 
@@ -534,6 +533,11 @@ final class CameraPreviewModel: NSObject, ObservableObject {
                 if !self.session.isRunning {
                     self.session.startRunning()
                 }
+                let isSessionRunning = self.session.isRunning
+
+                Task { @MainActor in
+                    self.isPreviewSessionActive = isSessionRunning
+                }
                 return
             }
 
@@ -566,6 +570,12 @@ final class CameraPreviewModel: NSObject, ObservableObject {
 
             if !self.session.isRunning {
                 self.session.startRunning()
+            }
+
+            let isSessionRunning = self.session.isRunning
+
+            Task { @MainActor in
+                self.isPreviewSessionActive = isSessionRunning
             }
         }
     }

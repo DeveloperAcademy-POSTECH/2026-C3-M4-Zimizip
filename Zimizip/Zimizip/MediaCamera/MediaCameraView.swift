@@ -86,7 +86,7 @@ struct MediaCameraView: View {
         .statusBarHidden(capturedPhotoData == nil)
         .task {
             startMonitoringDeviceOrientation()
-            await camera.prepareCameraPreview()
+            camera.prepareCameraPreviewIfAuthorized()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             updateCaptureOrientation()
@@ -125,6 +125,10 @@ struct MediaCameraView: View {
     }
 
     private func capturePhoto(previewFrame: CGRect) {
+        guard camera.isPreviewSessionActive else {
+            return
+        }
+
         camera.capturePhoto(videoOrientation: captureOrientation) { photoData in
             guard let photoData else {
                 return
