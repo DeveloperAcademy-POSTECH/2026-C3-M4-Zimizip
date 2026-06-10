@@ -617,7 +617,7 @@ private struct CameraPermissionSettingsPrompt: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.brandPrimary)
+                        .background(Color.brandSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: 25))
                 }
                 .buttonStyle(.plain)
