@@ -11,6 +11,7 @@ import UIKit
 
 struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
@@ -22,6 +23,7 @@ struct MediaCameraView: View {
     @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
     @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
     @State private var isShowingCameraPermissionSettingsPrompt = false
+    @State private var didOpenCameraPermissionSettings = false
 
     let onPhotoCaptured: (Data, CGRect, Bool) -> Void
 
@@ -102,6 +104,15 @@ struct MediaCameraView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             updateCaptureOrientation()
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active, didOpenCameraPermissionSettings else {
+                return
+            }
+
+            Task {
+                await refreshCameraAccessAfterReturningFromSettings()
+            }
+        }
         .onDisappear {
             camera.stopSession()
         }
@@ -159,6 +170,25 @@ struct MediaCameraView: View {
     }
 
     private func moveToCameraPermissionSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+
+        didOpenCameraPermissionSettings = true
+        UIApplication.shared.open(settingsURL) { didOpen in
+            if !didOpen {
+                Task { @MainActor in
+                    didOpenCameraPermissionSettings = false
+                }
+            }
+        }
+    }
+
+    private func refreshCameraAccessAfterReturningFromSettings() async {
+        didOpenCameraPermissionSettings = false
+
+        let isGranted = await camera.requestCameraPreviewAccess()
+        isShowingCameraPermissionSettingsPrompt = !isGranted
     }
 
     private func retakePhoto() {
