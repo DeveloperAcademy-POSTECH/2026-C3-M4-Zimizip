@@ -24,7 +24,7 @@ struct SplashView: View {
                 Color.white
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
+                VStack(alignment: .center) {
                     StrokedText(
                         text: "soprize",
                         fontName: "ABeeZee-Regular",
@@ -32,7 +32,7 @@ struct SplashView: View {
                         colorName: "OrangePrimary",
                         strokeWidth: 3
                     )
-                    .frame(width: 208 * scale, height: 72 * scale, alignment: .leading)
+                    .frame(width: 208 * scale, height: 72 * scale, alignment: .center)
 
                     Text("지우는 순간 시작되는 서프라이즈")
                         .font(Font.custom("Pretendard-Bold", size: 20 * scale))

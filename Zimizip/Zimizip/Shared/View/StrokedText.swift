@@ -11,12 +11,14 @@ struct StrokedText: UIViewRepresentable {
     func makeUIView(context: Context) -> UILabel {
         let label = UILabel()
         label.backgroundColor = .clear
-        label.textAlignment = .left
+        label.textAlignment = .center
         label.adjustsFontForContentSizeCategory = false
         return label
     }
 
     func updateUIView(_ label: UILabel, context: Context) {
+        label.textAlignment = .center
+
         let font = UIFont(name: fontName, size: size) ?? .systemFont(ofSize: size)
         let color = UIColor(named: colorName) ?? .orange
         let strokePercent = -(strokeWidth / size * 100)
