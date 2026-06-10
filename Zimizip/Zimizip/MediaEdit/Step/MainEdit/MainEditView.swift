@@ -254,6 +254,7 @@ private extension MainEditView {
         MainEditEditState(
             filterPreset: appliedFilterPreset,
             adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
+            texts: appliedTextItems,
             stickers: appliedStickerItems
         )
     }
@@ -380,6 +381,7 @@ private extension MainEditView {
             MainEditEditState(
                 filterPreset: previewFilterPreset,
                 adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
+                texts: appliedTextItems,
                 stickers: appliedStickerItems
             )
         )
@@ -406,6 +408,7 @@ private extension MainEditView {
             MainEditEditState(
                 filterPreset: appliedFilterPreset,
                 adjustmentValues: sanitizedAdjustmentValues(previewAdjustmentValues),
+                texts: appliedTextItems,
                 stickers: appliedStickerItems
             )
         )
@@ -519,6 +522,7 @@ private extension MainEditView {
             MainEditEditState(
                 filterPreset: appliedFilterPreset,
                 adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
+                texts: appliedTextItems,
                 stickers: previewStickerItems
             )
         )
@@ -558,7 +562,14 @@ private extension MainEditView {
     }
 
     func confirmTextPanel() {
-        appliedTextItems = previewTextItems
+        commitEditState(
+            MainEditEditState(
+                filterPreset: appliedFilterPreset,
+                adjustmentValues: sanitizedAdjustmentValues(appliedAdjustmentValues),
+                texts: previewTextItems,
+                stickers: appliedStickerItems
+            )
+        )
         selectedTextItemID = nil
         isTextInputPresented = false
         textInputDraft = ""
@@ -889,14 +900,29 @@ private extension MainEditView {
         appliedFilterPreset = state.filterPreset
         previewAdjustmentValues = state.adjustmentValues
         appliedAdjustmentValues = state.adjustmentValues
+        appliedTextItems = state.texts
+        previewTextItems = state.texts
         appliedStickerItems = state.stickers
         previewStickerItems = state.stickers
+
+        if let selectedTextItemID,
+           !state.texts.contains(where: { $0.id == selectedTextItemID }) {
+            self.selectedTextItemID = nil
+        }
 
         if let selectedStickerItemID,
            !state.stickers.contains(where: { $0.id == selectedStickerItemID }) {
             self.selectedStickerItemID = nil
         }
 
+        selectedTextFont = selectedTextItemID.flatMap(textFont(for:)) ?? selectedTextFont
+        selectedTextColor = selectedTextItemID.flatMap(textColor(for:)) ?? selectedTextColor
+        isTextInputPresented = false
+        textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
+        endTextDrag()
+        endTextScale()
         endStickerDrag()
         endStickerScale()
         updateCanvasImage(
