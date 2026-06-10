@@ -12,6 +12,7 @@ struct ReactionVideoPlaybackView: View {
     @State private var isPlaying = false
     @State private var playbackProgress: CGFloat = 0
     @State private var timeObserverToken: Any?
+    @State private var videoAspectRatio: CGFloat = 2.0 / 3.0
 
     init(
         title: String,
@@ -30,44 +31,57 @@ struct ReactionVideoPlaybackView: View {
         GeometryReader { proxy in
             let horizontalPadding: CGFloat = 20
             let contentWidth = proxy.size.width - (horizontalPadding * 2)
-            let playerWidth = min(360, contentWidth)
-            let playerHeight = playerWidth * 1.5
+            let headerHeight: CGFloat = 38
+            let headerToPlayerSpacing: CGFloat = 44
+            let playerToControlSpacing: CGFloat = 32
+            let controlHeight: CGFloat = 56
+            let controlBottomPadding = proxy.safeAreaInsets.bottom + 40
+            let headerTopY = proxy.safeAreaInsets.top
+            let headerCenterY = headerTopY + (headerHeight / 2)
+            let controlCenterY = proxy.size.height - controlBottomPadding - (controlHeight / 2)
+            let playerAreaTopY = headerTopY + headerHeight + headerToPlayerSpacing
+            let playerAreaBottomY = controlCenterY - (controlHeight / 2) - playerToControlSpacing
+            let maxPlayerHeight = max(120, playerAreaBottomY - playerAreaTopY)
+            let preferredPlayerWidth = min(360, contentWidth)
+            let preferredPlayerHeight = preferredPlayerWidth / videoAspectRatio
+            let playerHeight = min(preferredPlayerHeight, maxPlayerHeight)
+            let playerWidth = min(preferredPlayerWidth, playerHeight * videoAspectRatio)
+            let playerCenterY = playerAreaTopY + (maxPlayerHeight / 2)
 
             ZStack {
                 Color.backgroundPrimary
                     .ignoresSafeArea()
 
-                VStack {
-                    ReactionVideoPlaybackHeader(
-                        title: title,
-                        subtitle: subtitle,
-                        onBack: onBack
-                    )
-                    .padding(.horizontal, horizontalPadding)
+                ReactionVideoPlaybackHeader(
+                    title: title,
+                    subtitle: subtitle,
+                    onBack: onBack
+                )
+                .frame(width: contentWidth, height: headerHeight)
+                .position(x: proxy.size.width / 2, y: headerCenterY)
 
-                    Spacer()
+                ReactionVideoPlaybackCard(
+                    player: player
+                )
+                .frame(width: playerWidth, height: playerHeight)
+                .position(x: proxy.size.width / 2, y: playerCenterY)
 
-                    ReactionVideoPlaybackCard(
-                        player: player
-                    )
-                    .frame(width: playerWidth, height: playerHeight)
-
-                    Spacer()
-
-                    ReactionVideoPlaybackControlBar(
-                        isPlaying: isPlaying,
-                        progress: playbackProgress,
-                        onPlayToggle: togglePlayback
-                    )
-                    .frame(width: contentWidth, height: 56)
-
-                    Spacer()
-                }
+                ReactionVideoPlaybackControlBar(
+                    isPlaying: isPlaying,
+                    progress: playbackProgress,
+                    onPlayToggle: togglePlayback
+                )
+                .frame(width: contentWidth, height: controlHeight)
+                .position(x: proxy.size.width / 2, y: controlCenterY)
             }
         }
         .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             addTimeObserverIfNeeded()
+        }
+        .task(id: videoURL) {
+            await updateVideoAspectRatio()
         }
         .onReceive(
             NotificationCenter.default.publisher(
@@ -137,6 +151,30 @@ struct ReactionVideoPlaybackView: View {
         isPlaying = false
         playbackProgress = 1
     }
+
+    private func updateVideoAspectRatio() async {
+        let asset = AVURLAsset(url: videoURL)
+
+        do {
+            guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
+                return
+            }
+
+            let naturalSize = try await videoTrack.load(.naturalSize)
+            let preferredTransform = try await videoTrack.load(.preferredTransform)
+            let transformedSize = naturalSize.applying(preferredTransform)
+            let width = abs(transformedSize.width)
+            let height = abs(transformedSize.height)
+
+            guard width > 0, height > 0 else {
+                return
+            }
+
+            videoAspectRatio = width / height
+        } catch {
+            print("[ReactionVideoPlayback] failed to load video aspect ratio: \(error.localizedDescription)")
+        }
+    }
 }
 
 private struct ReactionVideoPlaybackHeader: View {
@@ -194,7 +232,7 @@ private struct ReactionVideoPlaybackCard: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color.coverLine)
 
-            ReactionVideoPlayerView(player: player)
+            ReactionVideoPlayerView(player: player, videoGravity: .resizeAspect)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
