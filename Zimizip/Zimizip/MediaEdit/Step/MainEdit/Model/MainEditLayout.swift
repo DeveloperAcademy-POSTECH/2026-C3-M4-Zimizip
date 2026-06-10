@@ -46,6 +46,10 @@ enum MainEditLayout {
     static let textMenuFontSize: CGFloat = 16
     static let textContentPanelHeight: CGFloat = 108
     static let textContentPanelPadding: CGFloat = 20
+    static let textFontOptionSize = CGSize(width: 100, height: 66)
+    static let textFontOptionCornerRadius: CGFloat = 4
+    static let textFontOptionSelectedBorderWidth: CGFloat = 4
+    static let textFontOptionLabelFontSize: CGFloat = 16
     static let adjustmentOptionPanelHeight: CGFloat = 132
     static let adjustmentOptionPanelPadding: CGFloat = 20
     static let adjustmentOptionButtonWidth: CGFloat = 76
