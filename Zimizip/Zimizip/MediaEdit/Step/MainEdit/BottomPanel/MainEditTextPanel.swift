@@ -2,11 +2,30 @@ import SwiftUI
 
 struct MainEditTextPanel: View {
     @State private var selectedTab: MainEditTextPanelTab = .font
-    @State private var selectedFontOption: MainEditTextFontOption = .default
-    @State private var selectedColorOption: MainEditTextColorOption = .white
 
+    @Binding var selectedFont: MainEditTextFont
+    @Binding var selectedColor: MainEditTextColor
+
+    let selectFontAction: (MainEditTextFont) -> Void
+    let selectColorAction: (MainEditTextColor) -> Void
     let cancelAction: () -> Void
     let confirmAction: () -> Void
+
+    init(
+        selectedFont: Binding<MainEditTextFont>,
+        selectedColor: Binding<MainEditTextColor>,
+        selectFontAction: @escaping (MainEditTextFont) -> Void,
+        selectColorAction: @escaping (MainEditTextColor) -> Void,
+        cancelAction: @escaping () -> Void,
+        confirmAction: @escaping () -> Void
+    ) {
+        self._selectedFont = selectedFont
+        self._selectedColor = selectedColor
+        self.selectFontAction = selectFontAction
+        self.selectColorAction = selectColorAction
+        self.cancelAction = cancelAction
+        self.confirmAction = confirmAction
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,24 +83,23 @@ private extension MainEditTextPanel {
     }
 
     var fontOptionPanel: some View {
-        HStack(alignment: .top, spacing: 0) {
-            ForEach(Array(MainEditTextFontOption.allCases.enumerated()), id: \.element.id) { index, option in
-                fontOptionButton(option)
-
-                if index < MainEditTextFontOption.allCases.count - 1 {
-                    Spacer(minLength: 0)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: MainEditLayout.textFontOptionSpacing) {
+                ForEach(MainEditTextFont.pretendardFonts) { font in
+                    fontOptionButton(font)
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .top)
     }
 
-    func fontOptionButton(_ option: MainEditTextFontOption) -> some View {
+    func fontOptionButton(_ font: MainEditTextFont) -> some View {
         Button {
-            selectedFontOption = option
+            selectedFont = font
+            selectFontAction(font)
         } label: {
-            Text(option.title)
-                .font(.custom("Pretendard", size: MainEditLayout.textFontOptionLabelFontSize).weight(.semibold))
+            Text(font.displayTitle)
+                .font(.custom(font.fontName, size: MainEditLayout.textFontOptionLabelFontSize))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Color.black)
                 .frame(
@@ -96,7 +114,7 @@ private extension MainEditTextPanel {
                     )
                 )
                 .overlay {
-                    if selectedFontOption == option {
+                    if selectedFont == font {
                         RoundedRectangle(
                             cornerRadius: MainEditLayout.textFontOptionCornerRadius,
                             style: .continuous
@@ -114,10 +132,10 @@ private extension MainEditTextPanel {
 
     var colorOptionPanel: some View {
         HStack(alignment: .center, spacing: 0) {
-            ForEach(Array(MainEditTextColorOption.allCases.enumerated()), id: \.element.id) { index, option in
+            ForEach(Array(MainEditTextColor.allCases.enumerated()), id: \.element.id) { index, option in
                 colorOptionButton(option)
 
-                if index < MainEditTextColorOption.allCases.count - 1 {
+                if index < MainEditTextColor.allCases.count - 1 {
                     Spacer(minLength: 0)
                 }
             }
@@ -125,12 +143,13 @@ private extension MainEditTextPanel {
         .frame(maxWidth: .infinity, alignment: .center)
     }
 
-    func colorOptionButton(_ option: MainEditTextColorOption) -> some View {
+    func colorOptionButton(_ option: MainEditTextColor) -> some View {
         Button {
-            selectedColorOption = option
+            selectedColor = option
+            selectColorAction(option)
         } label: {
             ZStack {
-                if selectedColorOption == option {
+                if selectedColor == option {
                     RoundedRectangle(cornerRadius: MainEditLayout.textColorSelectedRingCornerRadius)
                         .fill(.clear)
                         .frame(
@@ -168,7 +187,7 @@ private extension MainEditTextPanel {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(option.accessibilityLabel)
-        .accessibilityAddTraits(selectedColorOption == option ? .isSelected : [])
+        .accessibilityAddTraits(selectedColor == option ? .isSelected : [])
     }
 }
 
@@ -190,71 +209,15 @@ private enum MainEditTextPanelTab: CaseIterable, Identifiable {
     }
 }
 
-private enum MainEditTextFontOption: CaseIterable, Identifiable {
-    case `default`
-    case first
-    case second
-
-    var id: Self {
-        self
-    }
-
-    var title: String {
-        switch self {
-        case .default:
-            return "기본"
-        case .first:
-            return "글씨체 1"
-        case .second:
-            return "글씨체 2"
-        }
-    }
-}
-
-private enum MainEditTextColorOption: CaseIterable, Identifiable {
-    case white
-    case red
-    case orange
-    case yellow
-    case green
-
-    var id: Self {
-        self
-    }
-
-    var color: Color {
-        switch self {
-        case .white:
-            return .white
-        case .red:
-            return Color(red: 1.0, green: 0.08, blue: 0.08)
-        case .orange:
-            return Color(red: 1.0, green: 0.49, blue: 0.04)
-        case .yellow:
-            return Color(red: 1.0, green: 0.90, blue: 0.0)
-        case .green:
-            return Color(red: 0.13, green: 1.0, blue: 0.34)
-        }
-    }
-
-    var accessibilityLabel: String {
-        switch self {
-        case .white:
-            return "흰색"
-        case .red:
-            return "빨간색"
-        case .orange:
-            return "주황색"
-        case .yellow:
-            return "노란색"
-        case .green:
-            return "초록색"
-        }
-    }
-}
-
 #Preview {
+    @Previewable @State var selectedFont = MainEditTextFont.default
+    @Previewable @State var selectedColor = MainEditTextColor.white
+
     MainEditTextPanel(
+        selectedFont: $selectedFont,
+        selectedColor: $selectedColor,
+        selectFontAction: { _ in },
+        selectColorAction: { _ in },
         cancelAction: {},
         confirmAction: {}
     )

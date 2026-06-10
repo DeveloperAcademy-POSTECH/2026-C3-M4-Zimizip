@@ -7,6 +7,7 @@ struct MainEditCompositeRenderer {
     func image(
         framingResult: PhotoFramingResult,
         image: UIImage,
+        texts: [MainEditTextItem],
         stickers: [MainEditStickerItem]
     ) -> UIImage {
         let outputSize = resolvedOutputSize(for: framingResult)
@@ -20,6 +21,7 @@ struct MainEditCompositeRenderer {
             context.fill(outputBounds)
 
             drawPhoto(image, framingResult: framingResult, outputSize: outputSize)
+            drawTexts(texts, outputSize: outputSize)
             drawStickers(stickers, outputSize: outputSize)
         }
     }
@@ -82,6 +84,42 @@ private extension MainEditCompositeRenderer {
         }
     }
 
+    func drawTexts(_ texts: [MainEditTextItem], outputSize: CGSize) {
+        orderedTexts(texts).forEach { text in
+            let textSize = restoredTextSize(for: text, outputSize: outputSize)
+            let center = CGPoint(
+                x: outputSize.width * text.normalizedCenter.x,
+                y: outputSize.height * text.normalizedCenter.y
+            )
+            let textRect = CGRect(
+                x: center.x - textSize.width / 2,
+                y: center.y - textSize.height / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            let attributedText = attributedText(
+                for: text,
+                fontSize: restoredTextFontSize(for: text, outputSize: outputSize)
+            )
+
+            attributedText.draw(
+                with: textRect,
+                options: [.usesLineFragmentOrigin, .usesFontLeading],
+                context: nil
+            )
+        }
+    }
+
+    func orderedTexts(_ texts: [MainEditTextItem]) -> [MainEditTextItem] {
+        texts.sorted { lhs, rhs in
+            if lhs.zIndex == rhs.zIndex {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+
+            return lhs.zIndex < rhs.zIndex
+        }
+    }
+
     func orderedStickers(_ stickers: [MainEditStickerItem]) -> [MainEditStickerItem] {
         stickers.sorted { lhs, rhs in
             if lhs.zIndex == rhs.zIndex {
@@ -99,6 +137,76 @@ private extension MainEditCompositeRenderer {
             width: MainEditLayout.stickerThumbnailSize.width * baseScale * sticker.scale,
             height: MainEditLayout.stickerThumbnailSize.height * baseScale * sticker.scale
         )
+    }
+
+    func restoredTextSize(for text: MainEditTextItem, outputSize: CGSize) -> CGSize {
+        let baseScale = outputSize.width / MainEditLayout.designWidth
+
+        return CGSize(
+            width: outputSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale,
+            height: MainEditLayout.textPreviewBoxHeight * baseScale * text.scale
+        )
+    }
+
+    func restoredTextFontSize(for text: MainEditTextItem, outputSize: CGSize) -> CGFloat {
+        let baseScale = outputSize.width / MainEditLayout.designWidth
+
+        return MainEditLayout.textPreviewTextFontSize * baseScale * text.scale
+    }
+
+    func attributedText(
+        for text: MainEditTextItem,
+        fontSize: CGFloat
+    ) -> NSAttributedString {
+        let fallbackStyle = text.styleRuns.first
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byTruncatingTail
+        let attributedText = NSMutableAttributedString(
+            string: text.text,
+            attributes: [
+                .font: uiFont(
+                    named: fallbackStyle?.font.fontName ?? MainEditTextFont.default.fontName,
+                    size: fontSize
+                ),
+                .foregroundColor: fallbackStyle?.color.uiColor ?? MainEditTextColor.white.uiColor,
+                .paragraphStyle: paragraphStyle
+            ]
+        )
+
+        text.styleRuns.forEach { styleRun in
+            let range = clampedRange(
+                NSRange(location: styleRun.start, length: styleRun.length),
+                textLength: attributedText.length
+            )
+
+            guard range.length > 0 else {
+                return
+            }
+
+            attributedText.addAttributes(
+                [
+                    .font: uiFont(named: styleRun.font.fontName, size: fontSize),
+                    .foregroundColor: styleRun.color.uiColor,
+                    .paragraphStyle: paragraphStyle
+                ],
+                range: range
+            )
+        }
+
+        return attributedText
+    }
+
+    func uiFont(named fontName: String, size: CGFloat) -> UIFont {
+        UIFont(name: fontName, size: size) ?? UIFont.systemFont(ofSize: size)
+    }
+
+    func clampedRange(_ range: NSRange, textLength: Int) -> NSRange {
+        let location = min(max(range.location, 0), textLength)
+        let maximumLength = max(textLength - location, 0)
+        let length = min(max(range.length, 0), maximumLength)
+
+        return NSRange(location: location, length: length)
     }
 
     func drawAspectFill(_ image: UIImage, in rect: CGRect) {
