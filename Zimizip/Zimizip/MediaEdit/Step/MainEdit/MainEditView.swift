@@ -997,6 +997,7 @@ private extension MainEditView {
         return MainEditCompositeRenderer.shared.image(
             framingResult: framingResult,
             image: renderedImage,
+            texts: appliedTextItems,
             stickers: appliedStickerItems
         )
     }
