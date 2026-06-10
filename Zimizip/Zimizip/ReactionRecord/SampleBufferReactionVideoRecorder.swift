@@ -175,8 +175,10 @@ private extension SampleBufferReactionVideoRecorder {
 
         captureSession.addOutput(videoOutput)
 
-        videoOutput.connection(with: .video)?.isVideoMirrored = true
-        videoOutput.connection(with: .video)?.videoRotationAngle = 90
+        if let videoConnection = videoOutput.connection(with: .video) {
+            videoConnection.isVideoMirrored = true
+            videoConnection.videoRotationAngle = 90
+        }
     }
 
     func startCameraSession() async throws {
@@ -469,13 +471,23 @@ extension SampleBufferReactionVideoRecorder: AVCaptureVideoDataOutputSampleBuffe
     ) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
-        let cameraImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let cameraImage = normalizedCameraImage(from: pixelBuffer)
         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
 
         writingQueue.async { [weak self] in
             self?.latestCameraImage = cameraImage
             self?.latestCameraPresentationTime = presentationTime
         }
+    }
+
+    nonisolated func normalizedCameraImage(from pixelBuffer: CVPixelBuffer) -> CIImage {
+        let cameraImage = CIImage(cvPixelBuffer: pixelBuffer)
+
+        guard cameraImage.extent.width > cameraImage.extent.height else {
+            return cameraImage
+        }
+
+        return cameraImage.oriented(.right)
     }
 }
 
