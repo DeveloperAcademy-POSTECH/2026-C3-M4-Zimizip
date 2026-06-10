@@ -11,6 +11,7 @@ import UIKit
 
 struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var camera = CameraPreviewModel()
     @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
@@ -21,6 +22,8 @@ struct MediaCameraView: View {
     @State private var isCapturedLandscape = false
     @State private var physicalDeviceOrientation: UIDeviceOrientation = .portrait
     @State private var captureOrientation: AVCaptureVideoOrientation = .portrait
+    @State private var isShowingCameraPermissionSettingsPrompt = false
+    @State private var didOpenCameraPermissionSettings = false
 
     let onPhotoCaptured: (Data, CGRect, Bool) -> Void
 
@@ -79,6 +82,18 @@ struct MediaCameraView: View {
                         presetBottomInset: presetBottomInset
                     )
                 }
+
+                if isShowingCameraPermissionSettingsPrompt {
+                    PermissionSettingsPrompt(
+                        title: "서프라이즈 사진 촬영을 위해 권한이\n필요합니다",
+                        message: "권한을 허용하면 앱에서 서프라이즈\n사진을 바로 촬영할 수 있습니다. ‘설정’에서 카메라 접근을 허용해 주십시오.",
+                        onMoveToSettings: moveToCameraPermissionSettings,
+                        onLater: {
+                            isShowingCameraPermissionSettingsPrompt = false
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                }
             }
             .background(Color.black)
             .ignoresSafeArea()
@@ -86,10 +101,19 @@ struct MediaCameraView: View {
         .statusBarHidden(capturedPhotoData == nil)
         .task {
             startMonitoringDeviceOrientation()
-            await camera.prepareCameraPreview()
+            await requestCameraAccessFromPreview()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             updateCaptureOrientation()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active, didOpenCameraPermissionSettings else {
+                return
+            }
+
+            Task {
+                await refreshCameraAccessAfterReturningFromSettings()
+            }
         }
         .onDisappear {
             camera.stopSession()
@@ -125,6 +149,10 @@ struct MediaCameraView: View {
     }
 
     private func capturePhoto(previewFrame: CGRect) {
+        guard camera.isPreviewSessionActive else {
+            return
+        }
+
         camera.capturePhoto(videoOrientation: captureOrientation) { photoData in
             guard let photoData else {
                 return
@@ -134,6 +162,35 @@ struct MediaCameraView: View {
             isCapturedLandscape = physicalDeviceOrientation.isLandscape
             capturedPhotoData = photoData
         }
+    }
+
+    private func requestCameraAccessFromPreview() async {
+        await Task.yield()
+
+        let isGranted = await camera.requestCameraPreviewAccess()
+        isShowingCameraPermissionSettingsPrompt = !isGranted
+    }
+
+    private func moveToCameraPermissionSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+
+        didOpenCameraPermissionSettings = true
+        UIApplication.shared.open(settingsURL) { didOpen in
+            if !didOpen {
+                Task { @MainActor in
+                    didOpenCameraPermissionSettings = false
+                }
+            }
+        }
+    }
+
+    private func refreshCameraAccessAfterReturningFromSettings() async {
+        didOpenCameraPermissionSettings = false
+
+        let isGranted = await camera.requestCameraPreviewAccess()
+        isShowingCameraPermissionSettingsPrompt = !isGranted
     }
 
     private func retakePhoto() {
