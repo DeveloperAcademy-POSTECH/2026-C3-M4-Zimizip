@@ -190,6 +190,11 @@ private extension MainEditView {
                 cancelAction: cancelStickerPanel,
                 confirmAction: confirmStickerPanel
             )
+        } else if selectedTool == .text {
+            MainEditTextPanel(
+                cancelAction: cancelTextPanel,
+                confirmAction: confirmTextPanel
+            )
         } else {
             EditToolBar(selectedTool: $selectedTool)
         }
@@ -226,7 +231,8 @@ private extension MainEditView {
     var isBottomEditingPanelPresented: Bool {
         selectedTool == .filter ||
             selectedTool == .adjustment ||
-            selectedTool == .sticker
+            selectedTool == .sticker ||
+            selectedTool == .text
     }
 
     var hasPendingToolPreviewChanges: Bool {
@@ -237,6 +243,8 @@ private extension MainEditView {
                 sanitizedAdjustmentValues(appliedAdjustmentValues)
         } else if selectedTool == .sticker {
             return previewStickerItems != appliedStickerItems
+        } else if selectedTool == .text {
+            return false
         }
 
         return false
@@ -283,6 +291,8 @@ private extension MainEditView {
             )
         } else if selectedTool == .sticker {
             MainEditLayout.stickerPanelTotalHeight(safeAreaInsets: safeAreaInsets)
+        } else if selectedTool == .text {
+            MainEditLayout.textPanelTotalHeight(safeAreaInsets: safeAreaInsets)
         } else {
             MainEditLayout.bottomToolBarTotalHeight(safeAreaInsets: safeAreaInsets)
         }
@@ -295,6 +305,8 @@ private extension MainEditView {
             beginAdjustmentPanel()
         } else if tool == .sticker {
             beginStickerPreview()
+        } else if tool == .text {
+            beginTextPanel()
         } else {
             updateCanvasImage(
                 applying: appliedFilterPreset,
@@ -467,6 +479,21 @@ private extension MainEditView {
         selectedStickerItemID = nil
         endStickerDrag()
         endStickerScale()
+        selectedTool = nil
+    }
+
+    func beginTextPanel() {
+        updateCanvasImage(
+            applying: appliedFilterPreset,
+            adjustmentValues: appliedAdjustmentValues
+        )
+    }
+
+    func cancelTextPanel() {
+        selectedTool = nil
+    }
+
+    func confirmTextPanel() {
         selectedTool = nil
     }
 
