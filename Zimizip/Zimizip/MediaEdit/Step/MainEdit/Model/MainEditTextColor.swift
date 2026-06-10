@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum MainEditTextColor: String, CaseIterable, Codable, Equatable, Hashable, Identifiable {
     case white
@@ -23,6 +24,21 @@ enum MainEditTextColor: String, CaseIterable, Codable, Equatable, Hashable, Iden
             return Color(red: 1.0, green: 0.90, blue: 0.0)
         case .green:
             return Color(red: 0.13, green: 1.0, blue: 0.34)
+        }
+    }
+
+    var uiColor: UIColor {
+        switch self {
+        case .white:
+            return .white
+        case .red:
+            return UIColor(red: 1.0, green: 0.08, blue: 0.08, alpha: 1)
+        case .orange:
+            return UIColor(red: 1.0, green: 0.49, blue: 0.04, alpha: 1)
+        case .yellow:
+            return UIColor(red: 1.0, green: 0.90, blue: 0.0, alpha: 1)
+        case .green:
+            return UIColor(red: 0.13, green: 1.0, blue: 0.34, alpha: 1)
         }
     }
 

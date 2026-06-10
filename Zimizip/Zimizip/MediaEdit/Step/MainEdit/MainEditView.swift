@@ -30,6 +30,8 @@ struct MainEditView: View {
     @State private var redoStack: [MainEditEditState] = []
     @State private var isTextInputPresented = false
     @State private var textInputDraft = ""
+    @State private var textInputStyleRuns: [MainEditTextStyleRun] = []
+    @State private var textInputSelectedRange = NSRange(location: 0, length: 0)
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -123,6 +125,8 @@ struct MainEditView: View {
                 if isTextInputPresented {
                     MainEditTextInputOverlay(
                         text: $textInputDraft,
+                        styleRuns: $textInputStyleRuns,
+                        selectedRange: $textInputSelectedRange,
                         font: selectedTextFont,
                         color: selectedTextColor,
                         cancelAction: cancelTextInputOverlay,
@@ -531,6 +535,8 @@ private extension MainEditView {
         selectedTextColor = selectedTextItemID.flatMap(textColor(for:)) ?? .white
         isTextInputPresented = false
         textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
         endTextDrag()
         endTextScale()
         updateCanvasImage(
@@ -544,6 +550,8 @@ private extension MainEditView {
         selectedTextItemID = nil
         isTextInputPresented = false
         textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
         endTextDrag()
         endTextScale()
         selectedTool = nil
@@ -554,6 +562,8 @@ private extension MainEditView {
         selectedTextItemID = nil
         isTextInputPresented = false
         textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
         endTextDrag()
         endTextScale()
         selectedTool = nil
@@ -568,7 +578,16 @@ private extension MainEditView {
 
         if let selectedTextItemID,
            previewTextItems.contains(where: { $0.id == selectedTextItemID }) {
-            applyTextFont(font, to: selectedTextItemID)
+            if isTextInputPresented {
+                textInputStyleRuns = fontAppliedStyleRuns(
+                    textInputStyleRuns,
+                    textLength: textInputDraft.count,
+                    font: font,
+                    selectedRange: textInputSelectedRange
+                )
+            } else {
+                applyTextFont(font, to: selectedTextItemID)
+            }
             return
         }
 
@@ -590,7 +609,11 @@ private extension MainEditView {
         previewTextItems[index].styleRuns = fontAppliedStyleRuns(
             previewTextItems[index].styleRuns,
             textLength: previewTextItems[index].text.count,
-            font: font
+            font: font,
+            selectedRange: NSRange(
+                location: 0,
+                length: previewTextItems[index].text.count
+            )
         )
     }
 
@@ -603,7 +626,16 @@ private extension MainEditView {
             return
         }
 
-        applyTextColor(color, to: selectedTextItemID)
+        if isTextInputPresented {
+            textInputStyleRuns = colorAppliedStyleRuns(
+                textInputStyleRuns,
+                textLength: textInputDraft.count,
+                color: color,
+                selectedRange: textInputSelectedRange
+            )
+        } else {
+            applyTextColor(color, to: selectedTextItemID)
+        }
     }
 
     func applyTextColor(_ color: MainEditTextColor, to id: MainEditTextItem.ID) {
@@ -614,7 +646,11 @@ private extension MainEditView {
         previewTextItems[index].styleRuns = colorAppliedStyleRuns(
             previewTextItems[index].styleRuns,
             textLength: previewTextItems[index].text.count,
-            color: color
+            color: color,
+            selectedRange: NSRange(
+                location: 0,
+                length: previewTextItems[index].text.count
+            )
         )
     }
 
@@ -638,6 +674,8 @@ private extension MainEditView {
         textInputDraft = currentText == MainEditLayout.textPreviewPlaceholder
             ? ""
             : currentText
+        textInputStyleRuns = styleRuns(for: id)
+        textInputSelectedRange = NSRange(location: textInputDraft.count, length: 0)
         isTextInputPresented = true
     }
 
@@ -752,6 +790,8 @@ private extension MainEditView {
     func cancelTextInputOverlay() {
         isTextInputPresented = false
         textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
     }
 
     func confirmTextInputOverlay() {
@@ -767,11 +807,13 @@ private extension MainEditView {
             : textInputDraft
         previewTextItems[index].text = resolvedText
         previewTextItems[index].styleRuns = normalizedStyleRuns(
-            previewTextItems[index].styleRuns,
+            textInputStyleRuns,
             textLength: resolvedText.count
         )
         isTextInputPresented = false
         textInputDraft = ""
+        textInputStyleRuns = []
+        textInputSelectedRange = NSRange(location: 0, length: 0)
     }
 
     func commitEditState(_ newState: MainEditEditState) {
@@ -835,6 +877,8 @@ private extension MainEditView {
             selectedTextItemID = previewTextItems.last?.id
             isTextInputPresented = false
             textInputDraft = ""
+            textInputStyleRuns = []
+            textInputSelectedRange = NSRange(location: 0, length: 0)
             endTextDrag()
             endTextScale()
         }
@@ -996,11 +1040,17 @@ private extension MainEditView {
             .text
     }
 
+    func styleRuns(for id: MainEditTextItem.ID) -> [MainEditTextStyleRun] {
+        previewTextItems
+            .first(where: { $0.id == id })?
+            .styleRuns ?? []
+    }
+
     func normalizedStyleRuns(
         _ styleRuns: [MainEditTextStyleRun],
         textLength: Int
     ) -> [MainEditTextStyleRun] {
-        guard let firstRun = styleRuns.first else {
+        guard textLength > 0 else {
             return [
                 MainEditTextStyleRun(
                     start: 0,
@@ -1011,29 +1061,81 @@ private extension MainEditView {
             ]
         }
 
-        var normalizedRun = firstRun
-        normalizedRun.start = 0
-        normalizedRun.length = textLength
-        return [normalizedRun]
-    }
+        let clampedRuns = styleRuns
+            .sorted { $0.start < $1.start }
+            .compactMap { styleRun -> MainEditTextStyleRun? in
+                let range = clampedNSRange(
+                    NSRange(location: styleRun.start, length: styleRun.length),
+                    textLength: textLength
+                )
 
-    func fontAppliedStyleRuns(
-        _ styleRuns: [MainEditTextStyleRun],
-        textLength: Int,
-        font: MainEditTextFont
-    ) -> [MainEditTextStyleRun] {
-        guard !styleRuns.isEmpty else {
+                guard range.length > 0 else {
+                    return nil
+                }
+
+                return MainEditTextStyleRun(
+                    start: range.location,
+                    length: range.length,
+                    font: styleRun.font,
+                    color: styleRun.color
+                )
+            }
+
+        guard !clampedRuns.isEmpty else {
             return [
                 MainEditTextStyleRun(
                     start: 0,
                     length: textLength,
-                    font: font,
+                    font: selectedTextFont,
                     color: selectedTextColor
                 )
             ]
         }
 
-        return styleRuns.map { styleRun in
+        var filledRuns: [MainEditTextStyleRun] = []
+        var cursor = 0
+
+        clampedRuns.forEach { styleRun in
+            if styleRun.start > cursor {
+                filledRuns.append(
+                    MainEditTextStyleRun(
+                        start: cursor,
+                        length: styleRun.start - cursor,
+                        font: selectedTextFont,
+                        color: selectedTextColor
+                    )
+                )
+            }
+
+            filledRuns.append(styleRun)
+            cursor = max(cursor, styleRun.start + styleRun.length)
+        }
+
+        if cursor < textLength {
+            filledRuns.append(
+                MainEditTextStyleRun(
+                    start: cursor,
+                    length: textLength - cursor,
+                    font: selectedTextFont,
+                    color: selectedTextColor
+                )
+            )
+        }
+
+        return mergedAdjacentStyleRuns(filledRuns)
+    }
+
+    func fontAppliedStyleRuns(
+        _ styleRuns: [MainEditTextStyleRun],
+        textLength: Int,
+        font: MainEditTextFont,
+        selectedRange: NSRange
+    ) -> [MainEditTextStyleRun] {
+        styleRunsApplying(
+            styleRuns,
+            textLength: textLength,
+            selectedRange: selectedRange
+        ) { styleRun in
             var updatedRun = styleRun
             updatedRun.font = font
             return updatedRun
@@ -1043,24 +1145,112 @@ private extension MainEditView {
     func colorAppliedStyleRuns(
         _ styleRuns: [MainEditTextStyleRun],
         textLength: Int,
-        color: MainEditTextColor
+        color: MainEditTextColor,
+        selectedRange: NSRange
     ) -> [MainEditTextStyleRun] {
-        guard !styleRuns.isEmpty else {
-            return [
-                MainEditTextStyleRun(
-                    start: 0,
-                    length: textLength,
-                    font: selectedTextFont,
-                    color: color
-                )
-            ]
-        }
-
-        return styleRuns.map { styleRun in
+        styleRunsApplying(
+            styleRuns,
+            textLength: textLength,
+            selectedRange: selectedRange
+        ) { styleRun in
             var updatedRun = styleRun
             updatedRun.color = color
             return updatedRun
         }
+    }
+
+    func styleRunsApplying(
+        _ styleRuns: [MainEditTextStyleRun],
+        textLength: Int,
+        selectedRange: NSRange,
+        transform: (MainEditTextStyleRun) -> MainEditTextStyleRun
+    ) -> [MainEditTextStyleRun] {
+        let normalizedRuns = normalizedStyleRuns(styleRuns, textLength: textLength)
+
+        guard textLength > 0 else {
+            return normalizedRuns
+        }
+
+        let range = clampedNSRange(selectedRange, textLength: textLength)
+        guard range.length > 0 else {
+            return normalizedRuns
+        }
+
+        let targetRange = range
+        let targetStart = targetRange.location
+        let targetEnd = targetRange.location + targetRange.length
+        var updatedRuns: [MainEditTextStyleRun] = []
+
+        normalizedRuns.forEach { styleRun in
+            let runStart = styleRun.start
+            let runEnd = styleRun.start + styleRun.length
+
+            guard runEnd > targetStart,
+                  runStart < targetEnd else {
+                updatedRuns.append(styleRun)
+                return
+            }
+
+            if runStart < targetStart {
+                updatedRuns.append(
+                    MainEditTextStyleRun(
+                        start: runStart,
+                        length: targetStart - runStart,
+                        font: styleRun.font,
+                        color: styleRun.color
+                    )
+                )
+            }
+
+            let overlapStart = max(runStart, targetStart)
+            let overlapEnd = min(runEnd, targetEnd)
+            var transformedRun = styleRun
+            transformedRun.start = overlapStart
+            transformedRun.length = overlapEnd - overlapStart
+            updatedRuns.append(transform(transformedRun))
+
+            if runEnd > targetEnd {
+                updatedRuns.append(
+                    MainEditTextStyleRun(
+                        start: targetEnd,
+                        length: runEnd - targetEnd,
+                        font: styleRun.font,
+                        color: styleRun.color
+                    )
+                )
+            }
+        }
+
+        return mergedAdjacentStyleRuns(updatedRuns)
+    }
+
+    func mergedAdjacentStyleRuns(
+        _ styleRuns: [MainEditTextStyleRun]
+    ) -> [MainEditTextStyleRun] {
+        let sortedRuns = styleRuns
+            .filter { $0.length > 0 }
+            .sorted { $0.start < $1.start }
+
+        return sortedRuns.reduce(into: []) { mergedRuns, styleRun in
+            guard var lastRun = mergedRuns.last,
+                  lastRun.start + lastRun.length == styleRun.start,
+                  lastRun.font == styleRun.font,
+                  lastRun.color == styleRun.color else {
+                mergedRuns.append(styleRun)
+                return
+            }
+
+            lastRun.length += styleRun.length
+            mergedRuns[mergedRuns.count - 1] = lastRun
+        }
+    }
+
+    func clampedNSRange(_ range: NSRange, textLength: Int) -> NSRange {
+        let location = min(max(range.location, 0), textLength)
+        let maximumLength = max(textLength - location, 0)
+        let length = min(max(range.length, 0), maximumLength)
+
+        return NSRange(location: location, length: length)
     }
 
     func clampedTextCenter(_ center: CGPoint) -> CGPoint {

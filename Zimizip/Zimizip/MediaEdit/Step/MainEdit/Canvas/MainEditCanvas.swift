@@ -67,15 +67,17 @@ private extension MainEditCanvas {
 
     func textPreviewLayer(_ textItem: MainEditTextItem, frameSize: CGSize) -> some View {
         let previewSize = textPreviewSize(for: textItem, in: frameSize)
-        let style = textItem.styleRuns.first
 
         return ZStack {
             RoundedRectangle(cornerRadius: 0)
                 .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
 
-            Text(textItem.text)
-                .font(.custom(style?.font.fontName ?? MainEditTextFont.default.fontName, size: textPreviewFontSize(for: textItem, in: frameSize)))
-                .foregroundStyle(style?.color.color ?? MainEditTextColor.white.color)
+            Text(
+                attributedText(
+                    for: textItem,
+                    fontSize: textPreviewFontSize(for: textItem, in: frameSize)
+                )
+            )
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -269,5 +271,43 @@ private extension MainEditCanvas {
         let baseScale = frameSize.width / MainEditLayout.designWidth
 
         return MainEditLayout.textPreviewTextFontSize * baseScale * text.scale
+    }
+
+    func attributedText(
+        for text: MainEditTextItem,
+        fontSize: CGFloat
+    ) -> AttributedString {
+        let fallbackStyle = text.styleRuns.first
+        var attributedText = AttributedString(text.text)
+        attributedText.font = .custom(
+            fallbackStyle?.font.fontName ?? MainEditTextFont.default.fontName,
+            size: fontSize
+        )
+        attributedText.foregroundColor = fallbackStyle?.color.color ?? MainEditTextColor.white.color
+
+        text.styleRuns.forEach { styleRun in
+            guard let stringRange = Range(
+                NSRange(location: styleRun.start, length: styleRun.length),
+                in: text.text
+            ),
+                  let lowerBound = AttributedString.Index(
+                    stringRange.lowerBound,
+                    within: attributedText
+                  ),
+                  let upperBound = AttributedString.Index(
+                    stringRange.upperBound,
+                    within: attributedText
+                  ) else {
+                return
+            }
+
+            attributedText[lowerBound..<upperBound].font = .custom(
+                styleRun.font.fontName,
+                size: fontSize
+            )
+            attributedText[lowerBound..<upperBound].foregroundColor = styleRun.color.color
+        }
+
+        return attributedText
     }
 }
