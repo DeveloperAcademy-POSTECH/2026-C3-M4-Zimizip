@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct MainEditTextInputOverlay: View {
+    @Binding var text: String
+    @FocusState private var isTextFieldFocused: Bool
+
     let cancelAction: () -> Void
     let confirmAction: () -> Void
 
@@ -11,7 +14,7 @@ struct MainEditTextInputOverlay: View {
 
                 Spacer(minLength: 0)
 
-                Text(MainEditLayout.textPreviewPlaceholder)
+                Text(previewText)
                     .font(.custom("Pretendard", size: MainEditLayout.textInputPreviewFontSize).weight(.bold))
                     .foregroundStyle(Color.baseWhite)
                     .multilineTextAlignment(.center)
@@ -27,10 +30,17 @@ struct MainEditTextInputOverlay: View {
             .background(Color.black.opacity(MainEditLayout.textInputOverlayOpacity))
             .ignoresSafeArea()
         }
+        .onAppear {
+            isTextFieldFocused = true
+        }
     }
 }
 
 private extension MainEditTextInputOverlay {
+    var previewText: String {
+        text.isEmpty ? MainEditLayout.textPreviewPlaceholder : text
+    }
+
     func topBar(safeAreaTop: CGFloat) -> some View {
         HStack {
             Button(MainEditLayout.textInputCancelTitle, action: cancelAction)
@@ -63,11 +73,15 @@ private extension MainEditTextInputOverlay {
 
     var smallPreview: some View {
         HStack(alignment: .top, spacing: MainEditLayout.textInputSmallPreviewSpacing) {
-            Text(MainEditLayout.textPreviewPlaceholder)
+            TextField(MainEditLayout.textPreviewPlaceholder, text: $text)
                 .font(.custom("Pretendard", size: MainEditLayout.textInputSmallPreviewFontSize).weight(.bold))
                 .foregroundStyle(Color.baseWhite)
+                .tint(Color.brandPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .focused($isTextFieldFocused)
+                .submitLabel(.done)
+                .onSubmit(confirmAction)
 
             Spacer(minLength: 0)
         }
@@ -149,7 +163,10 @@ private extension MainEditTextInputOverlay {
 }
 
 #Preview {
+    @Previewable @State var text = ""
+
     MainEditTextInputOverlay(
+        text: $text,
         cancelAction: {},
         confirmAction: {}
     )

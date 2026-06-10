@@ -29,6 +29,7 @@ struct MainEditView: View {
     @State private var undoStack: [MainEditEditState] = []
     @State private var redoStack: [MainEditEditState] = []
     @State private var isTextInputPresented = false
+    @State private var textInputDraft = ""
     @State private var mainEditResult: MainEditResult?
 
     let framingResult: PhotoFramingResult
@@ -121,8 +122,9 @@ struct MainEditView: View {
                     .zIndex(1)
                 if isTextInputPresented {
                     MainEditTextInputOverlay(
-                        cancelAction: dismissTextInputOverlay,
-                        confirmAction: dismissTextInputOverlay
+                        text: $textInputDraft,
+                        cancelAction: cancelTextInputOverlay,
+                        confirmAction: confirmTextInputOverlay
                     )
                 }
             }
@@ -525,6 +527,7 @@ private extension MainEditView {
         selectedTextFont = selectedTextItemID.flatMap(textFont(for:)) ?? .default
         selectedTextColor = selectedTextItemID.flatMap(textColor(for:)) ?? .white
         isTextInputPresented = false
+        textInputDraft = ""
         endTextDrag()
         endTextScale()
         updateCanvasImage(
@@ -537,6 +540,7 @@ private extension MainEditView {
         previewTextItems = appliedTextItems
         selectedTextItemID = nil
         isTextInputPresented = false
+        textInputDraft = ""
         endTextDrag()
         endTextScale()
         selectedTool = nil
@@ -546,6 +550,7 @@ private extension MainEditView {
         appliedTextItems = previewTextItems
         selectedTextItemID = nil
         isTextInputPresented = false
+        textInputDraft = ""
         endTextDrag()
         endTextScale()
         selectedTool = nil
@@ -584,6 +589,10 @@ private extension MainEditView {
         }
 
         selectTextItem(id)
+        let currentText = textValue(for: id) ?? ""
+        textInputDraft = currentText == MainEditLayout.textPreviewPlaceholder
+            ? ""
+            : currentText
         isTextInputPresented = true
     }
 
@@ -695,8 +704,29 @@ private extension MainEditView {
         scalingTextStartScale = nil
     }
 
-    func dismissTextInputOverlay() {
+    func cancelTextInputOverlay() {
         isTextInputPresented = false
+        textInputDraft = ""
+    }
+
+    func confirmTextInputOverlay() {
+        guard selectedTool == .text,
+              let selectedTextItemID,
+              let index = previewTextItems.firstIndex(where: { $0.id == selectedTextItemID }) else {
+            cancelTextInputOverlay()
+            return
+        }
+
+        let resolvedText = textInputDraft.isEmpty
+            ? MainEditLayout.textPreviewPlaceholder
+            : textInputDraft
+        previewTextItems[index].text = resolvedText
+        previewTextItems[index].styleRuns = normalizedStyleRuns(
+            previewTextItems[index].styleRuns,
+            textLength: resolvedText.count
+        )
+        isTextInputPresented = false
+        textInputDraft = ""
     }
 
     func commitEditState(_ newState: MainEditEditState) {
@@ -759,6 +789,7 @@ private extension MainEditView {
             previewTextItems = appliedTextItems
             selectedTextItemID = previewTextItems.last?.id
             isTextInputPresented = false
+            textInputDraft = ""
             endTextDrag()
             endTextScale()
         }
@@ -912,6 +943,33 @@ private extension MainEditView {
             .styleRuns
             .first?
             .color
+    }
+
+    func textValue(for id: MainEditTextItem.ID) -> String? {
+        previewTextItems
+            .first(where: { $0.id == id })?
+            .text
+    }
+
+    func normalizedStyleRuns(
+        _ styleRuns: [MainEditTextStyleRun],
+        textLength: Int
+    ) -> [MainEditTextStyleRun] {
+        guard let firstRun = styleRuns.first else {
+            return [
+                MainEditTextStyleRun(
+                    start: 0,
+                    length: textLength,
+                    font: selectedTextFont,
+                    color: selectedTextColor
+                )
+            ]
+        }
+
+        var normalizedRun = firstRun
+        normalizedRun.start = 0
+        normalizedRun.length = textLength
+        return [normalizedRun]
     }
 
     func clampedTextCenter(_ center: CGPoint) -> CGPoint {
