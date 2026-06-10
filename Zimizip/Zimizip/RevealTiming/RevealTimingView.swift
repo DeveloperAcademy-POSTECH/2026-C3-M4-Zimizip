@@ -38,7 +38,7 @@ struct RevealTimingView: View {
                             subtitle: "상대방에게 바로 보여주고\n그 순간을 기록해요"
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(OptionItemButtonStyle())
 
                     Spacer()
                         .frame(height: 20)
@@ -51,7 +51,7 @@ struct RevealTimingView: View {
                             subtitle: "앱에 저장해두고\n원하는 순간에 열어요"
                         )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(OptionItemButtonStyle())
 
                     Spacer()
                 }

@@ -32,28 +32,36 @@ struct PhotoFramingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                Color.clear
+                    .frame(height: Self.topBarHeight)
+
+                PhotoFramingEditingArea(
+                    media: media,
+                    backgroundColor: selectedBackgroundColor.color,
+                    sourcePreviewFrame: sourcePreviewFrame,
+                    isLandscapeCapture: isLandscapeCapture,
+                    transformChangeAction: { transformState in
+                        self.transformState = transformState
+                    }
+                )
+
+                PhotoFramingBackgroundPanel(
+                    selectedBackgroundColor: $selectedBackgroundColor
+                )
+            }
+
             PhotoFramingTopBar(
                 cancelButtonAction: cancelButtonAction,
                 completeButtonAction: completeFraming
             )
-
-            PhotoFramingEditingArea(
-                media: media,
-                backgroundColor: selectedBackgroundColor.color,
-                sourcePreviewFrame: sourcePreviewFrame,
-                isLandscapeCapture: isLandscapeCapture,
-                transformChangeAction: { transformState in
-                    self.transformState = transformState
-                }
-            )
-
-            PhotoFramingBackgroundPanel(
-                selectedBackgroundColor: $selectedBackgroundColor
-            )
+            .zIndex(1)
         }
         .background(Color.black)
     }
+
+    private static let topBarHeight: CGFloat = 48
 
     private func completeFraming() {
         guard let transformState,

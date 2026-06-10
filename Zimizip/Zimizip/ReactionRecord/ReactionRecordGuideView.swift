@@ -33,14 +33,21 @@ struct ReactionRecordGuideView: View {
                     .padding(.horizontal, 20)
 
                 Spacer()
+                
+                Text("녹화는 2분 후 자동으로 종료됩니다")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.gray250)
+                    .padding(.horizontal, 90)
+                    .padding(.bottom, 12)
+
 
                 ZimizipPrimaryButton(title: "시작하기") {
                     Task {
                         await startRecording()
                     }
                 }
-                    .padding(.bottom, 60)
-                    .padding(.horizontal, 20)
+                .padding(.bottom, 60)
+                .padding(.horizontal, 20)
             }
         }
         .navigationDestination(isPresented: $isShowingReactionRecord) {
