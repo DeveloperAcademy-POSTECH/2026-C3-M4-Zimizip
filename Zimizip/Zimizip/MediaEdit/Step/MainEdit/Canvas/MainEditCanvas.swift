@@ -5,6 +5,7 @@ struct MainEditCanvas: View {
     let framingResult: PhotoFramingResult
     let image: UIImage?
     let frameSize: CGSize
+    var isTextPreviewPresented: Bool = false
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
@@ -41,10 +42,56 @@ private extension MainEditCanvas {
                 .offset(restoredOffset(in: frameSize))
             }
 
+            if isTextPreviewPresented {
+                textPreviewLayer(frameSize: frameSize)
+            }
+
             stickerLayer(frameSize: frameSize)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
+    }
+
+    func textPreviewLayer(frameSize: CGSize) -> some View {
+        let previewSize = textPreviewSize(in: frameSize)
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
+
+            Text(MainEditLayout.textPreviewPlaceholder)
+                .font(.custom("Pretendard", size: textPreviewFontSize(in: frameSize)).weight(.bold))
+                .foregroundStyle(Color.baseWhite)
+                .multilineTextAlignment(.center)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .padding(.horizontal, MainEditLayout.textPreviewControlSize)
+
+            textPreviewControlButton(systemName: "xmark")
+                .position(x: 0, y: 0)
+
+            textPreviewControlButton(systemName: "doc.on.doc")
+                .position(x: 0, y: previewSize.height)
+
+            textPreviewControlButton(systemName: "arrow.up.left.and.arrow.down.right")
+                .position(x: previewSize.width, y: previewSize.height)
+        }
+        .frame(width: previewSize.width, height: previewSize.height)
+        .position(x: frameSize.width / 2, y: frameSize.height / 2)
+    }
+
+    func textPreviewControlButton(systemName: String) -> some View {
+        Circle()
+            .fill(Color.baseWhite)
+            .frame(
+                width: MainEditLayout.textPreviewControlSize,
+                height: MainEditLayout.textPreviewControlSize
+            )
+            .overlay {
+                Image(systemName: systemName)
+                    .font(.system(size: MainEditLayout.textPreviewControlIconSize, weight: .bold))
+                    .foregroundStyle(Color.gray400)
+            }
     }
 
     func stickerLayer(frameSize: CGSize) -> some View {
@@ -129,5 +176,20 @@ private extension MainEditCanvas {
             width: MainEditLayout.stickerThumbnailSize.width * baseScale * sticker.scale,
             height: MainEditLayout.stickerThumbnailSize.height * baseScale * sticker.scale
         )
+    }
+
+    func textPreviewSize(in frameSize: CGSize) -> CGSize {
+        let baseScale = frameSize.width / MainEditLayout.designWidth
+
+        return CGSize(
+            width: frameSize.width * MainEditLayout.textPreviewBoxWidthRatio,
+            height: MainEditLayout.textPreviewBoxHeight * baseScale
+        )
+    }
+
+    func textPreviewFontSize(in frameSize: CGSize) -> CGFloat {
+        let baseScale = frameSize.width / MainEditLayout.designWidth
+
+        return MainEditLayout.textPreviewTextFontSize * baseScale
     }
 }

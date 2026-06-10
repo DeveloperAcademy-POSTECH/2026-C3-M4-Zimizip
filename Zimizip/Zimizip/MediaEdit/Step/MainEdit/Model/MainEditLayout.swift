@@ -56,6 +56,13 @@ enum MainEditLayout {
     static let textColorSelectedRingWidth: CGFloat = 4
     static let textColorSelectedFillSize: CGFloat = 33.33334
     static let textColorSelectedFillCornerRadius: CGFloat = 33.33334
+    static let textPreviewBoxWidthRatio: CGFloat = 0.78
+    static let textPreviewBoxHeight: CGFloat = 56
+    static let textPreviewBoxBorderWidth: CGFloat = 2
+    static let textPreviewControlSize: CGFloat = 20
+    static let textPreviewControlIconSize: CGFloat = 10
+    static let textPreviewTextFontSize: CGFloat = 20
+    static let textPreviewPlaceholder = "텍스트를 입력하세요"
     static let adjustmentOptionPanelHeight: CGFloat = 132
     static let adjustmentOptionPanelPadding: CGFloat = 20
     static let adjustmentOptionButtonWidth: CGFloat = 76

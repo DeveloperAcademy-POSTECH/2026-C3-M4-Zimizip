@@ -65,6 +65,7 @@ struct MainEditView: View {
                         framingResult: framingResult,
                         image: canvasImage,
                         frameSize: canvasSize,
+                        isTextPreviewPresented: selectedTool == .text,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
                         selectStickerAction: selectStickerItem,
