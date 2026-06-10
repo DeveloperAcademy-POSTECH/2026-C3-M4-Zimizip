@@ -4,8 +4,7 @@ struct ReactionRecordGuideView: View {
     @State private var isShowingReactionRecord = false
     @State private var recordingErrorMessage: String?
     @State private var isStartingRecording = false
-    @State private var screenRecorder = ReplayKitScreenRecorder()
-    @State private var frontCameraRecorder = AVFoundationFrontCameraRecorder()
+    @State private var screenRecorder = SampleBufferReactionVideoRecorder()
 
     let surpriseCardPayload: SurpriseCardPayload
 
@@ -53,8 +52,7 @@ struct ReactionRecordGuideView: View {
         .navigationDestination(isPresented: $isShowingReactionRecord) {
             ReactionRecordView(
                 surpriseCardPayload: surpriseCardPayload,
-                screenRecorder: screenRecorder,
-                frontCameraRecorder: frontCameraRecorder
+                screenRecorder: screenRecorder
             )
         }
         .alert(
@@ -82,11 +80,12 @@ struct ReactionRecordGuideView: View {
         defer { isStartingRecording = false }
 
         do {
-            try await frontCameraRecorder.startRecording()
+            print("[ReactionRecordGuide] start button tapped. starting recorder")
             try await screenRecorder.startRecording()
+            print("[ReactionRecordGuide] recorder start completed. navigating to ReactionRecordView")
             isShowingReactionRecord = true
         } catch {
-            _ = try? await frontCameraRecorder.stopRecording()
+            print("[ReactionRecordGuide] recorder start failed: \(error.localizedDescription)")
             _ = try? await screenRecorder.stopRecording()
             recordingErrorMessage = error.localizedDescription
         }

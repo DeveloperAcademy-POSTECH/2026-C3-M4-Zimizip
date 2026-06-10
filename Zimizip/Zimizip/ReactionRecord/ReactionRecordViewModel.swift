@@ -35,8 +35,8 @@ final class ReactionRecordViewModel: ObservableObject {
         frontCameraRecorder: VideoRecording? = nil,
         reactionVideoComposer: ReactionVideoComposing? = nil
     ) {
-        self.screenRecorder = screenRecorder ?? ReplayKitScreenRecorder()
-        self.frontCameraRecorder = frontCameraRecorder ?? AVFoundationFrontCameraRecorder()
+        self.screenRecorder = screenRecorder ?? SampleBufferReactionVideoRecorder()
+        self.frontCameraRecorder = frontCameraRecorder ?? NoOpVideoRecorder()
         self.reactionVideoComposer = reactionVideoComposer ?? AVFoundationReactionVideoComposer()
     }
 
@@ -65,7 +65,7 @@ final class ReactionRecordViewModel: ObservableObject {
 
         do {
             screenRecordingURL = try await screenRecorder.stopRecording()
-            frontCameraRecordingURL = try await frontCameraRecorder.stopRecording()
+            frontCameraRecordingURL = try? await frontCameraRecorder.stopRecording()
             composedReactionVideoURL = try await composeReactionVideoIfNeeded()
             try await generateReactionThumbnailIfNeeded()
             isGeneratingReactionVideo = false
@@ -131,9 +131,12 @@ final class ReactionRecordViewModel: ObservableObject {
     }
 
     private func composeReactionVideoIfNeeded() async throws -> URL? {
-        guard let frontCameraRecordingURL,
-              let screenRecordingURL else {
+        guard let screenRecordingURL else {
             return nil
+        }
+
+        guard let frontCameraRecordingURL else {
+            return screenRecordingURL
         }
 
         return try await reactionVideoComposer.compose(
