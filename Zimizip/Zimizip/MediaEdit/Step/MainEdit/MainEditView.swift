@@ -16,6 +16,10 @@ struct MainEditView: View {
     @State private var selectedTextItemID: MainEditTextItem.ID?
     @State private var selectedTextFont: MainEditTextFont = .default
     @State private var selectedTextColor: MainEditTextColor = .white
+    @State private var draggingTextItemID: MainEditTextItem.ID?
+    @State private var draggingTextStartCenter: CGPoint?
+    @State private var scalingTextItemID: MainEditTextItem.ID?
+    @State private var scalingTextStartScale: CGFloat?
     @State private var draggingStickerItemID: MainEditStickerItem.ID?
     @State private var draggingStickerStartCenter: CGPoint?
     @State private var scalingStickerItemID: MainEditStickerItem.ID?
@@ -73,7 +77,14 @@ struct MainEditView: View {
                         frameSize: canvasSize,
                         texts: canvasTextItems,
                         selectedTextID: canvasSelectedTextID,
+                        selectTextAction: selectTextItem,
                         textTapAction: selectTextItemForInput,
+                        deleteTextAction: deleteTextItem,
+                        duplicateTextAction: duplicateTextItem,
+                        dragTextAction: dragTextItem,
+                        endTextDragAction: endTextDrag,
+                        scaleTextAction: scaleTextItem,
+                        endTextScaleAction: endTextScale,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
                         selectStickerAction: selectStickerItem,
@@ -514,6 +525,8 @@ private extension MainEditView {
         selectedTextFont = selectedTextItemID.flatMap(textFont(for:)) ?? .default
         selectedTextColor = selectedTextItemID.flatMap(textColor(for:)) ?? .white
         isTextInputPresented = false
+        endTextDrag()
+        endTextScale()
         updateCanvasImage(
             applying: appliedFilterPreset,
             adjustmentValues: appliedAdjustmentValues
@@ -524,6 +537,8 @@ private extension MainEditView {
         previewTextItems = appliedTextItems
         selectedTextItemID = nil
         isTextInputPresented = false
+        endTextDrag()
+        endTextScale()
         selectedTool = nil
     }
 
@@ -531,6 +546,8 @@ private extension MainEditView {
         appliedTextItems = previewTextItems
         selectedTextItemID = nil
         isTextInputPresented = false
+        endTextDrag()
+        endTextScale()
         selectedTool = nil
     }
 
@@ -551,7 +568,7 @@ private extension MainEditView {
         selectedTextItemID = textItem.id
     }
 
-    func selectTextItemForInput(_ id: MainEditTextItem.ID) {
+    func selectTextItem(_ id: MainEditTextItem.ID) {
         guard selectedTool == .text else {
             return
         }
@@ -559,7 +576,123 @@ private extension MainEditView {
         selectedTextItemID = id
         selectedTextFont = textFont(for: id) ?? selectedTextFont
         selectedTextColor = textColor(for: id) ?? selectedTextColor
+    }
+
+    func selectTextItemForInput(_ id: MainEditTextItem.ID) {
+        guard selectedTool == .text else {
+            return
+        }
+
+        selectTextItem(id)
         isTextInputPresented = true
+    }
+
+    func deleteTextItem(_ id: MainEditTextItem.ID) {
+        guard selectedTool == .text else {
+            return
+        }
+
+        previewTextItems.removeAll { $0.id == id }
+
+        if selectedTextItemID == id {
+            selectedTextItemID = previewTextItems.last?.id
+        }
+
+        endTextDrag()
+        endTextScale()
+    }
+
+    func duplicateTextItem(_ id: MainEditTextItem.ID) {
+        guard selectedTool == .text,
+              let sourceText = previewTextItems.first(where: { $0.id == id }) else {
+            return
+        }
+
+        let duplicatedText = MainEditTextItem(
+            text: sourceText.text,
+            styleRuns: sourceText.styleRuns,
+            normalizedCenter: clampedTextCenter(
+                CGPoint(
+                    x: sourceText.normalizedCenter.x + MainEditLayout.textDuplicateOffsetRatio,
+                    y: sourceText.normalizedCenter.y + MainEditLayout.textDuplicateOffsetRatio
+                )
+            ),
+            scale: sourceText.scale,
+            zIndex: nextTextZIndex
+        )
+
+        previewTextItems.append(duplicatedText)
+        selectedTextItemID = duplicatedText.id
+        selectedTextFont = textFont(for: duplicatedText.id) ?? selectedTextFont
+        selectedTextColor = textColor(for: duplicatedText.id) ?? selectedTextColor
+    }
+
+    func dragTextItem(
+        _ id: MainEditTextItem.ID,
+        translation: CGSize,
+        frameSize: CGSize
+    ) {
+        guard frameSize.width > 0,
+              frameSize.height > 0,
+              selectedTool == .text,
+              let index = previewTextItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        if draggingTextItemID != id {
+            draggingTextItemID = id
+            draggingTextStartCenter = previewTextItems[index].normalizedCenter
+        }
+
+        guard let draggingTextStartCenter else {
+            return
+        }
+
+        let proposedCenter = CGPoint(
+            x: draggingTextStartCenter.x + translation.width / frameSize.width,
+            y: draggingTextStartCenter.y + translation.height / frameSize.height
+        )
+
+        previewTextItems[index].normalizedCenter = clampedTextCenter(proposedCenter)
+    }
+
+    func endTextDrag() {
+        draggingTextItemID = nil
+        draggingTextStartCenter = nil
+    }
+
+    func scaleTextItem(
+        _ id: MainEditTextItem.ID,
+        magnification: CGFloat,
+        frameSize: CGSize
+    ) {
+        guard frameSize.width > 0,
+              frameSize.height > 0,
+              selectedTool == .text,
+              let index = previewTextItems.firstIndex(where: { $0.id == id }) else {
+            return
+        }
+
+        if scalingTextItemID != id {
+            scalingTextItemID = id
+            scalingTextStartScale = previewTextItems[index].scale
+        }
+
+        guard let scalingTextStartScale else {
+            return
+        }
+
+        previewTextItems[index].scale = clampedTextScale(
+            scalingTextStartScale * magnification
+        )
+        previewTextItems[index].normalizedCenter = clampedTextCenter(
+            previewTextItems[index].normalizedCenter
+        )
+    }
+
+    func endTextScale() {
+        scalingTextItemID = nil
+        scalingTextStartScale = nil
     }
 
     func dismissTextInputOverlay() {
@@ -626,6 +759,8 @@ private extension MainEditView {
             previewTextItems = appliedTextItems
             selectedTextItemID = previewTextItems.last?.id
             isTextInputPresented = false
+            endTextDrag()
+            endTextScale()
         }
     }
 
@@ -777,6 +912,20 @@ private extension MainEditView {
             .styleRuns
             .first?
             .color
+    }
+
+    func clampedTextCenter(_ center: CGPoint) -> CGPoint {
+        CGPoint(
+            x: clampedNormalizedValue(center.x),
+            y: clampedNormalizedValue(center.y)
+        )
+    }
+
+    func clampedTextScale(_ scale: CGFloat) -> CGFloat {
+        min(
+            max(scale, MainEditLayout.textMinimumScale),
+            MainEditLayout.textMaximumScale
+        )
     }
 
     func clampedStickerCenter(_ center: CGPoint) -> CGPoint {

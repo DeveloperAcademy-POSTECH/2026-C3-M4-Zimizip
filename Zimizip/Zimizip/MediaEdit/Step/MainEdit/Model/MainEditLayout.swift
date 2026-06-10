@@ -64,6 +64,9 @@ enum MainEditLayout {
     static let textPreviewControlIconSize: CGFloat = 10
     static let textPreviewTextFontSize: CGFloat = 20
     static let textPreviewPlaceholder = "텍스트를 입력하세요"
+    static let textMinimumScale: CGFloat = 0.5
+    static let textMaximumScale: CGFloat = 3
+    static let textDuplicateOffsetRatio: CGFloat = 0.05
     static let textPreviewCloseIconName = "xmark"
     static let textPreviewDuplicateIconName = "doc.on.doc"
     static let textPreviewResizeIconName = "arrow.up.left.and.arrow.down.right"

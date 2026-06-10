@@ -7,7 +7,14 @@ struct MainEditCanvas: View {
     let frameSize: CGSize
     var texts: [MainEditTextItem] = []
     var selectedTextID: MainEditTextItem.ID?
+    var selectTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var textTapAction: (MainEditTextItem.ID) -> Void = { _ in }
+    var deleteTextAction: (MainEditTextItem.ID) -> Void = { _ in }
+    var duplicateTextAction: (MainEditTextItem.ID) -> Void = { _ in }
+    var dragTextAction: (MainEditTextItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
+    var endTextDragAction: () -> Void = {}
+    var scaleTextAction: (MainEditTextItem.ID, CGFloat, CGSize) -> Void = { _, _, _ in }
+    var endTextScaleAction: () -> Void = {}
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
@@ -75,13 +82,28 @@ private extension MainEditCanvas {
                 .padding(.horizontal, MainEditLayout.textPreviewControlSize)
 
             if selectedTextID == textItem.id {
-                textPreviewControlButton(systemName: MainEditLayout.textPreviewCloseIconName)
+                textPreviewControlButton(
+                    systemName: MainEditLayout.textPreviewCloseIconName,
+                    action: {
+                        deleteTextAction(textItem.id)
+                    }
+                )
                     .position(x: 0, y: 0)
 
-                textPreviewControlButton(systemName: MainEditLayout.textPreviewDuplicateIconName)
+                textPreviewControlButton(
+                    systemName: MainEditLayout.textPreviewDuplicateIconName,
+                    action: {
+                        duplicateTextAction(textItem.id)
+                    }
+                )
                     .position(x: 0, y: previewSize.height)
 
-                textPreviewControlButton(systemName: MainEditLayout.textPreviewResizeIconName)
+                textPreviewControlButton(
+                    systemName: MainEditLayout.textPreviewResizeIconName,
+                    action: {
+                        selectTextAction(textItem.id)
+                    }
+                )
                     .position(x: previewSize.width, y: previewSize.height)
             }
         }
@@ -91,20 +113,46 @@ private extension MainEditCanvas {
         .onTapGesture {
             textTapAction(textItem.id)
         }
+        .gesture(
+            DragGesture(minimumDistance: 1)
+                .onChanged { value in
+                    selectTextAction(textItem.id)
+                    dragTextAction(textItem.id, value.translation, frameSize)
+                }
+                .onEnded { _ in
+                    endTextDragAction()
+                }
+        )
+        .simultaneousGesture(
+            MagnificationGesture()
+                .onChanged { value in
+                    selectTextAction(textItem.id)
+                    scaleTextAction(textItem.id, value, frameSize)
+                }
+                .onEnded { _ in
+                    endTextScaleAction()
+                }
+        )
     }
 
-    func textPreviewControlButton(systemName: String) -> some View {
-        Circle()
-            .fill(Color.baseWhite)
-            .frame(
-                width: MainEditLayout.textPreviewControlSize,
-                height: MainEditLayout.textPreviewControlSize
-            )
-            .overlay {
-                Image(systemName: systemName)
-                    .font(.system(size: MainEditLayout.textPreviewControlIconSize, weight: .bold))
-                    .foregroundStyle(Color.gray400)
-            }
+    func textPreviewControlButton(
+        systemName: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Circle()
+                .fill(Color.baseWhite)
+                .frame(
+                    width: MainEditLayout.textPreviewControlSize,
+                    height: MainEditLayout.textPreviewControlSize
+                )
+                .overlay {
+                    Image(systemName: systemName)
+                        .font(.system(size: MainEditLayout.textPreviewControlIconSize, weight: .bold))
+                        .foregroundStyle(Color.gray400)
+                }
+        }
+        .buttonStyle(.plain)
     }
 
     func stickerLayer(frameSize: CGSize) -> some View {
