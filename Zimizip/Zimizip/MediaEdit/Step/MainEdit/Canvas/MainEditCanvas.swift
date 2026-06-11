@@ -35,29 +35,40 @@ struct MainEditCanvas: View {
 
 private extension MainEditCanvas {
     func framedContent(frameSize: CGSize) -> some View {
-        let photoSize = restoredPhotoSize(in: frameSize)
-
-        return ZStack {
+        ZStack {
             framingResult.backgroundColor.color
 
-            if let image {
-                PhotoFramingPhotoLayer(
-                    image: image,
-                    contentMode: .fill
-                )
-                .frame(
-                    width: photoSize.width,
-                    height: photoSize.height
-                )
-                .offset(restoredOffset(in: frameSize))
-            }
+            photoLayer(frameSize: frameSize)
+                .zIndex(0)
 
             textLayer(frameSize: frameSize)
+                .frame(width: frameSize.width, height: frameSize.height)
+                .zIndex(1)
 
             stickerLayer(frameSize: frameSize)
+                .frame(width: frameSize.width, height: frameSize.height)
+                .zIndex(2)
         }
         .frame(width: frameSize.width, height: frameSize.height)
         .clipShape(RoundedRectangle(cornerRadius: PhotoFramingLayout.frameCornerRadius, style: .continuous))
+    }
+
+    @ViewBuilder
+    func photoLayer(frameSize: CGSize) -> some View {
+        if let image {
+            let photoSize = restoredPhotoSize(in: frameSize)
+
+            PhotoFramingPhotoLayer(
+                image: image,
+                contentMode: .fill
+            )
+            .frame(
+                width: photoSize.width,
+                height: photoSize.height
+            )
+            .offset(restoredOffset(in: frameSize))
+            .frame(width: frameSize.width, height: frameSize.height)
+        }
     }
 
     func textLayer(frameSize: CGSize) -> some View {
