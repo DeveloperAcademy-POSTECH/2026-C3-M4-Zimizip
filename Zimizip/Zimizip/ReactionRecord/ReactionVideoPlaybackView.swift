@@ -1,8 +1,11 @@
 import AVFoundation
+import Photos
 import SwiftUI
 import UIKit
 
 struct ReactionVideoPlaybackView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     let title: String
     let subtitle: String
     let videoURL: URL
@@ -13,6 +16,10 @@ struct ReactionVideoPlaybackView: View {
     @State private var playbackProgress: CGFloat = 0
     @State private var timeObserverToken: Any?
     @State private var videoAspectRatio: CGFloat = 2.0 / 3.0
+    @State private var isShowingPhotoLibraryPermissionSettingsPrompt = false
+    @State private var didOpenPhotoLibraryPermissionSettings = false
+    @State private var saveAlertMessage: String?
+    @State private var isSavingVideo = false
 
     init(
         title: String,
@@ -56,7 +63,12 @@ struct ReactionVideoPlaybackView: View {
                     ReactionVideoPlaybackHeader(
                         title: title,
                         subtitle: subtitle,
-                        onBack: onBack
+                        onBack: onBack,
+                        onSave: {
+                            Task {
+                                await saveReactionVideoToPhotoLibrary()
+                            }
+                        }
                     )
                     .frame(width: contentWidth, height: headerHeight)
 
@@ -78,10 +90,39 @@ struct ReactionVideoPlaybackView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .padding(.bottom, 44)
+
+                if isShowingPhotoLibraryPermissionSettingsPrompt {
+                    PermissionSettingsPrompt(
+                        title: "리액션 영상 저장을 위해 권한이 필요합니다",
+                        message: "사진 접근을 허용하면 완성된 리액션 영상을 사진 보관함에 저장할 수 있습니다. ‘설정’에서 사진 접근을 허용해 주십시오.",
+                        onMoveToSettings: moveToPhotoLibraryPermissionSettings,
+                        onLater: {
+                            isShowingPhotoLibraryPermissionSettingsPrompt = false
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .alert(
+            "리액션 영상",
+            isPresented: Binding(
+                get: { saveAlertMessage != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        saveAlertMessage = nil
+                    }
+                }
+            )
+        ) {
+            Button("확인") {
+                saveAlertMessage = nil
+            }
+        } message: {
+            Text(saveAlertMessage ?? "")
+        }
         .onAppear {
             addTimeObserverIfNeeded()
         }
@@ -99,6 +140,15 @@ struct ReactionVideoPlaybackView: View {
         .onDisappear {
             player.pause()
             removeTimeObserver()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active, didOpenPhotoLibraryPermissionSettings else {
+                return
+            }
+
+            Task {
+                await refreshPhotoLibraryAddAccessAfterReturningFromSettings()
+            }
         }
     }
 
@@ -157,6 +207,83 @@ struct ReactionVideoPlaybackView: View {
         playbackProgress = 1
     }
 
+    private func saveReactionVideoToPhotoLibrary() async {
+        guard !isSavingVideo else { return }
+        isSavingVideo = true
+        defer { isSavingVideo = false }
+
+        let isAuthorized = await requestPhotoLibraryAddAccess()
+
+        guard isAuthorized else {
+            isShowingPhotoLibraryPermissionSettingsPrompt = true
+            return
+        }
+
+        do {
+            try await saveVideo()
+            saveAlertMessage = "리액션 영상을 사진 보관함에 저장했어요."
+        } catch {
+            saveAlertMessage = "리액션 영상 저장에 실패했어요."
+            print("[ReactionVideoPlayback] failed to save video: \(error.localizedDescription)")
+        }
+    }
+
+    private func requestPhotoLibraryAddAccess() async -> Bool {
+        switch PHPhotoLibrary.authorizationStatus(for: .addOnly) {
+        case .authorized, .limited:
+            return true
+        case .notDetermined:
+            let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+            return status == .authorized || status == .limited
+        case .denied, .restricted:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+
+    private func saveVideo() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: videoURL)
+            } completionHandler: { didSave, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard didSave else {
+                    continuation.resume(throwing: CocoaError(.fileWriteUnknown))
+                    return
+                }
+
+                continuation.resume()
+            }
+        }
+    }
+
+    private func moveToPhotoLibraryPermissionSettings() {
+        guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+
+        didOpenPhotoLibraryPermissionSettings = true
+        UIApplication.shared.open(settingsURL) { didOpen in
+            if !didOpen {
+                Task { @MainActor in
+                    didOpenPhotoLibraryPermissionSettings = false
+                }
+            }
+        }
+    }
+
+    private func refreshPhotoLibraryAddAccessAfterReturningFromSettings() async {
+        didOpenPhotoLibraryPermissionSettings = false
+
+        let isAuthorized = await requestPhotoLibraryAddAccess()
+        isShowingPhotoLibraryPermissionSettingsPrompt = !isAuthorized
+    }
+
     private func updateVideoAspectRatio() async {
         let asset = AVURLAsset(url: videoURL)
 
@@ -186,6 +313,7 @@ private struct ReactionVideoPlaybackHeader: View {
     let title: String
     let subtitle: String
     let onBack: () -> Void
+    let onSave: () -> Void
 
     var body: some View {
         HStack {
@@ -215,10 +343,10 @@ private struct ReactionVideoPlaybackHeader: View {
 
             Spacer()
 
-            Button {} label: {
-                Image("Ellipsis")
+            Button(action: onSave) {
+                Image("download")
                     .resizable()
-                    .frame(width: 16, height: 4)
+                    .frame(width: 24, height: 24)
                     .foregroundStyle(Color.gray400)
                     .frame(width: 38, height: 38)
                     .background(Color.gray100)
