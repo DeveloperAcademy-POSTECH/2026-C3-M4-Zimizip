@@ -3,6 +3,7 @@ import UIKit
 
 struct ArchiveReactionDetailCell: View {
     let title: String
+    let dateText: String
     let thumbnailData: Data?
     let width: CGFloat
 
@@ -12,11 +13,19 @@ struct ArchiveReactionDetailCell: View {
                 .frame(width: 120, height: 180)
                 .frame(maxWidth: .infinity)
 
-            HStack(alignment: .top, spacing: 6) {
-                Text(title)
-                    .font(Font.custom("Pretendard-SemiBold", size: 16))
-                    .foregroundStyle(Color.textPrimary)
-                    .lineLimit(1)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading) {
+                    Text(title)
+                        .font(Font.custom("Pretendard-SemiBold", size: 16))
+                        .foregroundStyle(Color.textPrimary)
+                        .lineLimit(1)
+
+                    Text(dateText)
+                        .font(Font.custom("Pretendard-Regular", size: 14))
+                        .foregroundStyle(Color.gray400)
+                        .lineLimit(1)
+                }
+                .frame(maxWidth: .infinity)
 
                 Spacer(minLength: 0)
 
@@ -53,6 +62,7 @@ struct ArchiveReactionDetailCell: View {
 #Preview {
     ArchiveReactionDetailCell(
         title: "리액션 1",
+        dateText: "5월 19일 오후 1:43",
         thumbnailData: ArchivePreviewData.imageData(color: .systemBlue),
         width: 171
     )

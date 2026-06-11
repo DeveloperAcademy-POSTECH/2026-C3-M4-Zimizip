@@ -21,6 +21,7 @@ struct SurpriseProjectStoreTests {
         #expect(savedProjects.count == 2)
         #expect(Set(savedProjects.map(\.name)) == ["생일", "졸업"])
         #expect(savedProjects.first { $0.name == "생일" }?.reactionContents.first?.thumbnailData == Data([4, 5, 6]))
+        #expect(savedProjects.first { $0.name == "생일" }?.reactionContents.first?.createdAt == Date(timeIntervalSince1970: 1_747_628_580))
     }
 
     @Test("프로젝트에서 리액션 콘텐츠 하나를 삭제할 수 있다")
@@ -99,9 +100,13 @@ struct SurpriseProjectStoreTests {
             reactionContents: [
                 ReactionContent(
                     videoURL: URL(fileURLWithPath: "/reaction-1.mov"),
-                    thumbnailData: Data([4, 5, 6])
+                    thumbnailData: Data([4, 5, 6]),
+                    createdAt: Date(timeIntervalSince1970: 1_747_628_580)
                 ),
-                ReactionContent(videoURL: URL(fileURLWithPath: "/reaction-2.mov"))
+                ReactionContent(
+                    videoURL: URL(fileURLWithPath: "/reaction-2.mov"),
+                    createdAt: Date(timeIntervalSince1970: 1_747_628_640)
+                )
             ]
         )
     }
