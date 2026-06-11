@@ -90,7 +90,7 @@ private extension MainEditCanvas {
                         deleteTextAction(textItem.id)
                     }
                 )
-                    .position(x: 0, y: 0)
+                    .position(x: previewSize.width, y: 0)
 
                 textPreviewControlButton(
                     systemName: MainEditLayout.textPreviewDuplicateIconName,
@@ -99,14 +99,6 @@ private extension MainEditCanvas {
                     }
                 )
                     .position(x: 0, y: previewSize.height)
-
-                textPreviewControlButton(
-                    systemName: MainEditLayout.textPreviewResizeIconName,
-                    action: {
-                        selectTextAction(textItem.id)
-                    }
-                )
-                    .position(x: previewSize.width, y: previewSize.height)
             }
         }
         .frame(width: previewSize.width, height: previewSize.height)
