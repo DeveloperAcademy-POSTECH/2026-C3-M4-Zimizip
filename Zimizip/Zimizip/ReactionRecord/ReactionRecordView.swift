@@ -1,17 +1,24 @@
+import SwiftData
 import SwiftUI
 
 struct ReactionRecordView: View {
+    @Environment(\.modelContext) private var modelContext
+
     @StateObject private var viewModel: ReactionRecordViewModel
     @State private var isShowingReactionVideoPlayback = false
     @State private var isShowingHome = false
+    @State private var didSaveCompletedReaction = false
     let surpriseCardPayload: SurpriseCardPayload
+    let surpriseProject: SurpriseProject?
 
     init(
         surpriseCardPayload: SurpriseCardPayload,
+        surpriseProject: SurpriseProject? = nil,
         screenRecorder: VideoRecording? = nil,
         frontCameraRecorder: VideoRecording? = nil
     ) {
         self.surpriseCardPayload = surpriseCardPayload
+        self.surpriseProject = surpriseProject
         _viewModel = StateObject(
             wrappedValue: ReactionRecordViewModel(
                 screenRecorder: screenRecorder,
@@ -27,7 +34,7 @@ struct ReactionRecordView: View {
 
             if viewModel.isRecordingCompleted {
                 ReactionRecordCompleteView(
-                    surpriseProjectTitle: "서프라이즈 프로젝트",
+                    surpriseProjectTitle: surpriseCardPayload.title,
                     thumbnailImage: viewModel.reactionThumbnailImage,
                     onPrimaryButtonTap: {
                         guard viewModel.composedReactionVideoURL != nil else {
@@ -86,6 +93,70 @@ struct ReactionRecordView: View {
         .fullScreenCover(isPresented: $isShowingHome) {
             HomeView()
         }
+        .onChange(of: viewModel.isRecordingCompleted) { _, isRecordingCompleted in
+            guard isRecordingCompleted else { return }
+            saveCompletedReactionIfNeeded()
+        }
+    }
+
+    private func saveCompletedReactionIfNeeded() {
+        guard !didSaveCompletedReaction,
+              let composedReactionVideoURL = viewModel.composedReactionVideoURL else {
+            return
+        }
+
+        do {
+            let archivedVideoURL = try copyReactionVideoToArchive(from: composedReactionVideoURL)
+            let reactionContent = ReactionContent(
+                videoURL: archivedVideoURL,
+                thumbnailData: viewModel.reactionThumbnailImage?.jpegData(compressionQuality: 0.85)
+            )
+
+            if let surpriseProject {
+                modelContext.insert(reactionContent)
+                surpriseProject.reactionContents.append(reactionContent)
+            } else {
+                let surpriseProject = SurpriseProject(
+                    name: surpriseCardPayload.title,
+                    content: Content(
+                        media: Media(source: surpriseCardPayload.framingResult.source),
+                        box: surpriseCardPayload.coverImageName
+                    ),
+                    reactionContents: [reactionContent]
+                )
+
+                modelContext.insert(surpriseProject)
+            }
+
+            try modelContext.save()
+            didSaveCompletedReaction = true
+        } catch {
+            print("[ReactionRecord] failed to save completed reaction: \(error.localizedDescription)")
+        }
+    }
+
+    private func copyReactionVideoToArchive(from sourceURL: URL) throws -> URL {
+        let fileManager = FileManager.default
+        let archiveDirectory = try fileManager.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        .appendingPathComponent("ReactionVideos", isDirectory: true)
+
+        try fileManager.createDirectory(
+            at: archiveDirectory,
+            withIntermediateDirectories: true
+        )
+
+        let fileExtension = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension
+        let destinationURL = archiveDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(fileExtension)
+
+        try fileManager.copyItem(at: sourceURL, to: destinationURL)
+        return destinationURL
     }
 }
 

@@ -1,8 +1,11 @@
+import SwiftData
 import SwiftUI
 
 struct RevealTimingView: View {
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
     @State private var isShowingReactionRecordGuide = false
+    @State private var isShowingHome = false
+    @State private var didSaveSurpriseProject = false
 
     let surpriseCardPayload: SurpriseCardPayload
 
@@ -44,6 +47,7 @@ struct RevealTimingView: View {
                         .frame(height: 20)
 
                     Button {
+                        saveSurpriseProjectForLater()
                     } label: {
                         OptionItemView(
                             icon: "CalendarClock",
@@ -61,10 +65,40 @@ struct RevealTimingView: View {
                 ReactionRecordGuideView(surpriseCardPayload: surpriseCardPayload)
                     .navigationBarBackButtonHidden(true)
             }
+            .fullScreenCover(isPresented: $isShowingHome) {
+                HomeView()
+            }
+        }
+    }
+
+    private func saveSurpriseProjectForLater() {
+        guard !didSaveSurpriseProject else {
+            isShowingHome = true
+            return
+        }
+
+        let surpriseProject = SurpriseProject(
+            name: surpriseCardPayload.title,
+            content: Content(
+                media: Media(source: surpriseCardPayload.framingResult.source),
+                box: surpriseCardPayload.coverImageName
+            ),
+            reactionContents: []
+        )
+
+        modelContext.insert(surpriseProject)
+
+        do {
+            try modelContext.save()
+            didSaveSurpriseProject = true
+            isShowingHome = true
+        } catch {
+            print("[RevealTiming] failed to save surprise project for later: \(error.localizedDescription)")
         }
     }
 }
 
 #Preview {
     RevealTimingView(surpriseCardPayload: .previewValue)
+        .modelContainer(ArchivePreviewData.modelContainer())
 }
