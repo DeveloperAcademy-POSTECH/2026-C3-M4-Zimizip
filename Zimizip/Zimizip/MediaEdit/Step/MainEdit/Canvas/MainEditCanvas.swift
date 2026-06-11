@@ -9,6 +9,7 @@ struct MainEditCanvas: View {
     var selectedTextID: MainEditTextItem.ID?
     var selectTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var textTapAction: (MainEditTextItem.ID) -> Void = { _ in }
+    var textDoubleTapAction: (MainEditTextItem.ID) -> Void = { _ in }
     var deleteTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var duplicateTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var dragTextAction: (MainEditTextItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
@@ -103,7 +104,10 @@ private extension MainEditCanvas {
         }
         .frame(width: previewSize.width, height: previewSize.height)
         .position(restoredTextCenter(for: textItem, in: frameSize))
-        .contentShape(Rectangle())
+        .zIndex(textItem.id == selectedTextID ? 0 : 1)
+        .onTapGesture(count: 2) {
+            textDoubleTapAction(textItem.id)
+        }
         .onTapGesture {
             textTapAction(textItem.id)
         }

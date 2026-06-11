@@ -81,7 +81,8 @@ struct MainEditView: View {
                         texts: canvasTextItems,
                         selectedTextID: canvasSelectedTextID,
                         selectTextAction: selectTextItem,
-                        textTapAction: selectTextItemForInput,
+                        textTapAction: handleTextItemTap,
+                        textDoubleTapAction: selectTextItemForInput,
                         deleteTextAction: deleteTextItem,
                         duplicateTextAction: duplicateTextItem,
                         dragTextAction: dragTextItem,
@@ -599,18 +600,15 @@ private extension MainEditView {
             return
         }
 
-        if let selectedTextItemID,
+        if isTextInputPresented,
+           let selectedTextItemID,
            previewTextItems.contains(where: { $0.id == selectedTextItemID }) {
-            if isTextInputPresented {
-                textInputStyleRuns = fontAppliedStyleRuns(
-                    textInputStyleRuns,
-                    textLength: textInputDraft.count,
-                    font: font,
-                    selectedRange: textInputSelectedRange
-                )
-            } else {
-                applyTextFont(font, to: selectedTextItemID)
-            }
+            textInputStyleRuns = fontAppliedStyleRuns(
+                textInputStyleRuns,
+                textLength: textInputDraft.count,
+                font: font,
+                selectedRange: textInputSelectedRange
+            )
             return
         }
 
@@ -685,6 +683,14 @@ private extension MainEditView {
         selectedTextItemID = id
         selectedTextFont = textFont(for: id) ?? selectedTextFont
         selectedTextColor = textColor(for: id) ?? selectedTextColor
+    }
+
+    func handleTextItemTap(_ id: MainEditTextItem.ID) {
+        guard selectedTool == .text else {
+            return
+        }
+
+        selectTextItem(id)
     }
 
     func selectTextItemForInput(_ id: MainEditTextItem.ID) {
