@@ -105,7 +105,7 @@ struct ArchiveReactionView: View {
     }
 
     private func showReactionDetailIfNeeded(for surpriseProject: SurpriseProject) {
-        guard selectedArchiveMode == .reaction else {
+        guard !surpriseProject.reactionContents.isEmpty else {
             return
         }
 
