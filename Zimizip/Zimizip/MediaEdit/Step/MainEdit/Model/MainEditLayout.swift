@@ -3,7 +3,7 @@ import SwiftUI
 
 enum MainEditLayout {
     static let designWidth: CGFloat = 402
-    static let topBarHorizontalPadding: CGFloat = 24
+    static let topBarHorizontalPadding: CGFloat = 20
     static let topBarTopPadding: CGFloat = 8
     static let topBarBottomPadding: CGFloat = 20
     static let backButtonIconSize: CGFloat = 24

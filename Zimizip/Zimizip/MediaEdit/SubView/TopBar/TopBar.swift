@@ -52,6 +52,7 @@ struct TopBar: View {
             }
             .buttonStyle(.plain)
         }
+        .padding(.horizontal, MainEditLayout.topBarHorizontalPadding)
         .background(backgroundColor)
     }
 }
