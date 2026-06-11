@@ -119,7 +119,7 @@ struct ReactionRecordView: View {
                 let surpriseProject = SurpriseProject(
                     name: surpriseCardPayload.title,
                     content: Content(
-                        media: Media(source: surpriseCardPayload.framingResult.source),
+                        media: Media(source: surpriseCardPayload.persistedImageData),
                         box: surpriseCardPayload.coverImageName
                     ),
                     reactionContents: [reactionContent]
