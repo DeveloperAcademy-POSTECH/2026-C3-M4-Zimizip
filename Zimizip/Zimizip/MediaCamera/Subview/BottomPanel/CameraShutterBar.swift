@@ -1,10 +1,7 @@
 import SwiftUI
 
 struct CameraShutterBar: View {
-    let isShowingColorPresets: Bool
-    let contentRotation: Angle
     let onCapture: () -> Void
-    let onToggleColorPresets: () -> Void
 
     var body: some View {
         HStack {
@@ -30,40 +27,8 @@ struct CameraShutterBar: View {
 
             Spacer()
 
-            Button {
-                onToggleColorPresets()
-            } label: {
-                CameraColorPresetButtonIcon(isSelected: isShowingColorPresets)
-                    .frame(width: 68, height: 36, alignment: .trailing)
-                    .rotationEffect(contentRotation)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-}
-
-private struct CameraColorPresetButtonIcon: View {
-    let isSelected: Bool
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(isSelected ? CameraUIConstants.accentColor : Color.white, lineWidth: 1.6)
-                .frame(width: 22, height: 22)
-
-            HStack(spacing: 1.8) {
-                ForEach(0..<4, id: \.self) { column in
-                    VStack(spacing: 1.8) {
-                        ForEach(0..<(column + 1), id: \.self) { _ in
-                            Circle()
-                                .fill(isSelected ? CameraUIConstants.accentColor : Color.white)
-                                .frame(width: 2, height: 2)
-                        }
-                    }
-                }
-            }
-            .offset(x: 2.5)
-            .clipShape(Circle())
+            Color.clear
+                .frame(width: 68, height: 36)
         }
     }
 }
