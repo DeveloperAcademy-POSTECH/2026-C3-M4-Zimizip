@@ -69,9 +69,6 @@ private extension MainEditCanvas {
         let previewSize = textPreviewSize(for: textItem, in: frameSize)
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 0)
-                .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
-
             Text(
                 attributedText(
                     for: textItem,
@@ -84,6 +81,9 @@ private extension MainEditCanvas {
                 .padding(.horizontal, MainEditLayout.textPreviewControlSize)
 
             if selectedTextID == textItem.id {
+                RoundedRectangle(cornerRadius: 0)
+                    .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
+
                 textPreviewControlButton(
                     systemName: MainEditLayout.textPreviewCloseIconName,
                     action: {
