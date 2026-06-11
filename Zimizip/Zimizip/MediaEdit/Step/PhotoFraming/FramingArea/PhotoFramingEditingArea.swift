@@ -64,6 +64,7 @@ struct PhotoFramingEditingArea: View {
                 )
                 .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
             }
+            .clipped()
             .onAppear {
                 transformState.reset(to: transformLayout)
                 transformChangeAction(currentTransformState)
