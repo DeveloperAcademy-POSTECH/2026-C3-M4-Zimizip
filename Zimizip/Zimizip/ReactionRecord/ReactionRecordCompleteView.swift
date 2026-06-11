@@ -22,7 +22,6 @@ struct ReactionRecordCompleteView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Spacer()
-                    .frame(height: 36)
 
                 SurpriseContentFrameView {
                     if let thumbnailImage {
@@ -38,7 +37,6 @@ struct ReactionRecordCompleteView: View {
                 .frame(maxHeight: proxy.size.height / 3)
                 
                 Spacer()
-                    .frame(height: 36)
 
                 ZimizipPrimaryButton(title: "영상 보러가기", action: onPrimaryButtonTap)
 
