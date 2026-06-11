@@ -100,7 +100,7 @@ struct MainEditView: View {
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     
-                    Spacer()
+                    canvasBottomSpacer
 
                     bottomPanel
                         .frame(height: panelHeight, alignment: .top)
@@ -112,7 +112,11 @@ struct MainEditView: View {
                     .padding(.leading, MainEditLayout.historyControlLeadingPadding)
                     .padding(
                         .bottom,
-                        historyControlBottomPadding(panelHeight: panelHeight)
+                        historyControlBottomPadding(
+                            containerSize: proxy.size,
+                            canvasSize: canvasSize,
+                            panelHeight: panelHeight
+                        )
                     )
                     .frame(
                         maxWidth: .infinity,
@@ -323,17 +327,39 @@ private extension MainEditView {
         canUndoCurrentEdit || canRedoCurrentEdit
     }
 
-    func historyControlBottomPadding(panelHeight: CGFloat) -> CGFloat {
-        guard isBottomEditingPanelPresented else {
-            return panelHeight + MainEditLayout.historyControlBottomSpacing
+    @ViewBuilder
+    var canvasBottomSpacer: some View {
+        if isHistoryControlsPresented {
+            Color.clear
+                .frame(height: MainEditLayout.historyControlReservedBottomSpace)
+        } else {
+            Spacer()
         }
+    }
 
-        return max(
-            panelHeight -
-                MainEditLayout.historyControlIconSize -
-                MainEditLayout.historyControlEditingPanelBottomSpacing,
-            0
-        )
+    func historyControlBottomPadding(
+        containerSize: CGSize,
+        canvasSize: CGSize,
+        panelHeight: CGFloat
+    ) -> CGFloat {
+        let panelTopY = max(containerSize.height - panelHeight, 0)
+        let canvasRegionHeight = panelTopY
+        let canvasTopY = isHistoryControlsPresented
+            ? max(canvasRegionHeight - canvasSize.height - historyControlsBottomSpace, 0)
+            : max((canvasRegionHeight - canvasSize.height) / 2, 0)
+        let canvasBottomY = canvasTopY + canvasSize.height
+        let preferredIconBottomY = canvasBottomY +
+            MainEditLayout.historyControlPreviewBottomSpacing
+        let maximumIconBottomY = panelTopY - MainEditLayout.historyControlBottomSpacing
+        let resolvedIconBottomY = min(preferredIconBottomY, maximumIconBottomY)
+
+        return max(containerSize.height - resolvedIconBottomY, 0)
+    }
+
+    var historyControlsBottomSpace: CGFloat {
+        isHistoryControlsPresented
+            ? MainEditLayout.historyControlReservedBottomSpace
+            : 0
     }
 
     func topPanelHeight(safeAreaInsets: EdgeInsets) -> CGFloat {
