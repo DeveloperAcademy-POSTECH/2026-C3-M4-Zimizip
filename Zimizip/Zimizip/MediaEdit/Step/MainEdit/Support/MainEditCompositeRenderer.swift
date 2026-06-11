@@ -141,9 +141,14 @@ private extension MainEditCompositeRenderer {
 
     func restoredTextSize(for text: MainEditTextItem, outputSize: CGSize) -> CGSize {
         let baseScale = outputSize.width / MainEditLayout.designWidth
+        let fontSize = restoredTextFontSize(for: text, outputSize: outputSize)
+        let maximumWidth = outputSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale
+        let minimumWidth = MainEditLayout.textPreviewBoxMinimumWidth * baseScale * text.scale
+        let responsiveWidth = measuredTextWidth(for: text, fontSize: fontSize) +
+            MainEditLayout.textPreviewBoxHorizontalPadding * baseScale * text.scale
 
         return CGSize(
-            width: outputSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale,
+            width: min(max(responsiveWidth, minimumWidth), maximumWidth),
             height: MainEditLayout.textPreviewBoxHeight * baseScale * text.scale
         )
     }
@@ -152,6 +157,19 @@ private extension MainEditCompositeRenderer {
         let baseScale = outputSize.width / MainEditLayout.designWidth
 
         return MainEditLayout.textPreviewTextFontSize * baseScale * text.scale
+    }
+
+    func measuredTextWidth(
+        for text: MainEditTextItem,
+        fontSize: CGFloat
+    ) -> CGFloat {
+        let fallbackStyle = text.styleRuns.first
+        let font = uiFont(
+            named: fallbackStyle?.font.fontName ?? MainEditTextFont.default.fontName,
+            size: fontSize
+        )
+
+        return ceil((text.text as NSString).size(withAttributes: [.font: font]).width)
     }
 
     func attributedText(

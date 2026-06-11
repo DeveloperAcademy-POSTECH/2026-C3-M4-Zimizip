@@ -2,6 +2,10 @@ import SwiftUI
 import UIKit
 
 struct MainEditCanvas: View {
+    @State private var activeTextDragID: MainEditTextItem.ID?
+    @State private var activeTextScaleID: MainEditTextItem.ID?
+    @State private var activeStickerDragID: MainEditStickerItem.ID?
+
     let framingResult: PhotoFramingResult
     let image: UIImage?
     let frameSize: CGSize
@@ -18,6 +22,7 @@ struct MainEditCanvas: View {
     var endTextScaleAction: () -> Void = {}
     var stickers: [MainEditStickerItem] = []
     var selectedStickerID: MainEditStickerItem.ID?
+    var isStickerEditingEnabled = false
     var selectStickerAction: (MainEditStickerItem.ID) -> Void = { _ in }
     var dragStickerAction: (MainEditStickerItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
     var endStickerDragAction: () -> Void = {}
@@ -125,20 +130,38 @@ private extension MainEditCanvas {
         .gesture(
             DragGesture(minimumDistance: 1)
                 .onChanged { value in
-                    selectTextAction(textItem.id)
-                    dragTextAction(textItem.id, value.translation, frameSize)
+                    guard activeTextScaleID == nil else {
+                        return
+                    }
+
+                    let textID = activeTextDragID ?? textItem.id
+
+                    if activeTextDragID == nil {
+                        activeTextDragID = textID
+                        selectTextAction(textID)
+                    }
+                    dragTextAction(textID, value.translation, frameSize)
                 }
                 .onEnded { _ in
+                    activeTextDragID = nil
                     endTextDragAction()
                 }
         )
         .simultaneousGesture(
             MagnificationGesture()
                 .onChanged { value in
-                    selectTextAction(textItem.id)
-                    scaleTextAction(textItem.id, value, frameSize)
+                    let textID = activeTextScaleID ?? textItem.id
+
+                    if activeTextScaleID == nil {
+                        activeTextScaleID = textID
+                        activeTextDragID = nil
+                        endTextDragAction()
+                        selectTextAction(textID)
+                    }
+                    scaleTextAction(textID, value, frameSize)
                 }
                 .onEnded { _ in
+                    activeTextScaleID = nil
                     endTextScaleAction()
                 }
         )
@@ -164,9 +187,26 @@ private extension MainEditCanvas {
         .buttonStyle(.plain)
     }
 
+    @ViewBuilder
     func stickerLayer(frameSize: CGSize) -> some View {
-        ForEach(orderedStickers) { sticker in
-            stickerView(sticker, frameSize: frameSize)
+        if isStickerEditingEnabled {
+            stickerViews(frameSize: frameSize)
+                .frame(width: frameSize.width, height: frameSize.height)
+                .contentShape(Rectangle())
+                .gesture(stickerDragGesture(frameSize: frameSize))
+                .simultaneousGesture(stickerScaleGesture(frameSize: frameSize))
+        } else {
+            stickerViews(frameSize: frameSize)
+                .frame(width: frameSize.width, height: frameSize.height)
+                .allowsHitTesting(false)
+        }
+    }
+
+    func stickerViews(frameSize: CGSize) -> some View {
+        ZStack {
+            ForEach(orderedStickers) { sticker in
+                stickerView(sticker, frameSize: frameSize)
+            }
         }
     }
 
@@ -185,26 +225,69 @@ private extension MainEditCanvas {
         }
         .frame(width: stickerSize.width, height: stickerSize.height)
         .position(restoredStickerCenter(for: sticker, in: frameSize))
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    selectStickerAction(sticker.id)
-                    dragStickerAction(sticker.id, value.translation, frameSize)
+        .zIndex(Double(sticker.zIndex))
+        .allowsHitTesting(false)
+    }
+
+    func stickerDragGesture(frameSize: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .local)
+            .onChanged { value in
+                let stickerID = activeStickerDragID ?? stickerHitTestID(
+                    at: value.startLocation,
+                    frameSize: frameSize
+                )
+
+                guard let stickerID else {
+                    return
                 }
-                .onEnded { _ in
-                    endStickerDragAction()
+
+                if activeStickerDragID == nil {
+                    activeStickerDragID = stickerID
+                    selectStickerAction(stickerID)
                 }
-        )
-        .simultaneousGesture(
-            MagnificationGesture()
-                .onChanged { value in
-                    selectStickerAction(sticker.id)
-                    scaleStickerAction(sticker.id, value, frameSize)
+                dragStickerAction(stickerID, value.translation, frameSize)
+            }
+            .onEnded { _ in
+                activeStickerDragID = nil
+                endStickerDragAction()
+            }
+    }
+
+    func stickerScaleGesture(frameSize: CGSize) -> some Gesture {
+        MagnificationGesture()
+            .onChanged { value in
+                guard let selectedStickerID else {
+                    return
                 }
-                .onEnded { _ in
-                    endStickerScaleAction()
-                }
+
+                scaleStickerAction(selectedStickerID, value, frameSize)
+            }
+            .onEnded { _ in
+                endStickerScaleAction()
+            }
+    }
+
+    func stickerHitTestID(
+        at location: CGPoint,
+        frameSize: CGSize
+    ) -> MainEditStickerItem.ID? {
+        orderedStickers.reversed().first { sticker in
+            stickerHitTestRect(for: sticker, in: frameSize).contains(location)
+        }?.id
+    }
+
+    func stickerHitTestRect(
+        for sticker: MainEditStickerItem,
+        in frameSize: CGSize
+    ) -> CGRect {
+        let stickerSize = restoredStickerSize(for: sticker, in: frameSize)
+        let center = restoredStickerCenter(for: sticker, in: frameSize)
+
+        return CGRect(
+            x: center.x - stickerSize.width / 2,
+            y: center.y - stickerSize.height / 2,
+            width: stickerSize.width,
+            height: stickerSize.height
         )
     }
 
@@ -267,9 +350,17 @@ private extension MainEditCanvas {
 
     func textPreviewSize(for text: MainEditTextItem, in frameSize: CGSize) -> CGSize {
         let baseScale = frameSize.width / MainEditLayout.designWidth
+        let maximumWidth = frameSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale
+        let minimumWidth = MainEditLayout.textPreviewBoxMinimumWidth * baseScale * text.scale
+        let measuredWidth = measuredTextWidth(
+            for: text,
+            fontSize: textPreviewFontSize(for: text, in: frameSize)
+        )
+        let responsiveWidth = measuredWidth +
+            MainEditLayout.textPreviewBoxHorizontalPadding * baseScale * text.scale
 
         return CGSize(
-            width: frameSize.width * MainEditLayout.textPreviewBoxWidthRatio * text.scale,
+            width: min(max(responsiveWidth, minimumWidth), maximumWidth),
             height: MainEditLayout.textPreviewBoxHeight * baseScale * text.scale
         )
     }
@@ -278,6 +369,19 @@ private extension MainEditCanvas {
         let baseScale = frameSize.width / MainEditLayout.designWidth
 
         return MainEditLayout.textPreviewTextFontSize * baseScale * text.scale
+    }
+
+    func measuredTextWidth(
+        for text: MainEditTextItem,
+        fontSize: CGFloat
+    ) -> CGFloat {
+        let fallbackStyle = text.styleRuns.first
+        let font = UIFont(
+            name: fallbackStyle?.font.fontName ?? MainEditTextFont.default.fontName,
+            size: fontSize
+        ) ?? UIFont.systemFont(ofSize: fontSize)
+
+        return ceil((text.text as NSString).size(withAttributes: [.font: font]).width)
     }
 
     func attributedText(
