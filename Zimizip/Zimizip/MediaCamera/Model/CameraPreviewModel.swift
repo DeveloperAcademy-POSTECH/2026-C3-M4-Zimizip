@@ -13,7 +13,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
     @Published private(set) var currentShutterDuration: Double?
     @Published private(set) var shutterRange: ClosedRange<Double> = (1.0 / 1000.0)...(1.0 / 4.0)
     @Published private(set) var whiteBalancePreset: CameraWhiteBalancePreset = .auto
-    @Published private(set) var selectedColorPreset: CameraColorPreset = .original
     @Published private(set) var isPreviewSessionActive = false
 
     private let sessionQueue = DispatchQueue(label: "com.zimizip.camera.preview.session")
@@ -74,10 +73,6 @@ final class CameraPreviewModel: NSObject, ObservableObject {
             flashMode: isFlashEnabled ? .on : .off,
             onPhotoCaptured: onPhotoCaptured
         )
-    }
-
-    func setColorPreset(_ preset: CameraColorPreset) {
-        selectedColorPreset = preset
     }
 
     func resetManualControls() {

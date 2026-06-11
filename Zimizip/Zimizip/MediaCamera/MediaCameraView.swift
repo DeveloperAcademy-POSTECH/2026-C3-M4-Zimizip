@@ -13,7 +13,6 @@ struct MediaCameraView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var camera = CameraPreviewModel()
-    @State private var isShowingColorPresets = false
     @State private var selectedManualControl: CameraManualControl?
     @State private var pendingShutterDuration: Double?
     @State private var pendingISO: Float?
@@ -37,23 +36,19 @@ struct MediaCameraView: View {
             let manualAdjustmentHeight: CGFloat = 64
             let manualControlsHeight: CGFloat = 46
             let shutterBarHeight: CGFloat = 74
-            let colorPresetStripHeight: CGFloat = 132
             let adjustmentToControlsSpacing: CGFloat = 2
             let controlsToShutterSpacing: CGFloat = 10
-            let colorPresetToShutterSpacing: CGFloat = 2
             let topSafeInset = max(proxy.safeAreaInsets.top, 6)
             let bottomSafeInset = max(proxy.safeAreaInsets.bottom, 4)
             let bottomPanelBottomPadding = max(bottomSafeInset - adjustmentToControlsSpacing, 0)
             let manualPreviewBottomInset = manualControlsHeight + controlsToShutterSpacing + shutterBarHeight + bottomPanelBottomPadding
             let manualBottomPanelHeight = manualAdjustmentHeight + adjustmentToControlsSpacing + manualPreviewBottomInset
-            let presetBottomInset = colorPresetStripHeight + colorPresetToShutterSpacing + shutterBarHeight + bottomPanelBottomPadding
             let previewTopInset = topSafeInset + topBarHeight
-            let previewBottomInset = isShowingColorPresets ? presetBottomInset : manualPreviewBottomInset
             let previewFrame = CGRect(
                 x: 0,
                 y: previewTopInset,
                 width: proxy.size.width,
-                height: max(proxy.size.height - previewTopInset - previewBottomInset, 0)
+                height: max(proxy.size.height - previewTopInset - manualPreviewBottomInset, 0)
             )
 
             ZStack {
@@ -76,10 +71,8 @@ struct MediaCameraView: View {
                         controlRotation: controlRotation,
                         adjustmentToControlsSpacing: adjustmentToControlsSpacing,
                         controlsToShutterSpacing: controlsToShutterSpacing,
-                        colorPresetToShutterSpacing: colorPresetToShutterSpacing,
                         bottomPanelBottomPadding: bottomPanelBottomPadding,
-                        manualBottomPanelHeight: manualBottomPanelHeight,
-                        presetBottomInset: presetBottomInset
+                        manualBottomPanelHeight: manualBottomPanelHeight
                     )
                 }
 
@@ -212,12 +205,6 @@ struct MediaCameraView: View {
         dismiss()
     }
 
-    private func toggleColorPresets() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            isShowingColorPresets.toggle()
-        }
-    }
-
     private func selectManualControl(_ control: CameraManualControl) {
         guard !disabledManualControls.contains(control) else {
             return
@@ -260,19 +247,13 @@ struct MediaCameraView: View {
         controlRotation: Angle,
         adjustmentToControlsSpacing: CGFloat,
         controlsToShutterSpacing: CGFloat,
-        colorPresetToShutterSpacing: CGFloat,
         bottomPanelBottomPadding: CGFloat,
-        manualBottomPanelHeight: CGFloat,
-        presetBottomInset: CGFloat
+        manualBottomPanelHeight: CGFloat
     ) -> some View {
         ZStack {
             Color.black
 
             CameraPreviewSurface(session: camera.session)
-                .saturation(camera.selectedColorPreset.saturation)
-                .contrast(camera.selectedColorPreset.contrast)
-                .brightness(camera.selectedColorPreset.brightness)
-                .colorMultiply(camera.selectedColorPreset.colorMultiply)
                 .frame(width: previewFrame.width, height: previewFrame.height)
                 .clipShape(Rectangle())
                 .position(x: previewFrame.midX, y: previewFrame.midY)
@@ -305,65 +286,32 @@ struct MediaCameraView: View {
                 Spacer()
 
                 VStack(spacing: adjustmentToControlsSpacing) {
-                    if isShowingColorPresets {
-                        VStack(spacing: colorPresetToShutterSpacing) {
-                            CameraColorPresetStrip(
-                                selectedPreset: camera.selectedColorPreset,
-                                contentRotation: controlRotation,
-                                onSelect: { camera.setColorPreset($0) }
-                            )
-                            .frame(maxWidth: .infinity)
-                            .background(Color.black)
-                            .clipShape(RoundedRectangle(cornerRadius: 18))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18)
-                                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-                            )
+                    manualAdjustmentPanel
+                        .frame(height: manualAdjustmentHeight, alignment: .center)
 
-                            CameraShutterBar(
-                                isShowingColorPresets: isShowingColorPresets,
-                                contentRotation: controlRotation,
-                                onCapture: { capturePhoto(previewFrame: previewFrame) },
-                                onToggleColorPresets: toggleColorPresets
-                            )
-                            .frame(height: shutterBarHeight)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
-                        .padding(.bottom, bottomPanelBottomPadding)
-                        .background(Color.black)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else {
-                        manualAdjustmentPanel
-                            .frame(height: manualAdjustmentHeight, alignment: .center)
+                    VStack(spacing: controlsToShutterSpacing) {
+                        CameraManualControlsBar(
+                            values: temporaryManualDisplayValues,
+                            selectedControl: selectedManualControl,
+                            disabledControls: disabledManualControls,
+                            contentRotation: controlRotation,
+                            onSelect: selectManualControl,
+                            onReset: resetManualControls
+                        )
+                        .frame(height: manualControlsHeight)
 
-                        VStack(spacing: controlsToShutterSpacing) {
-                            CameraManualControlsBar(
-                                values: temporaryManualDisplayValues,
-                                selectedControl: selectedManualControl,
-                                disabledControls: disabledManualControls,
-                                contentRotation: controlRotation,
-                                onSelect: selectManualControl,
-                                onReset: resetManualControls
-                            )
-                            .frame(height: manualControlsHeight)
-
-                            CameraShutterBar(
-                                isShowingColorPresets: isShowingColorPresets,
-                                contentRotation: controlRotation,
-                                onCapture: { capturePhoto(previewFrame: previewFrame) },
-                                onToggleColorPresets: toggleColorPresets
-                            )
-                            .frame(height: shutterBarHeight)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
-                        .padding(.bottom, bottomPanelBottomPadding)
-                        .background(Color.black)
-                        .transition(.opacity)
+                        CameraShutterBar(
+                            onCapture: { capturePhoto(previewFrame: previewFrame) }
+                        )
+                        .frame(height: shutterBarHeight)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, CameraUIConstants.screenHorizontalPadding)
+                    .padding(.bottom, bottomPanelBottomPadding)
+                    .background(Color.black)
+                    .transition(.opacity)
                 }
-                .frame(height: isShowingColorPresets ? presetBottomInset : manualBottomPanelHeight, alignment: .bottom)
+                .frame(height: manualBottomPanelHeight, alignment: .bottom)
             }
         }
     }
