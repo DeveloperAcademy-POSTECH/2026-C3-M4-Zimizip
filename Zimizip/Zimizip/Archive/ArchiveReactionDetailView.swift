@@ -62,6 +62,7 @@ struct ArchiveReactionDetailView: View {
                         LazyVGrid(columns: columns, alignment: .center, spacing: 38) {
                             ForEach(Array(surpriseProject.reactionContents.enumerated()), id: \.element.videoURL) { index, reactionContent in
                                 let title = "리액션 \(index + 1)"
+                                let dateText = formattedDate(reactionContent.createdAt)
 
                                 Button {
                                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -73,6 +74,7 @@ struct ArchiveReactionDetailView: View {
                                 } label: {
                                     ArchiveReactionDetailCell(
                                         title: title,
+                                        dateText: dateText,
                                         thumbnailData: reactionContent.thumbnailData,
                                         width: cardWidth
                                     )
@@ -106,12 +108,23 @@ struct ArchiveReactionDetailView: View {
         onBack()
     }
 
+    private func formattedDate(_ date: Date) -> String {
+        archiveReactionDateFormatter.string(from: date)
+    }
+
     private func showReactionDetailList() {
         withAnimation(.easeInOut(duration: 0.2)) {
             selectedPlayerItem = nil
         }
     }
 }
+
+private let archiveReactionDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "ko_KR")
+    formatter.dateFormat = "M월 d일 a h:mm"
+    return formatter
+}()
 
 private struct ArchiveReactionDetailPlayerItem: Identifiable {
     let id = UUID()

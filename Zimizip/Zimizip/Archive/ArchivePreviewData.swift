@@ -37,18 +37,15 @@ enum ArchivePreviewData {
             reactionContents: [
                 ReactionContent(
                     videoURL: URL(fileURLWithPath: "/reaction-1.mov"),
-                    thumbnailData: imageData(color: .systemBlue),
-                    createdAt: Date(timeIntervalSince1970: 1_747_628_580)
+                    thumbnailData: imageData(color: .systemBlue)
                 ),
                 ReactionContent(
                     videoURL: URL(fileURLWithPath: "/reaction-2.mov"),
-                    thumbnailData: imageData(color: .systemPink),
-                    createdAt: Date(timeIntervalSince1970: 1_747_628_640)
+                    thumbnailData: imageData(color: .systemPink)
                 ),
                 ReactionContent(
                     videoURL: URL(fileURLWithPath: "/reaction-3.mov"),
-                    thumbnailData: imageData(color: .systemGreen),
-                    createdAt: Date(timeIntervalSince1970: 1_747_628_700)
+                    thumbnailData: imageData(color: .systemGreen)
                 )
             ]
         )
