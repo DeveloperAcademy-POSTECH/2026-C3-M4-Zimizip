@@ -73,7 +73,7 @@ private struct ReactionArchiveThumbnail: View {
     }
 
     private func reactionImage(_ data: Data, width: CGFloat, height: CGFloat) -> some View {
-        ZStack(alignment: .bottomTrailing) {
+        Group {
             if let image = UIImage(data: data) {
                 Image(uiImage: image)
                     .resizable()
@@ -85,12 +85,6 @@ private struct ReactionArchiveThumbnail: View {
                     .fill(Color.gray150)
                     .frame(width: width, height: height)
             }
-
-            Image("ReactionCardFrame1")
-                .resizable()
-                .scaledToFit()
-                .frame(width: width * 0.34)
-                .padding(width * 0.06)
         }
         .frame(width: width, height: height)
     }
