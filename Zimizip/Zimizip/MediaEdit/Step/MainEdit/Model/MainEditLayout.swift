@@ -79,12 +79,12 @@ enum MainEditLayout {
     static let textInputPreviewFontSize: CGFloat = 28
     static let textInputPreviewHorizontalPadding: CGFloat = 32
     static let textInputCanvasHorizontalInset: CGFloat = 37
-    static let textInputCanvasVerticalSpacing: CGFloat = 36
+    static let textInputCanvasTopSpacing: CGFloat = 28
     static let textInputMinimumCanvasHeight: CGFloat = 180
     static let textInputCanvasDimOpacity: CGFloat = 0.35
-    static let textInputSmallPreviewHeight: CGFloat = 76
+    static let textInputSmallPreviewHeight: CGFloat = 44
     static let textInputSmallPreviewHorizontalPadding: CGFloat = 20
-    static let textInputSmallPreviewVerticalPadding: CGFloat = 16
+    static let textInputSmallPreviewVerticalPadding: CGFloat = 12
     static let textInputSmallPreviewSpacing: CGFloat = 4
     static let textInputSmallPreviewFontSize: CGFloat = 14
     static let textInputCancelTitle = "취소"

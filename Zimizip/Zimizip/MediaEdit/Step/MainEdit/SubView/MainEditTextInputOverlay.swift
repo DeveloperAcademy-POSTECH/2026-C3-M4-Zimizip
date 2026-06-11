@@ -17,19 +17,26 @@ struct MainEditTextInputOverlay: View {
 
     var body: some View {
         GeometryReader { proxy in
-            VStack(spacing: 0) {
-                topBar(safeAreaTop: proxy.safeAreaInsets.top)
+            let canvasSize = modalCanvasSize(
+                in: stableContainerSize(for: proxy.size),
+                safeAreaInsets: proxy.safeAreaInsets
+            )
 
-                Spacer(minLength: 0)
-
+            ZStack(alignment: .top) {
                 canvasPreview(
-                    frameSize: modalCanvasSize(
+                    frameSize: canvasSize
+                )
+                .frame(width: canvasSize.width, height: canvasSize.height)
+                .position(
+                    x: proxy.size.width / 2,
+                    y: canvasTop(
                         in: proxy.size,
+                        canvasSize: canvasSize,
                         safeAreaInsets: proxy.safeAreaInsets
-                    )
+                    ) + canvasSize.height / 2
                 )
 
-                Spacer(minLength: 0)
+                topBar(safeAreaTop: proxy.safeAreaInsets.top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
@@ -84,24 +91,39 @@ private extension MainEditTextInputOverlay {
         .frame(width: frameSize.width, height: frameSize.height)
     }
 
+    func stableContainerSize(for size: CGSize) -> CGSize {
+        let screenSize = UIScreen.main.bounds.size
+
+        return CGSize(
+            width: size.width,
+            height: max(size.height, screenSize.height)
+        )
+    }
+
     func modalCanvasSize(in size: CGSize, safeAreaInsets: EdgeInsets) -> CGSize {
         let availableWidth = min(size.width, MainEditLayout.designWidth)
         let maximumWidth = min(
             MainEditLayout.maximumCanvasWidth,
             availableWidth - MainEditLayout.textInputCanvasHorizontalInset * 2
         )
-        let reservedHeight = safeAreaInsets.top +
-            MainEditLayout.textInputTopAdditionalPadding +
-            MainEditLayout.textInputTopButtonHeight +
-            MainEditLayout.textInputSmallPreviewHeight +
-            MainEditLayout.textInputCanvasVerticalSpacing
-        let maximumHeight = max(
-            MainEditLayout.textInputMinimumCanvasHeight,
-            size.height - reservedHeight
-        )
-        let width = min(maximumWidth, maximumHeight * MainEditLayout.canvasAspectRatio)
+        let width = max(maximumWidth, 0)
 
         return CGSize(width: width, height: width / MainEditLayout.canvasAspectRatio)
+    }
+
+    func canvasTop(
+        in size: CGSize,
+        canvasSize: CGSize,
+        safeAreaInsets: EdgeInsets
+    ) -> CGFloat {
+        let topBarBottom = safeAreaInsets.top +
+            MainEditLayout.textInputTopAdditionalPadding +
+            MainEditLayout.textInputTopButtonHeight
+        let preferredTop = topBarBottom + MainEditLayout.textInputCanvasTopSpacing
+        let inputTop = size.height - MainEditLayout.textInputSmallPreviewHeight
+        let attachedTop = inputTop - canvasSize.height
+
+        return max(preferredTop, attachedTop)
     }
 
     func topBar(safeAreaTop: CGFloat) -> some View {
@@ -135,9 +157,16 @@ private extension MainEditTextInputOverlay {
                 styleRuns: $styleRuns,
                 selectedRange: $selectedRange,
                 font: font,
-                color: color,
-                submitAction: confirmAction
+                color: color
             )
+            .overlay(alignment: .topLeading) {
+                if text.isEmpty {
+                    Text(MainEditLayout.textPreviewPlaceholder)
+                        .font(.custom(font.fontName, size: MainEditLayout.textInputSmallPreviewFontSize))
+                        .foregroundStyle(color.color)
+                        .allowsHitTesting(false)
+                }
+            }
             .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
@@ -156,7 +185,6 @@ private struct MainEditTextInputTextView: UIViewRepresentable {
 
     let font: MainEditTextFont
     let color: MainEditTextColor
-    let submitAction: () -> Void
 
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
@@ -168,7 +196,7 @@ private struct MainEditTextInputTextView: UIViewRepresentable {
         textView.isScrollEnabled = false
         textView.textContainerInset = .zero
         textView.textContainer.lineFragmentPadding = 0
-        textView.returnKeyType = .done
+        textView.returnKeyType = .default
         textView.keyboardAppearance = .dark
         textView.autocorrectionType = .no
         textView.autocapitalizationType = .none
@@ -228,12 +256,6 @@ private struct MainEditTextInputTextView: UIViewRepresentable {
         }
 
         func textViewDidChange(_ textView: UITextView) {
-            if textView.text.hasSuffix("\n") {
-                textView.text.removeLast()
-                parent.submitAction()
-                return
-            }
-
             parent.text = textView.text
             parent.styleRuns = makeStyleRuns(
                 from: textView.attributedText,
