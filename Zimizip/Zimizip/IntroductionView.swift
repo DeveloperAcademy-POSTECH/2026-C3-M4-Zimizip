@@ -3,7 +3,7 @@ import SwiftUI
 struct IntroductionView: View {
     let onStartButtonTap: () -> Void
 
-    @State private var showsNextView = false
+    @State private var currentPage: IntroductionPage = .first
 
     init(onStartButtonTap: @escaping () -> Void = {}) {
         self.onStartButtonTap = onStartButtonTap
@@ -11,55 +11,120 @@ struct IntroductionView: View {
 
     var body: some View {
         ZStack {
-            Color("BackgroundPrimary")
+            Color.backgroundPrimary
                 .ignoresSafeArea()
 
-            if showsNextView {
-                IntroductionNextView(onStartButtonTap: onStartButtonTap)
-            } else {
-                VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: 205)
+            VStack {
+                Spacer()
 
-                    AnimatedImage(name: "pingpong_delay1.5s")
-                        .frame(width: 244, height: 301)
-                        .clipped()
+                currentPage.animationView
 
-                    Text("서프라이즈할 사진을 꾸미고\n커버로 덮어 숨겨보세요")
-                        .font(Font.custom("Pretendard-Bold", size: 20))
-                        .foregroundStyle(Color(red: 17 / 255, green: 17 / 255, blue: 17 / 255))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-                        .padding(.top, -16)
+                Text(currentPage.description)
+                    .font(Font.custom("Pretendard-Bold", size: 20))
+                    .foregroundStyle(Color.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
 
-                    HStack(spacing: 4) {
-                        Capsule()
-                            .fill(Color(red: 1, green: 0.42, blue: 0.13))
-                            .frame(width: 16, height: 8)
-
-                        Circle()
-                            .fill(Color(red: 0.85, green: 0.85, blue: 0.85))
-                            .frame(width: 8, height: 8)
-                    }
+                currentPage.indicatorView
                     .padding(.top, 40)
 
-                    Spacer()
+                Spacer()
 
-                    Button {
-                        showsNextView = true
-                    } label: {
-                        Text("다음")
-                            .font(Font.custom("Pretendard-Bold", size: 16))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(Color(red: 1, green: 0.42, blue: 0.13))
-                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 71)
+                Button(action: handleButtonTap) {
+                    Text(currentPage.buttonTitle)
+                        .font(Font.custom("Pretendard-Bold", size: 16))
+                        .foregroundStyle(Color.baseWhite)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.orangePrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 71)
+            }
+        }
+    }
+
+    private func handleButtonTap() {
+        switch currentPage {
+        case .first:
+            currentPage = .next
+        case .next:
+            onStartButtonTap()
+        }
+    }
+}
+
+private enum IntroductionPage {
+    case first
+    case next
+
+    var topSpacing: CGFloat {
+        switch self {
+        case .first:
+            return 205
+        case .next:
+            return 180
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .first:
+            return "서프라이즈할 사진을 꾸미고\n커버로 덮어 숨겨보세요"
+        case .next:
+            return "폰을 건넨 뒤, 사진이 드러나는\n순간의 리액션을 담아보세요"
+        }
+    }
+
+    var buttonTitle: String {
+        switch self {
+        case .first:
+            return "다음"
+        case .next:
+            return "서프라이즈 준비하기"
+        }
+    }
+
+    @ViewBuilder
+    var animationView: some View {
+        switch self {
+        case .first:
+            AnimatedImage(name: "pingpong_delay1.5s")
+                .frame(width: 250, height: 300)
+                .clipped()
+        case .next:
+            AnimatedImage(name: "intro2")
+                .frame(width: 250, height: 300)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(Color.backgroundPrimary, lineWidth: 1)
+                )
+        }
+    }
+
+    @ViewBuilder
+    var indicatorView: some View {
+        HStack(spacing: 4) {
+            switch self {
+            case .first:
+                Capsule()
+                    .fill(Color.orangePrimary)
+                    .frame(width: 16, height: 8)
+
+                Circle()
+                    .fill(Color.gray150)
+                    .frame(width: 8, height: 8)
+            case .next:
+                Circle()
+                    .fill(Color.gray150)
+                    .frame(width: 8, height: 8)
+
+                Capsule()
+                    .fill(Color.orangePrimary)
+                    .frame(width: 16, height: 8)
             }
         }
     }
