@@ -9,6 +9,7 @@ struct MainEditCanvas: View {
     var selectedTextID: MainEditTextItem.ID?
     var selectTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var textTapAction: (MainEditTextItem.ID) -> Void = { _ in }
+    var textDoubleTapAction: (MainEditTextItem.ID) -> Void = { _ in }
     var deleteTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var duplicateTextAction: (MainEditTextItem.ID) -> Void = { _ in }
     var dragTextAction: (MainEditTextItem.ID, CGSize, CGSize) -> Void = { _, _, _ in }
@@ -69,9 +70,6 @@ private extension MainEditCanvas {
         let previewSize = textPreviewSize(for: textItem, in: frameSize)
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 0)
-                .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
-
             Text(
                 attributedText(
                     for: textItem,
@@ -84,13 +82,16 @@ private extension MainEditCanvas {
                 .padding(.horizontal, MainEditLayout.textPreviewControlSize)
 
             if selectedTextID == textItem.id {
+                RoundedRectangle(cornerRadius: 0)
+                    .stroke(Color.baseWhite, lineWidth: MainEditLayout.textPreviewBoxBorderWidth)
+
                 textPreviewControlButton(
                     systemName: MainEditLayout.textPreviewCloseIconName,
                     action: {
                         deleteTextAction(textItem.id)
                     }
                 )
-                    .position(x: 0, y: 0)
+                    .position(x: previewSize.width, y: 0)
 
                 textPreviewControlButton(
                     systemName: MainEditLayout.textPreviewDuplicateIconName,
@@ -99,19 +100,14 @@ private extension MainEditCanvas {
                     }
                 )
                     .position(x: 0, y: previewSize.height)
-
-                textPreviewControlButton(
-                    systemName: MainEditLayout.textPreviewResizeIconName,
-                    action: {
-                        selectTextAction(textItem.id)
-                    }
-                )
-                    .position(x: previewSize.width, y: previewSize.height)
             }
         }
         .frame(width: previewSize.width, height: previewSize.height)
         .position(restoredTextCenter(for: textItem, in: frameSize))
-        .contentShape(Rectangle())
+        .zIndex(textItem.id == selectedTextID ? 0 : 1)
+        .onTapGesture(count: 2) {
+            textDoubleTapAction(textItem.id)
+        }
         .onTapGesture {
             textTapAction(textItem.id)
         }
