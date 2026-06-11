@@ -35,44 +35,49 @@ struct ReactionVideoPlaybackView: View {
             let headerToPlayerSpacing: CGFloat = 44
             let playerToControlSpacing: CGFloat = 32
             let controlHeight: CGFloat = 56
-            let controlBottomPadding = proxy.safeAreaInsets.bottom + 40
-            let headerTopY = proxy.safeAreaInsets.top
-            let headerCenterY = headerTopY + (headerHeight / 2)
-            let controlCenterY = proxy.size.height - controlBottomPadding - (controlHeight / 2)
-            let playerAreaTopY = headerTopY + headerHeight + headerToPlayerSpacing
-            let playerAreaBottomY = controlCenterY - (controlHeight / 2) - playerToControlSpacing
-            let maxPlayerHeight = max(120, playerAreaBottomY - playerAreaTopY)
+            let bottomPadding = proxy.safeAreaInsets.bottom + 40
+            let fixedVerticalSpace = proxy.safeAreaInsets.top
+                + headerHeight
+                + headerToPlayerSpacing
+                + playerToControlSpacing
+                + controlHeight
+                + bottomPadding
+            let maxPlayerHeight = max(120, proxy.size.height - fixedVerticalSpace)
             let preferredPlayerWidth = min(360, contentWidth)
             let preferredPlayerHeight = preferredPlayerWidth / videoAspectRatio
             let playerHeight = min(preferredPlayerHeight, maxPlayerHeight)
             let playerWidth = min(preferredPlayerWidth, playerHeight * videoAspectRatio)
-            let playerCenterY = playerAreaTopY + (maxPlayerHeight / 2)
 
             ZStack {
                 Color.backgroundPrimary
                     .ignoresSafeArea()
 
-                ReactionVideoPlaybackHeader(
-                    title: title,
-                    subtitle: subtitle,
-                    onBack: onBack
-                )
-                .frame(width: contentWidth, height: headerHeight)
-                .position(x: proxy.size.width / 2, y: headerCenterY)
+                VStack {
+                    ReactionVideoPlaybackHeader(
+                        title: title,
+                        subtitle: subtitle,
+                        onBack: onBack
+                    )
+                    .frame(width: contentWidth, height: headerHeight)
 
-                ReactionVideoPlaybackCard(
-                    player: player
-                )
-                .frame(width: playerWidth, height: playerHeight)
-                .position(x: proxy.size.width / 2, y: playerCenterY)
+                    Spacer()
 
-                ReactionVideoPlaybackControlBar(
-                    isPlaying: isPlaying,
-                    progress: playbackProgress,
-                    onPlayToggle: togglePlayback
-                )
-                .frame(width: contentWidth, height: controlHeight)
-                .position(x: proxy.size.width / 2, y: controlCenterY)
+                    ReactionVideoPlaybackCard(
+                        player: player
+                    )
+                    .frame(width: playerWidth, height: playerHeight)
+
+                    Spacer()
+
+                    ReactionVideoPlaybackControlBar(
+                        isPlaying: isPlaying,
+                        progress: playbackProgress,
+                        onPlayToggle: togglePlayback
+                    )
+                    .frame(width: contentWidth, height: controlHeight)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.bottom, 44)
             }
         }
         .navigationBarBackButtonHidden(true)
