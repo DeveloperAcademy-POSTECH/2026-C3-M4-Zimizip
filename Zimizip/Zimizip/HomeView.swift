@@ -1,15 +1,21 @@
+import SwiftData
 import SwiftUI
 
 struct HomeView: View {
+    @Query private var surpriseProjects: [SurpriseProject]
+
     @State private var selectedCardIndex = 1
     @State private var isShowingMediaSourceOption = false
+    @State private var selectedSurpriseProject: SurpriseProject?
     @State private var selectedTab: HomeTab = .home
 
-    private let surpriseCards = [
-        HomeSurpriseCard(imageName: "HomeSurpriseCardLeft", imageMode: .leftCrop, title: "토바에의 깜짝 소식"),
-        HomeSurpriseCard(imageName: "HomeSurpriseCardCenter", imageMode: .fill, title: "지미집 생일파티"),
-        HomeSurpriseCard(imageName: "HomeSurpriseCardRight", imageMode: .rightCrop, title: "해피버스데이투유")
-    ]
+    private var pendingSurpriseProjects: [SurpriseProject] {
+        surpriseProjects.filter { $0.reactionContents.isEmpty }
+    }
+
+    private var surpriseCards: [HomeSurpriseCard] {
+        pendingSurpriseProjects.map(HomeSurpriseCard.init)
+    }
 
     var body: some View {
         NavigationStack {
@@ -36,6 +42,7 @@ struct HomeView: View {
                 let carouselHeight = 430 * cardScale
                 let carouselCenterY = min(screenHeight * 0.5 + 32, 469)
                 let titleY = carouselCenterY + (180 * cardScale) + 39
+                let selectedIndex = safeSelectedCardIndex(for: surpriseCards)
 
                 ZStack(alignment: .bottomLeading) {
                     Color.homeBackground
@@ -57,19 +64,30 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     .ignoresSafeArea(edges: .top)
 
-                    SurpriseCardCarousel(
-                        cards: surpriseCards,
-                        selectedIndex: $selectedCardIndex,
-                        scale: cardScale
-                    )
+                    if surpriseCards.isEmpty {
+                        HomeEmptyPendingView()
+                            .position(x: screenWidth / 2, y: carouselCenterY)
+                    } else {
+                        SurpriseCardCarousel(
+                            cards: surpriseCards,
+                            selectedIndex: Binding(
+                                get: { selectedIndex },
+                                set: { selectedCardIndex = $0 }
+                            ),
+                            scale: cardScale,
+                            onCardTap: { surpriseProject in
+                                selectedSurpriseProject = surpriseProject
+                            }
+                        )
                         .frame(width: carouselWidth, height: carouselHeight)
                         .position(x: screenWidth / 2, y: carouselCenterY)
 
-                    Text(surpriseCards[selectedCardIndex].title)
-                        .font(Font.custom("Pretendard-Bold", size: 16))
-                        .foregroundStyle(Color.homeSecondaryText)
-                        .frame(width: 240)
-                        .position(x: screenWidth / 2, y: titleY)
+                        Text(surpriseCards[selectedIndex].title)
+                            .font(Font.custom("Pretendard-Bold", size: 16))
+                            .foregroundStyle(Color.homeSecondaryText)
+                            .frame(width: 240)
+                            .position(x: screenWidth / 2, y: titleY)
+                    }
 
                     BottomTabBar(
                         selectedTab: selectedTab,
@@ -102,6 +120,29 @@ struct HomeView: View {
                 MediaSourceOptionView()
                     .navigationBarBackButtonHidden(true)
             }
+            .navigationDestination(
+                isPresented: Binding(
+                    get: { selectedSurpriseProject != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            selectedSurpriseProject = nil
+                        }
+                    }
+                )
+            ) {
+                if let selectedSurpriseProject {
+                    ReactionRecordGuideView(
+                        surpriseCardPayload: selectedSurpriseProject.reactionRecordPayload(),
+                        surpriseProject: selectedSurpriseProject
+                    )
+                    .navigationBarBackButtonHidden(true)
+                }
+            }
+    }
+
+    private func safeSelectedCardIndex(for cards: [HomeSurpriseCard]) -> Int {
+        guard !cards.isEmpty else { return 0 }
+        return min(max(selectedCardIndex, 0), cards.count - 1)
     }
 }
 
@@ -111,10 +152,17 @@ private enum HomeTab {
 }
 
 private struct HomeSurpriseCard: Identifiable {
-    let id = UUID()
-    let imageName: String
-    let imageMode: SurpriseCard.ImageMode
+    let id: PersistentIdentifier
+    let surpriseProject: SurpriseProject
+    let coverImageName: String
     let title: String
+
+    init(surpriseProject: SurpriseProject) {
+        id = surpriseProject.persistentModelID
+        self.surpriseProject = surpriseProject
+        coverImageName = surpriseProject.content.box.isEmpty ? "HomeSurpriseCardCenter" : surpriseProject.content.box
+        title = surpriseProject.name
+    }
 }
 
 private struct StrokedTitleText: View {
@@ -157,6 +205,7 @@ private struct SurpriseCardCarousel: View {
     let cards: [HomeSurpriseCard]
     @Binding var selectedIndex: Int
     let scale: CGFloat
+    let onCardTap: (SurpriseProject) -> Void
 
     var body: some View {
         let sideOffset = 220 * scale
@@ -168,9 +217,8 @@ private struct SurpriseCardCarousel: View {
                 let isCenter = distance == 0
 
                 SurpriseCard(
-                    imageName: card.imageName,
-                    size: isCenter ? .large : .small,
-                    imageMode: card.imageMode
+                    coverImageName: card.coverImageName,
+                    size: isCenter ? .large : .small
                 )
                 .frame(
                     width: (isCenter ? 240 : 160) * scale,
@@ -185,8 +233,12 @@ private struct SurpriseCardCarousel: View {
                 .zIndex(isCenter ? 2 : 1)
                 .animation(.easeInOut(duration: 0.32), value: selectedIndex)
                 .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.32)) {
-                        selectedIndex = index
+                    if isCenter {
+                        onCardTap(card.surpriseProject)
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.32)) {
+                            selectedIndex = index
+                        }
                     }
                 }
             }
@@ -229,15 +281,8 @@ private struct SurpriseCard: View {
         }
     }
 
-    enum ImageMode {
-        case fill
-        case leftCrop
-        case rightCrop
-    }
-
-    let imageName: String
+    let coverImageName: String
     let size: Size
-    let imageMode: ImageMode
 
     var body: some View {
         GeometryReader { geometry in
@@ -275,24 +320,25 @@ private struct SurpriseCard: View {
 
     @ViewBuilder
     private var cardImage: some View {
-        switch imageMode {
-        case .fill:
-            Image(imageName)
+        Image(coverImageName)
+            .resizable()
+            .scaledToFill()
+    }
+}
+
+private struct HomeEmptyPendingView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image("HomeEmptyCharacter")
                 .resizable()
-                .scaledToFill()
-        case .leftCrop:
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .scaleEffect(1.18)
-                .offset(x: -18, y: -3)
-        case .rightCrop:
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .scaleEffect(1.44)
-                .offset(x: -24, y: -3)
+                .scaledToFit()
+                .frame(width: 150, height: 150)
+
+            Text("대기 중인 서프라이즈 카드가 없어요")
+                .font(Font.custom("Pretendard-Bold", size: 16))
+                .foregroundStyle(Color.homeSecondaryText)
         }
+        .frame(width: 260)
     }
 }
 
@@ -367,4 +413,5 @@ private extension Color {
 
 #Preview {
     HomeView()
+        .modelContainer(ArchivePreviewData.modelContainer())
 }

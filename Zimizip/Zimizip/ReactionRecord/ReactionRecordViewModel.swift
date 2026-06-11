@@ -67,6 +67,7 @@ final class ReactionRecordViewModel: ObservableObject {
             screenRecordingURL = try await screenRecorder.stopRecording()
             frontCameraRecordingURL = try? await frontCameraRecorder.stopRecording()
             composedReactionVideoURL = try await composeReactionVideoIfNeeded()
+            reactionThumbnailImage = nil
             try await generateReactionThumbnailIfNeeded()
             isGeneratingReactionVideo = false
             isRecordingCompleted = true

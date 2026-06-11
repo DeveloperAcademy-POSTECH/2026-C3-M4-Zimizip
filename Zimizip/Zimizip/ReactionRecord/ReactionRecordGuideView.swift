@@ -13,6 +13,15 @@ struct ReactionRecordGuideView: View {
     @State private var screenRecorder = SampleBufferReactionVideoRecorder()
 
     let surpriseCardPayload: SurpriseCardPayload
+    let surpriseProject: SurpriseProject?
+
+    init(
+        surpriseCardPayload: SurpriseCardPayload,
+        surpriseProject: SurpriseProject? = nil
+    ) {
+        self.surpriseCardPayload = surpriseCardPayload
+        self.surpriseProject = surpriseProject
+    }
 
     var body: some View {
         ZStack {
@@ -74,6 +83,7 @@ struct ReactionRecordGuideView: View {
         .navigationDestination(isPresented: $isShowingReactionRecord) {
             ReactionRecordView(
                 surpriseCardPayload: surpriseCardPayload,
+                surpriseProject: surpriseProject,
                 screenRecorder: screenRecorder
             )
         }
