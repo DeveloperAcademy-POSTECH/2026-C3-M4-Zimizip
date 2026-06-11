@@ -9,7 +9,7 @@ struct ArchiveReactionView: View {
         ArchiveItem(imageNames: ["ArchiveReaction1", "ArchiveReaction2", "ArchiveReaction3"], cardFrameName: "ReactionCardFrame1", title: "아카데미 C6 시작 ...", count: "동영상 3개", overlayText: nil, opensDetail: true),
         ArchiveItem(imageNames: ["ArchiveReaction4", "ArchiveReaction5", "ArchiveReaction6"], cardFrameName: "ReactionCardFrame2", title: "우주대폭발 광경 ...", count: "동영상 6개", overlayText: "+3"),
         ArchiveItem(imageNames: ["ArchiveReaction7"], cardFrameName: "ReactionCardFrame3", title: "메이슨 결혼식 축가 ...", count: "동영상 1개", overlayText: nil),
-        ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], cardFrameName: "ReactionCardFrame4", title: "도라네이션최고 ...", count: "동영상 2개", overlayText: nil)
+        ArchiveItem(imageNames: ["ArchiveReaction8", "ArchiveReaction9"], cardFrameName: "ReactionCardFrame4", title: "도라네이선최고 ...", count: "동영상 2개", overlayText: nil)
     ]
 
     var body: some View {

@@ -27,10 +27,10 @@ struct ReactionRecordingContentView: View {
                 onStopButtonTap()
             }
             .disabled(!isStopButtonEnabled)
-            .padding(.horizontal, 20)
         }
         .padding(.top, 20)
         .padding(.bottom, 48)
+        .padding(.horizontal, 20)
     }
 }
 
