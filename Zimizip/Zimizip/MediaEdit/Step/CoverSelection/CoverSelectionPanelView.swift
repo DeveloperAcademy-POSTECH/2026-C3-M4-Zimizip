@@ -21,7 +21,7 @@ struct CoverSelectionPanelView: View {
             }
             .padding(.top, 20)
             .padding(.bottom, 47)
-            .background(.baseBlack)
+            .background(.overlayBottom)
         }
     }
 }
