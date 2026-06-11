@@ -5,6 +5,10 @@ struct SurpriseCardPayload {
     let framingResult: PhotoFramingResult
     let image: UIImage?
     let coverImageName: String
+
+    var persistedImageData: Data {
+        image?.jpegData(compressionQuality: 0.9) ?? framingResult.source
+    }
 }
 
 extension SurpriseCardPayload {
