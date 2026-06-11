@@ -58,6 +58,8 @@ enum MainEditLayout {
     static let textColorSelectedFillSize: CGFloat = 33.33334
     static let textColorSelectedFillCornerRadius: CGFloat = 33.33334
     static let textPreviewBoxWidthRatio: CGFloat = 0.78
+    static let textPreviewBoxMinimumWidth: CGFloat = 96
+    static let textPreviewBoxHorizontalPadding: CGFloat = 48
     static let textPreviewBoxHeight: CGFloat = 56
     static let textPreviewBoxBorderWidth: CGFloat = 2
     static let textPreviewControlSize: CGFloat = 20

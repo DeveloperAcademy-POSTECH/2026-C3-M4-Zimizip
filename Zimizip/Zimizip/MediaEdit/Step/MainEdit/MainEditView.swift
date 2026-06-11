@@ -91,6 +91,7 @@ struct MainEditView: View {
                         endTextScaleAction: endTextScale,
                         stickers: canvasStickerItems,
                         selectedStickerID: canvasSelectedStickerID,
+                        isStickerEditingEnabled: selectedTool == .sticker,
                         selectStickerAction: selectStickerItem,
                         dragStickerAction: dragStickerItem,
                         endStickerDragAction: endStickerDrag,
