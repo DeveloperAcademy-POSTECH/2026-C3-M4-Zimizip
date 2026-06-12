@@ -13,7 +13,7 @@ struct ArchiveReactionDetailView: View {
                 ReactionVideoPlaybackView(
                     title: surpriseProject.name,
                     subtitle: selectedPlayerItem.title,
-                    videoURL: selectedPlayerItem.reactionContent.videoURL
+                    videoURL: selectedPlayerItem.reactionContent.playableVideoURL
                 ) {
                     showReactionDetailList()
                 }

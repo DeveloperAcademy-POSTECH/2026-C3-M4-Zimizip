@@ -49,11 +49,15 @@ struct ReactionVideoPlaybackView: View {
                 + playerToControlSpacing
                 + controlHeight
                 + bottomPadding
-            let maxPlayerHeight = max(120, proxy.size.height - fixedVerticalSpace)
-            let preferredPlayerWidth = min(360, contentWidth)
-            let preferredPlayerHeight = preferredPlayerWidth / videoAspectRatio
-            let playerHeight = min(preferredPlayerHeight, maxPlayerHeight)
-            let playerWidth = min(preferredPlayerWidth, playerHeight * videoAspectRatio)
+            let maxCardHeight = max(120, proxy.size.height - fixedVerticalSpace)
+            let preferredCardWidth = min(360, contentWidth)
+            let maxVideoWidth = max(1, preferredCardWidth - ReactionVideoPlaybackCard.horizontalInset)
+            let maxVideoHeight = max(1, maxCardHeight - ReactionVideoPlaybackCard.verticalInset)
+            let preferredVideoHeight = maxVideoWidth / videoAspectRatio
+            let videoHeight = min(preferredVideoHeight, maxVideoHeight)
+            let videoWidth = min(maxVideoWidth, videoHeight * videoAspectRatio)
+            let cardWidth = videoWidth + ReactionVideoPlaybackCard.horizontalInset
+            let cardHeight = videoHeight + ReactionVideoPlaybackCard.verticalInset
 
             ZStack {
                 Color.backgroundPrimary
@@ -77,7 +81,7 @@ struct ReactionVideoPlaybackView: View {
                     ReactionVideoPlaybackCard(
                         player: player
                     )
-                    .frame(width: playerWidth, height: playerHeight)
+                    .frame(width: cardWidth, height: cardHeight)
 
                     Spacer()
 
@@ -358,22 +362,31 @@ private struct ReactionVideoPlaybackHeader: View {
 }
 
 private struct ReactionVideoPlaybackCard: View {
+    static let borderWidth: CGFloat = 6
+    static let topInset = borderWidth
+    static let horizontalInset = borderWidth * 2
+    static let verticalInset = topInset + borderWidth
+
     let player: AVPlayer
 
     var body: some View {
+        let cornerRadius: CGFloat = 24
+
         ZStack {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(Color.coverLine)
 
             ReactionVideoPlayerView(player: player, videoGravity: .resizeAspect)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.baseWhite, lineWidth: 6)
-                }
-                .padding(6)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .padding(.top, Self.topInset)
+                .padding(.horizontal, Self.borderWidth)
+                .padding(.bottom, Self.borderWidth)
+
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(Color.baseWhite, lineWidth: Self.borderWidth)
+                .padding(Self.borderWidth)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 }
 

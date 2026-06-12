@@ -106,9 +106,10 @@ struct ReactionRecordView: View {
         }
 
         do {
-            let archivedVideoURL = try copyReactionVideoToArchive(from: composedReactionVideoURL)
+            let archivedVideo = try ReactionVideoArchive.copyVideoToArchive(from: composedReactionVideoURL)
             let reactionContent = ReactionContent(
-                videoURL: archivedVideoURL,
+                videoURL: archivedVideo.url,
+                videoFileName: archivedVideo.fileName,
                 thumbnailData: viewModel.reactionThumbnailImage?.jpegData(compressionQuality: 0.85)
             )
 
@@ -133,30 +134,6 @@ struct ReactionRecordView: View {
         } catch {
             print("[ReactionRecord] failed to save completed reaction: \(error.localizedDescription)")
         }
-    }
-
-    private func copyReactionVideoToArchive(from sourceURL: URL) throws -> URL {
-        let fileManager = FileManager.default
-        let archiveDirectory = try fileManager.url(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        .appendingPathComponent("ReactionVideos", isDirectory: true)
-
-        try fileManager.createDirectory(
-            at: archiveDirectory,
-            withIntermediateDirectories: true
-        )
-
-        let fileExtension = sourceURL.pathExtension.isEmpty ? "mp4" : sourceURL.pathExtension
-        let destinationURL = archiveDirectory
-            .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension(fileExtension)
-
-        try fileManager.copyItem(at: sourceURL, to: destinationURL)
-        return destinationURL
     }
 }
 
